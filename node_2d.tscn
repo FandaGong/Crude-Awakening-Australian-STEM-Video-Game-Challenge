@@ -1,0 +1,211 @@
+[gd_scene format=3 uid="uid://dr7aweyfaw8fk"]
+
+[ext_resource type="PackedScene" uid="uid://cd2fiokjygth8" path="res://Player.tscn" id="1_0e48y"]
+[ext_resource type="Script" uid="uid://bymrlw4t8sxh7" path="res://ui.gd" id="1_0hol4"]
+[ext_resource type="Script" uid="uid://3u0e1k7bkcl" path="res://player/player.gd" id="2_epypp"]
+[ext_resource type="Texture2D" uid="uid://ckbdi5ivassqf" path="res://icon.svg" id="3_epypp"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_ge17k"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_47aep"]
+size = Vector2(5228, 607)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_g14lc"]
+size = Vector2(1310.5, 529)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_g14lc"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_epypp")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ge17k"]
+radius = 54.0
+height = 108.0
+
+[node name="Main" type="Node2D" unique_id=525190435]
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=1149631092]
+script = ExtResource("1_0hol4")
+
+[node name="titleScreen" type="Control" parent="UI" unique_id=580563807]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="UI/titleScreen" unique_id=660948153]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="UI/titleScreen" unique_id=1968588251]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -68.0
+offset_right = 68.0
+offset_bottom = 23.0
+grow_horizontal = 2
+text = "Crude Awakening"
+label_settings = SubResource("LabelSettings_ge17k")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/titleScreen" unique_id=2079890368]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="playButton" type="Button" parent="UI/titleScreen/VBoxContainer" unique_id=2113370700]
+layout_mode = 2
+text = "Play"
+
+[node name="settingsButton" type="Button" parent="UI/titleScreen/VBoxContainer" unique_id=508939436]
+layout_mode = 2
+text = "Settings"
+
+[node name="quitButton" type="Button" parent="UI/titleScreen/VBoxContainer" unique_id=856096336]
+layout_mode = 2
+text = "Quit"
+
+[node name="HUD" type="Control" parent="UI" unique_id=1101830690]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="settingsMenu" type="Control" parent="UI" unique_id=1446795298]
+process_mode = 2
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="backgroundDim" type="ColorRect" parent="UI/settingsMenu" unique_id=123946686]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.25490198)
+
+[node name="Panel" type="Panel" parent="UI/settingsMenu" unique_id=979405338]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -476.0
+offset_top = -222.0
+offset_right = 472.0
+offset_bottom = 248.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="particlesButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=1606853047]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 199.0
+offset_right = 110.0
+offset_bottom = 223.0
+
+[node name="reduceMotionButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=625897432]
+layout_mode = 0
+offset_left = 65.0
+offset_top = 73.0
+offset_right = 109.0
+offset_bottom = 97.0
+
+[node name="colorblindButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=702958870]
+layout_mode = 0
+offset_left = 65.0
+offset_top = 281.0
+offset_right = 109.0
+offset_bottom = 305.0
+
+[node name="soundButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=2062861524]
+layout_mode = 0
+offset_left = 67.0
+offset_top = 127.0
+offset_right = 111.0
+offset_bottom = 151.0
+
+[node name="closeButton" type="Button" parent="UI/settingsMenu/Panel" unique_id=998156319]
+layout_mode = 0
+offset_left = 912.0
+offset_top = 16.0
+offset_right = 930.0
+offset_bottom = 47.0
+text = "X"
+
+[node name="World" type="Node2D" parent="." unique_id=43231068]
+
+[node name="pondScene" type="Node2D" parent="World" unique_id=1998633646]
+
+[node name="StaticBody2D" type="StaticBody2D" parent="World/pondScene" unique_id=48092366]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/pondScene/StaticBody2D" unique_id=1383334383]
+position = Vector2(2705, 2527.5)
+shape = SubResource("RectangleShape2D_47aep")
+
+[node name="ColorRect" type="ColorRect" parent="World/pondScene/StaticBody2D" unique_id=996018327]
+offset_left = 74.0
+offset_top = 2224.0
+offset_right = 5320.0
+offset_bottom = 2838.0
+
+[node name="trenchScene" type="Node2D" parent="World" unique_id=1013212590]
+
+[node name="waterArea" type="Area2D" parent="World/trenchScene" unique_id=256126705]
+position = Vector2(1478, 19)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/trenchScene/waterArea" unique_id=193712280]
+position = Vector2(2330, 1878)
+shape = SubResource("RectangleShape2D_g14lc")
+
+[node name="endingScene" type="Node2D" parent="World" unique_id=1861134281]
+
+[node name="Player" parent="World" unique_id=1331852227 instance=ExtResource("1_0e48y")]
+position = Vector2(417, 564)
+script = ExtResource("2_epypp")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="World/Player" unique_id=1374419649]
+position = Vector2(1013, 941)
+sprite_frames = SubResource("SpriteFrames_g14lc")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Player" unique_id=1595813394]
+position = Vector2(1012, 940)
+shape = SubResource("CapsuleShape2D_ge17k")
+
+[node name="Camera2D" type="Camera2D" parent="World/Player" unique_id=1183113798]
+position = Vector2(1275, 1034)
+
+[connection signal="pressed" from="UI/titleScreen/VBoxContainer/playButton" to="UI" method="_on_play_button_pressed"]
+[connection signal="pressed" from="UI/titleScreen/VBoxContainer/settingsButton" to="UI" method="_on_settings_button_pressed"]
+[connection signal="pressed" from="UI/titleScreen/VBoxContainer/quitButton" to="UI" method="_on_quit_button_pressed"]
+[connection signal="body_entered" from="World/trenchScene/waterArea" to="World/Player" method="_on_water_area_body_entered"]
+[connection signal="body_exited" from="World/trenchScene/waterArea" to="World/Player" method="_on_water_area_body_exited"]

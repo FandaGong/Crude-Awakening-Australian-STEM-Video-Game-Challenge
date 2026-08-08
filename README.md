@@ -1,4 +1,4 @@
-# Ocean-game
+# Crude-Awakening-Australian-STEM-Video-Game-Challenge
 For the Australian STEM Video Game Challenge
 
 **Documentation**

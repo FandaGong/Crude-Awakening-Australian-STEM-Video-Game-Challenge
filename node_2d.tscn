@@ -2,13 +2,47 @@
 
 [ext_resource type="PackedScene" uid="uid://cd2fiokjygth8" path="res://Player.tscn" id="1_0e48y"]
 [ext_resource type="Script" uid="uid://bymrlw4t8sxh7" path="res://ui.gd" id="1_0hol4"]
+[ext_resource type="Texture2D" uid="uid://bcdg3u8nbnfti" path="res://assets/deep-blue-serenity-stockcake.jpg" id="2_4d7sh"]
 [ext_resource type="Script" uid="uid://3u0e1k7bkcl" path="res://player/player.gd" id="2_epypp"]
+[ext_resource type="Script" uid="uid://djrq7r0tpgfp6" path="res://world.gd" id="2_q6r6c"]
+[ext_resource type="Texture2D" uid="uid://dhagmhi3kgodu" path="res://assets/splashLogo.png" id="2_rj586"]
 [ext_resource type="Texture2D" uid="uid://ckbdi5ivassqf" path="res://icon.svg" id="3_epypp"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_ge17k"]
+[ext_resource type="Script" uid="uid://g1a15nx672q" path="res://npc.gd" id="3_kdubu"]
+[ext_resource type="Script" uid="uid://damid8cexwft2" path="res://dev_cameo.gd" id="5_d21ai"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_47aep"]
 size = Vector2(5228, 607)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ge17k"]
+size = Vector2(782, 447)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ge17k"]
+radius = 94.53042
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_dm1sy"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_epypp")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_g14lc"]
+radius = 100.60318
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_h24fu"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_epypp")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_g14lc"]
 size = Vector2(1310.5, 529)
@@ -25,8 +59,8 @@ animations = [{
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ge17k"]
-radius = 54.0
-height = 108.0
+radius = 66.0
+height = 132.0
 
 [node name="Main" type="Node2D" unique_id=525190435]
 
@@ -34,6 +68,7 @@ height = 108.0
 script = ExtResource("1_0hol4")
 
 [node name="titleScreen" type="Control" parent="UI" unique_id=580563807]
+process_mode = 3
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -41,42 +76,43 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="TextureRect" type="TextureRect" parent="UI/titleScreen" unique_id=660948153]
+[node name="bg" type="TextureRect" parent="UI/titleScreen" unique_id=660948153]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+texture = ExtResource("2_4d7sh")
 
-[node name="Label" type="Label" parent="UI/titleScreen" unique_id=1968588251]
+[node name="title" type="TextureRect" parent="UI/titleScreen" unique_id=1812412451]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -68.0
-offset_right = 68.0
-offset_bottom = 23.0
+offset_left = -595.0
+offset_top = -25.0
+offset_right = 209.0
+offset_bottom = 312.0
 grow_horizontal = 2
-text = "Crude Awakening"
-label_settings = SubResource("LabelSettings_ge17k")
+texture = ExtResource("2_rj586")
+stretch_mode = 4
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UI/titleScreen" unique_id=2079890368]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
+anchors_preset = 4
 anchor_top = 0.5
-anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = -20.0
-offset_right = 20.0
-offset_bottom = 20.0
-grow_horizontal = 2
+offset_left = 71.0
+offset_top = -50.5
+offset_right = 230.0
+offset_bottom = 50.5
 grow_vertical = 2
+offset_transform_enabled = true
 
 [node name="playButton" type="Button" parent="UI/titleScreen/VBoxContainer" unique_id=2113370700]
 layout_mode = 2
+offset_transform_enabled = true
 text = "Play"
 
 [node name="settingsButton" type="Button" parent="UI/titleScreen/VBoxContainer" unique_id=508939436]
@@ -89,12 +125,47 @@ text = "Quit"
 
 [node name="HUD" type="Control" parent="UI" unique_id=1101830690]
 layout_mode = 3
-anchors_preset = 0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="healthBar" type="TextureProgressBar" parent="UI/HUD" unique_id=1954421371]
+layout_mode = 1
 offset_right = 40.0
 offset_bottom = 40.0
 
+[node name="depthLabel" type="Label" parent="UI/HUD" unique_id=1640859874]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -11.5
+offset_right = 40.0
+offset_bottom = 11.5
+grow_vertical = 2
+text = "0 (m)"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/HUD" unique_id=2069366375]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 40.0
+grow_horizontal = 0
+
+[node name="HUDsettingsButton" type="Button" parent="UI/HUD/HBoxContainer" unique_id=352698438]
+layout_mode = 2
+text = "Settings"
+
+[node name="HUDquitButton" type="Button" parent="UI/HUD/HBoxContainer" unique_id=116354920]
+layout_mode = 2
+text = "Quit"
+
 [node name="settingsMenu" type="Control" parent="UI" unique_id=1446795298]
-process_mode = 2
+process_mode = 3
 visible = false
 layout_mode = 3
 anchors_preset = 15
@@ -163,6 +234,7 @@ offset_bottom = 47.0
 text = "X"
 
 [node name="World" type="Node2D" parent="." unique_id=43231068]
+script = ExtResource("2_q6r6c")
 
 [node name="pondScene" type="Node2D" parent="World" unique_id=1998633646]
 
@@ -178,34 +250,92 @@ offset_top = 2224.0
 offset_right = 5320.0
 offset_bottom = 2838.0
 
+[node name="pondSpawn" type="Marker2D" parent="World/pondScene" unique_id=179609503]
+position = Vector2(3507, 1573)
+
+[node name="pondToTrenchTrigger" type="Area2D" parent="World/pondScene" unique_id=987643331]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/pondScene/pondToTrenchTrigger" unique_id=2089093370]
+position = Vector2(468, 2437)
+shape = SubResource("RectangleShape2D_ge17k")
+
+[node name="strugglingAnimal" type="Area2D" parent="World/pondScene" unique_id=694002811]
+script = ExtResource("3_kdubu")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/pondScene/strugglingAnimal" unique_id=1801869762]
+position = Vector2(2367, 2100)
+shape = SubResource("CircleShape2D_ge17k")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="World/pondScene/strugglingAnimal" unique_id=1453170273]
+position = Vector2(2355, 2101)
+sprite_frames = SubResource("SpriteFrames_dm1sy")
+
+[node name="speechBubble" type="Label" parent="World/pondScene/strugglingAnimal" unique_id=1290822907]
+offset_left = 2348.0
+offset_top = 1951.0
+offset_right = 3030.0
+offset_bottom = 1974.0
+text = "Help me"
+
+[node name="devCameo" type="Area2D" parent="World/pondScene" unique_id=1213576989 node_paths=PackedStringArray("player", "forest_spawn")]
+script = ExtResource("5_d21ai")
+player = NodePath("../../player")
+forest_spawn = NodePath("../../trenchScene/trenchSpawn")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/pondScene/devCameo" unique_id=996253671]
+position = Vector2(1080, 2111)
+shape = SubResource("CircleShape2D_g14lc")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="World/pondScene/devCameo" unique_id=1291616529]
+position = Vector2(1088, 2111)
+sprite_frames = SubResource("SpriteFrames_h24fu")
+
+[node name="speechBubble" type="Label" parent="World/pondScene/devCameo" unique_id=1809250121]
+offset_right = 40.0
+offset_bottom = 23.0
+
 [node name="trenchScene" type="Node2D" parent="World" unique_id=1013212590]
 
 [node name="waterArea" type="Area2D" parent="World/trenchScene" unique_id=256126705]
 position = Vector2(1478, 19)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="World/trenchScene/waterArea" unique_id=193712280]
-position = Vector2(2330, 1878)
+position = Vector2(2328, 2459)
 shape = SubResource("RectangleShape2D_g14lc")
+
+[node name="trenchSpawn" type="Marker2D" parent="World/trenchScene" unique_id=404266682]
+position = Vector2(938, 1038)
 
 [node name="endingScene" type="Node2D" parent="World" unique_id=1861134281]
 
-[node name="Player" parent="World" unique_id=1331852227 instance=ExtResource("1_0e48y")]
-position = Vector2(417, 564)
+[node name="endingSpawn" type="Marker2D" parent="World/endingScene" unique_id=336735412]
+position = Vector2(338, 1123)
+
+[node name="player" parent="World" unique_id=1331852227 instance=ExtResource("1_0e48y")]
+position = Vector2(1745, 762)
 script = ExtResource("2_epypp")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="World/Player" unique_id=1374419649]
-position = Vector2(1013, 941)
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="World/player" unique_id=1374419649]
+position = Vector2(-3, 22)
 sprite_frames = SubResource("SpriteFrames_g14lc")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Player" unique_id=1595813394]
-position = Vector2(1012, 940)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/player" unique_id=1595813394]
+position = Vector2(-2, 22)
 shape = SubResource("CapsuleShape2D_ge17k")
 
-[node name="Camera2D" type="Camera2D" parent="World/Player" unique_id=1183113798]
-position = Vector2(1275, 1034)
+[node name="Camera2D" type="Camera2D" parent="World/player" unique_id=1183113798]
+position = Vector2(-2, -76)
 
 [connection signal="pressed" from="UI/titleScreen/VBoxContainer/playButton" to="UI" method="_on_play_button_pressed"]
 [connection signal="pressed" from="UI/titleScreen/VBoxContainer/settingsButton" to="UI" method="_on_settings_button_pressed"]
 [connection signal="pressed" from="UI/titleScreen/VBoxContainer/quitButton" to="UI" method="_on_quit_button_pressed"]
-[connection signal="body_entered" from="World/trenchScene/waterArea" to="World/Player" method="_on_water_area_body_entered"]
-[connection signal="body_exited" from="World/trenchScene/waterArea" to="World/Player" method="_on_water_area_body_exited"]
+[connection signal="pressed" from="UI/HUD/HBoxContainer/HUDsettingsButton" to="UI" method="_on_settings_button_pressed"]
+[connection signal="pressed" from="UI/HUD/HBoxContainer/HUDquitButton" to="UI" method="_on_quit_button_pressed"]
+[connection signal="pressed" from="UI/settingsMenu/Panel/closeButton" to="UI" method="_on_close_button_pressed"]
+[connection signal="body_entered" from="World/pondScene/pondToTrenchTrigger" to="World" method="_on_pond_to_trench_trigger_body_entered"]
+[connection signal="body_entered" from="World/pondScene/strugglingAnimal" to="World/pondScene/strugglingAnimal" method="_on_body_entered"]
+[connection signal="body_exited" from="World/pondScene/strugglingAnimal" to="World/pondScene/strugglingAnimal" method="_on_body_exited"]
+[connection signal="body_entered" from="World/pondScene/devCameo" to="World/pondScene/devCameo" method="_on_body_entered"]
+[connection signal="body_exited" from="World/pondScene/devCameo" to="World/pondScene/devCameo" method="_on_body_exited"]
+[connection signal="body_entered" from="World/trenchScene/waterArea" to="World/player" method="_on_water_area_body_entered"]
+[connection signal="body_exited" from="World/trenchScene/waterArea" to="World/player" method="_on_water_area_body_exited"]

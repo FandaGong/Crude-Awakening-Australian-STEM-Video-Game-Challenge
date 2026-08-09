@@ -10,7 +10,14 @@ var current_state = State.LAND
 
 @onready var sprite = $AnimatedSprite2D
 
+func _ready() -> void:
+	# Disable physics processing immediately on startup so we don't fall during the title screen
+	set_physics_process(false)
+	set_process(false)
+	
 func _physics_process(delta: float) -> void:
+	# print("State: ", current_state, " | Velocity: ", velocity, " | On Floor: ", is_on_floor())
+	
 	match current_state:
 		State.LAND:
 			handle_land_movement(delta)

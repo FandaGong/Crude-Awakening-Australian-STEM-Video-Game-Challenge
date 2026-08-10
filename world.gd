@@ -19,22 +19,15 @@ func _ready() -> void:
 
 func teleport_player_to_pond() -> void:
 	player.global_position = pond_spawn.global_position
-	player.current_state = player.State.LAND
+	# Changed from current_state to currentState
+	player.currentState = player.State.LAND 
 
-func transition_to_trench() -> void:
-	# Teleport the player to the top of the trench
+func transitionToTrench() -> void:
 	player.global_position = trench_spawn.global_position
-	# Switch their state to swimming so they can navigate the descent
-	player.current_state = player.State.SWIMMING
+	# Changed from current_state to currentState
+	player.currentState = player.State.SWIMMING
 
-func transition_to_ending() -> void:
-	# Teleport the player to the peaceful village
+func transitionToEnding() -> void:
 	player.global_position = ending_spawn.global_position
-	# Switch their state back to land movement so they can walk to the chair
-	player.current_state = player.State.LAND
-
-
-func _on_pond_to_trench_trigger_body_entered(body: Node2D) -> void:
-	# Make sure only the player activates the transition
-	if body == player:
-		transition_to_trench()
+	# Changed from current_state to currentState
+	player.currentState = player.State.LAND

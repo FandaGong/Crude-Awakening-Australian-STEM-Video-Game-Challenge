@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://c5lodriuefxhd"]
+
+[ext_resource type="Script" uid="uid://yb5yvyqj36xd" path="res://mutant_mob.gd" id="1_chjpt"]
+[ext_resource type="Texture2D" uid="uid://ckbdi5ivassqf" path="res://icon.svg" id="2_xxe2q"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ge17k"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_xxe2q")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_g14lc"]
+
+[node name="MutantMob" type="CharacterBody2D" unique_id=1411674961]
+script = ExtResource("1_chjpt")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1407293422]
+sprite_frames = SubResource("SpriteFrames_ge17k")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1613176967]
+shape = SubResource("RectangleShape2D_g14lc")

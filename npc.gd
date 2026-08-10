@@ -3,21 +3,18 @@ extends Area2D
 # Make sure this name matches the exact name of the Label in your Scene dock!
 @onready var speech_bubble: Label = $speechBubble 
 
+@export var player: CharacterBody2D
+
 func _ready() -> void:
 	# Safely hide the bubble on start if it exists
 	if speech_bubble:
 		speech_bubble.hide()
+		
+func _on_body_entered(body: Node2D) -> void:
+	if body == player:
+		speech_bubble.text = "The toxic oil is suffocating us...\nPlease find the Dev up ahead!"
+		speech_bubble.show()
 
-# This is the exact function name Godot generated when you connected the signal
-func _on_struggling_animal_body_entered(body: Node2D) -> void:
-	# Using 'body' here checks if the player touched it, fixing the warning!
-	if body.name == "Player":
-		if speech_bubble:
-			speech_bubble.show()
-
-# This is the exact function name Godot generated when you connected the signal
-func _on_struggling_animal_body_exited(body: Node2D) -> void:
-	# Using 'body' here checks if the player left, fixing the warning!
-	if body.name == "Player":
-		if speech_bubble:
-			speech_bubble.hide()
+func _on_body_exited(body: Node2D) -> void:
+	if body == player:
+		speech_bubble.hide()

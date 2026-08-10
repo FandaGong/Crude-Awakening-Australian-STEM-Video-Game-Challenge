@@ -1,68 +1,104 @@
 extends CharacterBody2D
 
 enum State { LAND, SWIMMING }
-var current_state = State.LAND
+var currentState = State.LAND
 
-@export var walk_speed = 200.0
-@export var swim_speed = 400.0 # Slightly slower for better underwater feel
+# --- PLAYER STATS ---
+@export var maxHealth: float = 100.0
+var currentHealth: float = maxHealth
+
+@export var maxAir: float = 100.0 # Oxygen capacity
+var currentAir: float = maxAir
+
+@export var drownDamageRate: float = 10.0 # Damage per second when drowning
+@export var airRecoveryRate: float = 50.0 # How fast oxygen recovers on land
+
+# --- INVENTORY & HOTBAR ---
+var inventory: Array[String] = ["Potion"] # Starts with the curing potion
+var activeWeaponIndex: int = 0
+
+# --- MOVEMENT SPEED ---
+@export var walkSpeed = 300.0
+@export var swimSpeed = 400.0
 @export var gravity = 980.0
-@export var jump_velocity = -400.0 # Negative because Y goes UP in Godot 2D
+@export var jumpVelocity = -200.0
 
 @onready var sprite = $AnimatedSprite2D
 
-func _ready() -> void:
-	# Disable physics processing immediately on startup so we don't fall during the title screen
-	set_physics_process(false)
-	set_process(false)
-	
 func _physics_process(delta: float) -> void:
-	# print("State: ", current_state, " | Velocity: ", velocity, " | On Floor: ", is_on_floor())
-	
-	match current_state:
+	match currentState:
 		State.LAND:
-			handle_land_movement(delta)
+			handleLandMovement(delta)
+			recoverAir(delta)
 		State.SWIMMING:
-			handle_swimming_movement(delta)
+			handleSwimmingMovement(delta)
+			depleteAir(delta)
 			
+	# Switch active weapons using 1, 2, 3 keys
+	handleHotbarInput()
 	move_and_slide()
 
-func handle_land_movement(delta: float) -> void:
-	# Apply gravity on land
+func handleLandMovement(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y += gravity * delta
 		
-	# Handle Jump (only if on the floor)
-	if Input.is_action_just_pressed("jump") and is_on_floor():
-		velocity.y = jump_velocity
+	if Input.is_action_just_pressed("move_up") and is_on_floor():
+		velocity.y = jumpVelocity
 		
-	# Left/Right movement
 	var direction = Input.get_axis("move_left", "move_right")
 	if direction:
-		velocity.x = direction * walk_speed
+		velocity.x = direction * walkSpeed
 		sprite.flip_h = direction < 0
 	else:
-		velocity.x = move_toward(velocity.x, 0, walk_speed)
+		velocity.x = move_toward(velocity.x, 0, walkSpeed)
 
-func handle_swimming_movement(_delta: float) -> void:
-	# 8-way movement under water (no gravity)
-	var input_vector = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	velocity = input_vector * swim_speed
+func handleSwimmingMovement(_delta: float) -> void:
+	var inputVector = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	velocity = inputVector * swimSpeed
 	
-	# Leaping out of water: Pressing jump while swimming gives an upward burst
-	if Input.is_action_just_pressed("jump"):
-		velocity.y = jump_velocity
+	if inputVector.y == 0:
+		var sinkRate = 45.0
+		velocity.y = sinkRate
 	
-	if input_vector.x != 0:
-		sprite.flip_h = input_vector.x < 0
+	if Input.is_action_just_pressed("move_up"):
+		velocity.y = jumpVelocity
+	
+	if inputVector.x != 0:
+		sprite.flip_h = inputVector.x < 0
 
+# --- STAT FUNCTIONS ---
+
+func depleteAir(delta: float) -> void:
+	if currentAir > 0:
+		currentAir -= 10.0 * delta # Depletes over 10 seconds
+	else:
+		# Drown: Take damage over time
+		currentHealth -= drownDamageRate * delta
+		currentHealth = max(0.0, currentHealth)
+
+func recoverAir(delta: float) -> void:
+	if currentAir < maxAir:
+		currentAir += airRecoveryRate * delta
+		currentAir = min(maxAir, currentAir)
+
+func handleHotbarInput() -> void:
+	if Input.is_action_just_pressed("hotbar_1") and inventory.size() > 0:
+		activeWeaponIndex = 0
+	elif Input.is_action_just_pressed("hotbar_2") and inventory.size() > 1:
+		activeWeaponIndex = 1
+	elif Input.is_action_just_pressed("hotbar_3") and inventory.size() > 2:
+		activeWeaponIndex = 2
+
+
+# --- restored SIGNAL RECEIVERS ---
 
 func _on_water_area_body_entered(body: Node2D) -> void:
 	if body == self:
-		current_state = State.SWIMMING
+		currentState = State.SWIMMING
 		# Slowly damp falling speed upon hitting the water instead of stopping instantly
-		velocity.y = clamp(velocity.y, -swim_speed, swim_speed)
+		velocity.y = clamp(velocity.y, -swimSpeed, swimSpeed)
 
 
 func _on_water_area_body_exited(body: Node2D) -> void:
 	if body == self:
-		current_state = State.LAND
+		currentState = State.LAND

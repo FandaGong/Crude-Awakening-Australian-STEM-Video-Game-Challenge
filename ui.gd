@@ -6,7 +6,17 @@ extends CanvasLayer
 
 # References the Player node relative to this UI node
 @onready var player: CharacterBody2D = $"../World/player"
+# Add these at the top of ui.gd
+@onready var healthBar: TextureProgressBar = $HUD/healthBar
+@onready var airBar: TextureProgressBar = $HUD/airBar
 
+func _process(_delta: float) -> void:
+	if player and hud.visible:
+		# Update progress bar values based on player stats
+		healthBar.value = player.currentHealth
+		airBar.value = player.currentAir
+		
+		
 func _ready() -> void:
 	# Show the title screen, hide gameplay elements
 	title_screen.show()

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/boss_data.gd" id="1_bossdata"]
+
+[resource]
+script = ExtResource("1_bossdata")
+id = 7
+boss_name = "The Kraken's Shade"
+max_health = 1129
+crystal_reward = 377
+depth_meters = 1000
+bullet_speed_mult = 1.6
+pattern_interval = 1.06
+color = Color(0.297, 0.519, 0.85, 1)

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/boss_data.gd" id="1_bossdata"]
+
+[resource]
+script = ExtResource("1_bossdata")
+id = 8
+boss_name = "Leviathan Spawn"
+max_health = 1581
+crystal_reward = 528
+depth_meters = 1150
+bullet_speed_mult = 1.7
+pattern_interval = 0.97
+color = Color(0.408, 0.297, 0.85, 1)

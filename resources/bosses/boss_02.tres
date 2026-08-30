@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/boss_data.gd" id="1_bossdata"]
+
+[resource]
+script = ExtResource("1_bossdata")
+id = 2
+boss_name = "Coral Widow"
+max_health = 210
+crystal_reward = 70
+depth_meters = 250
+bullet_speed_mult = 1.1
+pattern_interval = 1.51
+color = Color(0.85, 0.629, 0.297, 1)

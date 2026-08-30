@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_weapondata"]
+
+[resource]
+script = ExtResource("1_weapondata")
+id = "harpoon_gun"
+weapon_name = "Harpoon Gun"
+description = "Hits harder, fires a bit slower."
+cost = 150
+damage = 22
+fire_rate = 0.55
+bullet_speed = 650
+color = Color(0.7, 0.55, 0.3, 1)

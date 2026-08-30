@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://arenas/boss_arena.gd" id="1_arena"]
+
+[node name="BossArena" type="Node2D"]
+script = ExtResource("1_arena")
+
+[node name="Walls" type="Node2D" parent="."]
+
+[node name="CavernBackdrop" type="Polygon2D" parent="Walls"]
+color = Color(0.05, 0.12, 0.2, 1)
+polygon = PackedVector2Array(420.0, 0.0, 399.4, 129.8, 339.8, 246.9, 246.9, 339.8, 129.8, 399.4, 0.0, 420.0, -129.8, 399.4, -246.9, 339.8, -339.8, 246.9, -399.4, 129.8, -420.0, 0.0, -399.4, -129.8, -339.8, -246.9, -246.9, -339.8, -129.8, -399.4, -0.0, -420.0, 129.8, -399.4, 246.9, -339.8, 339.8, -246.9, 399.4, -129.8)
+
+[node name="PlayerSpawn" type="Marker2D" parent="."]
+position = Vector2(-280, 0)
+
+[node name="BossSpawn" type="Marker2D" parent="."]
+position = Vector2(200, 0)

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_weapondata"]
+
+[resource]
+script = ExtResource("1_weapondata")
+id = "starter_spear"
+weapon_name = "Bone Spear"
+description = "A basic spear. Reliable, unremarkable."
+cost = 0
+damage = 10
+fire_rate = 0.4
+bullet_speed = 500
+color = Color(0.85, 0.85, 0.85, 1)

@@ -76,6 +76,8 @@ func _on_arena_boss_defeated(boss_id: int, _crystal_reward: int) -> void:
 
 func _return_to_tunnel_from_boss(boss_id: int) -> void:
 	_clear_active_boss_arena()
+	if not dive_tunnel:
+		return
 	var gate_pos: Vector2 = dive_tunnel.boss_gate_positions.get(boss_id, Vector2.ZERO)
 	player.global_position = dive_tunnel.global_position + gate_pos + Vector2(0, 90)
 	player.currentState = player.State.SWIMMING

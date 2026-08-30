@@ -45,11 +45,17 @@ var _weaponCache: Dictionary = {}
 
 func _ready() -> void:
 	add_to_group("player")
+	GameData.weapon_equipped.connect(_on_weapon_equipped)
 
 func _physics_process(delta: float) -> void:
 	if isDead:
 		velocity.x = move_toward(velocity.x, 0, walkSpeed * delta)
 		move_and_slide()
+		return
+
+	# Don't process gameplay on titlescreen
+	var ui = get_tree().root.get_node("Main/UI")
+	if ui and ui.current_state == ui.UIState.TITLE:
 		return
 
 	_updateJumpTimers(delta)
@@ -135,6 +141,10 @@ func recoverAir(delta: float) -> void:
 func takeDamage(amount: float) -> void:
 	if isDead:
 		return
+	# Don't take damage on titlescreen
+	var ui = get_tree().root.get_node("Main/UI")
+	if ui and ui.current_state == ui.UIState.TITLE:
+		return
 	currentHealth = max(0.0, currentHealth - amount)
 	if currentHealth <= 0.0:
 		die()
@@ -162,10 +172,19 @@ func respawn(atPosition: Vector2) -> void:
 func handleHotbarInput() -> void:
 	if Input.is_action_just_pressed("hotbar_1") and inventory.size() > 0:
 		activeWeaponIndex = 0
+		_on_hotbar_selected(1)
 	elif Input.is_action_just_pressed("hotbar_2") and inventory.size() > 1:
 		activeWeaponIndex = 1
+		_on_hotbar_selected(2)
 	elif Input.is_action_just_pressed("hotbar_3") and inventory.size() > 2:
 		activeWeaponIndex = 2
+		_on_hotbar_selected(3)
+
+func _on_hotbar_selected(slot: int) -> void:
+	# Signal to UI to highlight the selected hotbar slot
+	var ui = get_tree().root.get_node("Main/UI")
+	if ui:
+		ui._update_hotbar_selection(slot)
 
 func handleShootInput() -> void:
 	if not Input.is_action_pressed("shoot") or shootCooldown > 0.0:
@@ -205,18 +224,31 @@ func updateAnimation() -> void:
 		return
 
 	var animName := "idle"
-	match currentState:
-		State.LAND:
-			animName = "jump" if not is_on_floor() else ("walk" if abs(velocity.x) > 5.0 else "idle")
-		State.SWIMMING:
-			animName = "swim"
+	var is_jumping = currentState == State.LAND and not is_on_floor()
+	var target_scale := Vector2(1.0, 2.0)
+
+	if is_jumping:
+		animName = "idle"
+		target_scale = Vector2(1.0, 2.0)
+	else:
+		match currentState:
+			State.LAND:
+				animName = "walking" if abs(velocity.x) > 5.0 else "idle"
+			State.SWIMMING:
+				animName = "walking" if abs(velocity.x) > 5.0 else "idle"
+		if abs(velocity.x) > 5.0:
+			target_scale = Vector2(2.0, 1.0)
+		else:
+			target_scale = Vector2(1.0, 2.0)
 
 	if sprite.sprite_frames.has_animation(animName):
 		if sprite.animation != animName:
 			sprite.play(animName)
-	elif sprite.sprite_frames.has_animation("default"):
-		if sprite.animation != "default":
-			sprite.play("default")
+	elif sprite.sprite_frames.has_animation("idle"):
+		if sprite.animation != "idle":
+			sprite.play("idle")
+
+	sprite.scale = target_scale
 
 # --- SIGNAL RECEIVERS ---
 
@@ -229,3 +261,7 @@ func _on_water_area_body_entered(body: Node2D) -> void:
 func _on_water_area_body_exited(body: Node2D) -> void:
 	if body == self:
 		currentState = State.LAND
+
+func _on_weapon_equipped(_weapon_id: String) -> void:
+	# Invalidate weapon cache when weapon is changed
+	_weaponCache.clear()

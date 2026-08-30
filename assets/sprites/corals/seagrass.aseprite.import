@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://c6y6ext2wx67r"
+path="res://.godot/imported/seagrass.aseprite-65a6fc6a710fcbae8426f25250409421.res"
+
+[deps]
+
+source_file="res://assets/sprites/corals/seagrass.aseprite"
+dest_files=["res://.godot/imported/seagrass.aseprite-65a6fc6a710fcbae8426f25250409421.res"]
+
+[params]
+

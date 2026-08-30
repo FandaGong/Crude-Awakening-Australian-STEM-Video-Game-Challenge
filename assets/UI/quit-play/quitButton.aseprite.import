@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://c0ik4173ge1ng"
+path="res://.godot/imported/quitButton.aseprite-81ee6fc60d809e3deba2946c3adb1317.res"
+
+[deps]
+
+source_file="res://assets/UI/quit-play/quitButton.aseprite"
+dest_files=["res://.godot/imported/quitButton.aseprite-81ee6fc60d809e3deba2946c3adb1317.res"]
+
+[params]
+

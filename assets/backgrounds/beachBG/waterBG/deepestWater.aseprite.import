@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://533vonq851b1"
+path="res://.godot/imported/deepestWater.aseprite-b27407a9024cf9d400c1c88273c5d201.res"
+
+[deps]
+
+source_file="res://assets/backgrounds/beachBG/waterBG/deepestWater.aseprite"
+dest_files=["res://.godot/imported/deepestWater.aseprite-b27407a9024cf9d400c1c88273c5d201.res"]
+
+[params]
+

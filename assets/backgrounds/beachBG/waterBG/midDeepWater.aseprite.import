@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://cteeq4wkpwbf8"
+path="res://.godot/imported/midDeepWater.aseprite-72f37dbd41d6b8910543ff4348eb0fa0.res"
+
+[deps]
+
+source_file="res://assets/backgrounds/beachBG/waterBG/midDeepWater.aseprite"
+dest_files=["res://.godot/imported/midDeepWater.aseprite-72f37dbd41d6b8910543ff4348eb0fa0.res"]
+
+[params]
+

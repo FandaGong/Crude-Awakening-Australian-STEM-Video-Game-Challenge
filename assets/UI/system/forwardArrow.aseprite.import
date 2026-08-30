@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://cwhmck31fmsib"
+path="res://.godot/imported/forwardArrow.aseprite-e91656b8a0166025df614635eb97d509.res"
+
+[deps]
+
+source_file="res://assets/UI/system/forwardArrow.aseprite"
+dest_files=["res://.godot/imported/forwardArrow.aseprite-e91656b8a0166025df614635eb97d509.res"]
+
+[params]
+

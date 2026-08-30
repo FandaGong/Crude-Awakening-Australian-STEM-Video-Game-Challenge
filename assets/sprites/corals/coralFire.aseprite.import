@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://dn5ynwc0e83ug"
+path="res://.godot/imported/coralFire.aseprite-465e6096346a11cb7bc996fd5a14d6d7.res"
+
+[deps]
+
+source_file="res://assets/sprites/corals/coralFire.aseprite"
+dest_files=["res://.godot/imported/coralFire.aseprite-465e6096346a11cb7bc996fd5a14d6d7.res"]
+
+[params]
+

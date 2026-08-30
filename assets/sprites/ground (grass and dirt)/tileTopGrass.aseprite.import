@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://nwmkv1td46wa"
+path="res://.godot/imported/tileTopGrass.aseprite-625aa1331507f4af2de867be4240266e.res"
+
+[deps]
+
+source_file="res://assets/sprites/ground (grass and dirt)/tileTopGrass.aseprite"
+dest_files=["res://.godot/imported/tileTopGrass.aseprite-625aa1331507f4af2de867be4240266e.res"]
+
+[params]
+

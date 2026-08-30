@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://c1wwkhpnv1vsk"
+path="res://.godot/imported/selectedHotbarBox.aseprite-3b84a29bf9a09f9448fc27cb2034eae0.res"
+
+[deps]
+
+source_file="res://assets/UI/player/selectedHotbarBox.aseprite"
+dest_files=["res://.godot/imported/selectedHotbarBox.aseprite-3b84a29bf9a09f9448fc27cb2034eae0.res"]
+
+[params]
+

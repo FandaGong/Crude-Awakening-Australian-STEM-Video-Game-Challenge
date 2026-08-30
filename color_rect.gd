@@ -12,6 +12,6 @@ func _update_collision() -> void:
 	if not collision_shape or not collision_shape.shape is RectangleShape2D:
 		return
 		
-	# Update size and center position
+	# Update size and center position (relative to parent)
 	collision_shape.shape.size = size
-	collision_shape.position = position + (size / 2)
+	collision_shape.position = size / 2

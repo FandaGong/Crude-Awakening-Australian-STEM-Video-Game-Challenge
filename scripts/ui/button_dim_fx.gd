@@ -1,13 +1,22 @@
-extends Button
+extends TextureButton
 
 ## Attach this script to any Button to give it a quick "dimming" tween
 ## on hover and press, so menus feel responsive without needing custom art.
 
+@export var scale_multiplier: float = 3.0
 @export var hover_brightness: float = 0.88
 @export var press_brightness: float = 0.7
 @export var tween_time: float = 0.08
 
 func _ready() -> void:
+	# --- Container Scaling & Hitbox Setup ---
+	ignore_texture_size = true
+	stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+	
+	if texture_normal:
+		custom_minimum_size = texture_normal.get_size() * scale_multiplier
+	# ----------------------------------------
+
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 	button_down.connect(_on_button_down)

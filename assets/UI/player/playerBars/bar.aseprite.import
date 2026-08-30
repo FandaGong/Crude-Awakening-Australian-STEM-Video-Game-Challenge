@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://cha5kiv2npmd5"
+path="res://.godot/imported/bar.aseprite-48f58ff7d4311bb7453dcaa8e290a491.res"
+
+[deps]
+
+source_file="res://assets/UI/player/playerBars/bar.aseprite"
+dest_files=["res://.godot/imported/bar.aseprite-48f58ff7d4311bb7453dcaa8e290a491.res"]
+
+[params]
+

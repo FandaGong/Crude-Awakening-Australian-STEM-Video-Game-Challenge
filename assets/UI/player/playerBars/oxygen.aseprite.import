@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://cv7tv25sjenr3"
+path="res://.godot/imported/oxygen.aseprite-c2e10b84d0d464019ea312555fa97040.res"
+
+[deps]
+
+source_file="res://assets/UI/player/playerBars/oxygen.aseprite"
+dest_files=["res://.godot/imported/oxygen.aseprite-c2e10b84d0d464019ea312555fa97040.res"]
+
+[params]
+

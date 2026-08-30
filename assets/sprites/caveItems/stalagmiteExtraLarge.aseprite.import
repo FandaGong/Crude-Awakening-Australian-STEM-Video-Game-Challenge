@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://cu3xshu7e18pt"
+path="res://.godot/imported/stalagmiteExtraLarge.aseprite-157436590bd4fe9ed53aa40637e2adac.res"
+
+[deps]
+
+source_file="res://assets/sprites/caveItems/stalagmiteExtraLarge.aseprite"
+dest_files=["res://.godot/imported/stalagmiteExtraLarge.aseprite-157436590bd4fe9ed53aa40637e2adac.res"]
+
+[params]
+

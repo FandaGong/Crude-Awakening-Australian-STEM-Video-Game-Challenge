@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://h08t81ym44b1"
+path="res://.godot/imported/sideDirtRight.aseprite-a596f1b2ddcab2cad0f699a6aa2b0fe5.res"
+
+[deps]
+
+source_file="res://assets/sprites/ground (grass and dirt)/sideDirtRight.aseprite"
+dest_files=["res://.godot/imported/sideDirtRight.aseprite-a596f1b2ddcab2cad0f699a6aa2b0fe5.res"]
+
+[params]
+

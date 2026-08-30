@@ -92,7 +92,7 @@ func _spiral_tick(speed: float, arms: int) -> void:
 	for a in range(arms):
 		var angle := spiral_angle + (TAU / arms) * a
 		_spawn_bullet(Vector2.RIGHT.rotated(angle) * speed)
-	spiral_angle += 0.35
+	spiral_angle = fmod(spiral_angle + 0.35, TAU)
 
 func _spawn_bullet(vel: Vector2) -> void:
 	var b := EnemyBullet.instantiate()

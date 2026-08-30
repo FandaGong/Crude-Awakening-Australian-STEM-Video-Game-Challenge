@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://vmr508a4mnrg"
+path="res://.godot/imported/otterRUN.aseprite-3b771e9c7d48dcba1c20b5b64566ef3f.res"
+
+[deps]
+
+source_file="res://assets/player/otterRUN.aseprite"
+dest_files=["res://.godot/imported/otterRUN.aseprite-3b771e9c7d48dcba1c20b5b64566ef3f.res"]
+
+[params]
+

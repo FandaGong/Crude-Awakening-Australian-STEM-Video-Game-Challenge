@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://c344g522b4sgf"
+path="res://.godot/imported/selectButton.aseprite-abf7deb65c370ea9cf9cbc0a70cad467.res"
+
+[deps]
+
+source_file="res://assets/UI/system/selectButton.aseprite"
+dest_files=["res://.godot/imported/selectButton.aseprite-abf7deb65c370ea9cf9cbc0a70cad467.res"]
+
+[params]
+

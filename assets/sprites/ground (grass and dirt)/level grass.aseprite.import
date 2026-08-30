@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://c1sw2a7c3y1df"
+path="res://.godot/imported/level grass.aseprite-11ffb4b057c9444fec0ee88609010266.res"
+
+[deps]
+
+source_file="res://assets/sprites/ground (grass and dirt)/level grass.aseprite"
+dest_files=["res://.godot/imported/level grass.aseprite-11ffb4b057c9444fec0ee88609010266.res"]
+
+[params]
+

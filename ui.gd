@@ -43,6 +43,25 @@ func _update_crystal_labels(amount: int) -> void:
 		shop_crystal_label.text = "Aquamarine Crystals: %d" % amount
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		var keycode: int = event.physical_keycode
+		if keycode == KEY_1:
+			_select_hotbar_slot(1)
+			get_viewport().set_input_as_handled()
+			return
+		if keycode == KEY_2:
+			_select_hotbar_slot(2)
+			get_viewport().set_input_as_handled()
+			return
+		if keycode == KEY_3:
+			_select_hotbar_slot(3)
+			get_viewport().set_input_as_handled()
+			return
+		if keycode == KEY_E:
+			_toggle_inventory()
+			get_viewport().set_input_as_handled()
+			return
+
 	if not event.is_action_pressed("ui_cancel"):
 		return
 
@@ -231,3 +250,43 @@ func _on_pause_main_menu_button_pressed() -> void:
 
 func _on_pause_quit_button_pressed() -> void:
 	get_tree().quit()
+
+# --- Inventory & Hotbar ---
+
+var inventory_visible: bool = false
+
+func _select_hotbar_slot(slot: int) -> void:
+	if not player:
+		return
+	if slot < 1 or slot > 3:
+		return
+	if player.inventory.size() < slot:
+		return
+	player.activeWeaponIndex = slot - 1
+	_update_hotbar_selection(slot)
+
+func _toggle_inventory() -> void:
+	if current_state != UIState.PLAYING:
+		return
+	inventory_visible = !inventory_visible
+	if has_node("HUD/inventoryPanel"):
+		$HUD/inventoryPanel.visible = inventory_visible
+
+func _update_hotbar_selection(slot: int) -> void:
+	# Update hotbar slot highlighting
+	if has_node("HUD/hotbarContainer/slot1"):
+		var slot1 = $HUD/hotbarContainer/slot1
+		var slot2 = $HUD/hotbarContainer/slot2
+		var slot3 = $HUD/hotbarContainer/slot3
+
+		slot1.texture_normal = preload("res://assets/UI/player/unselectedHotbarBox.png")
+		slot2.texture_normal = preload("res://assets/UI/player/unselectedHotbarBox.png")
+		slot3.texture_normal = preload("res://assets/UI/player/unselectedHotbarBox.png")
+
+		match slot:
+			1:
+				slot1.texture_normal = preload("res://assets/UI/player/selectedHotbarBox.png")
+			2:
+				slot2.texture_normal = preload("res://assets/UI/player/selectedHotbarBox.png")
+			3:
+				slot3.texture_normal = preload("res://assets/UI/player/selectedHotbarBox.png")

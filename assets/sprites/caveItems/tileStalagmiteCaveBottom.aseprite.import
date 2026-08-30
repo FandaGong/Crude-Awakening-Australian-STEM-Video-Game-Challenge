@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://efauttc0hjym"
+path="res://.godot/imported/tileStalagmiteCaveBottom.aseprite-8bcc5823a36b9a38ff59d89bb6ed0d23.res"
+
+[deps]
+
+source_file="res://assets/sprites/caveItems/tileStalagmiteCaveBottom.aseprite"
+dest_files=["res://.godot/imported/tileStalagmiteCaveBottom.aseprite-8bcc5823a36b9a38ff59d89bb6ed0d23.res"]
+
+[params]
+

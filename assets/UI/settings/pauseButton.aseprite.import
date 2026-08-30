@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://daiqqy77biqru"
+path="res://.godot/imported/pauseButton.aseprite-edfaf2f28a1743f1376b260be74eadf4.res"
+
+[deps]
+
+source_file="res://assets/UI/settings/pauseButton.aseprite"
+dest_files=["res://.godot/imported/pauseButton.aseprite-edfaf2f28a1743f1376b260be74eadf4.res"]
+
+[params]
+

@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://bo5hxiqkov1jr"
+path="res://.godot/imported/coralTube.aseprite-0fd7152c6ce5305f768d65b22033afbd.res"
+
+[deps]
+
+source_file="res://assets/sprites/corals/coralTube.aseprite"
+dest_files=["res://.godot/imported/coralTube.aseprite-0fd7152c6ce5305f768d65b22033afbd.res"]
+
+[params]
+

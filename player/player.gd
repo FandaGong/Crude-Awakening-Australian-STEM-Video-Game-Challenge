@@ -39,10 +39,8 @@ var jumpBufferTimer = 0.0
 
 @onready var sprite = $AnimatedSprite2D
 
-# --- COLLIDERS (camelCase) ---
-@onready var idleCollision2D: CollisionShape2D = $idleCollision2D
-@onready var walkingCollision2D: CollisionShape2D = $walkingCollision2D
-@onready var jumpCollision2D: CollisionShape2D = $jumpCollision2D
+# --- UNIFIED COLLIDER (Only one needed now) ---
+@onready var mainCollision2D: CollisionShape2D = $mainCollision2D
 
 const PlayerBulletScene := preload("res://bullets/player_bullet.tscn")
 var shootCooldown: float = 0.0
@@ -78,18 +76,16 @@ func _physics_process(delta: float) -> void:
 	handleHotbarInput()
 	handleShootInput()
 	updateAnimation()
-	handleColliderFacing() # Flips colliders if player turns around
 	move_and_slide()
 
 func _updateJumpTimers(delta: float) -> void:
-	# Coyote time: keep a short window after walking off a ledge where a jump still works
+	# Coyote time
 	if currentState == State.LAND and is_on_floor():
 		coyoteTimer = coyoteTime
 	else:
 		coyoteTimer = max(0.0, coyoteTimer - delta)
 
-	# Jump buffering: remember a jump press briefly so it isn't dropped if
-	# it happens a few frames before the player actually lands
+	# Jump buffering
 	if Input.is_action_just_pressed("move_up"):
 		jumpBufferTimer = jumpBufferTime
 	else:
@@ -136,7 +132,6 @@ func depleteAir(delta: float) -> void:
 		currentAir -= 10.0 * delta # Depletes over 10 seconds
 		currentAir = max(0.0, currentAir)
 	else:
-		# Drown: Take damage over time
 		takeDamage(drownDamageRate * delta)
 
 func recoverAir(delta: float) -> void:
@@ -147,7 +142,6 @@ func recoverAir(delta: float) -> void:
 func takeDamage(amount: float) -> void:
 	if isDead:
 		return
-	# Don't take damage on titlescreen
 	var ui = get_tree().root.get_node("Main/UI")
 	if ui and ui.current_state == ui.UIState.TITLE:
 		return
@@ -183,11 +177,10 @@ func handleHotbarInput() -> void:
 		activeWeaponIndex = 1
 		_on_hotbar_selected(2)
 	elif Input.is_action_just_pressed("hotbar_3") and inventory.size() > 2:
-		activeWeaponIndex = 2
+		activeWeaponIndex = 3
 		_on_hotbar_selected(3)
 
 func _on_hotbar_selected(slot: int) -> void:
-	# Signal to UI to highlight the selected hotbar slot
 	var ui = get_tree().root.get_node("Main/UI")
 	if ui:
 		ui._update_hotbar_selection(slot)
@@ -225,7 +218,7 @@ func _getEquippedWeapon() -> WeaponData:
 	_weaponCache[weapon_id] = weapon
 	return weapon
 
-# --- UPDATED ANIMATION & COLLIDER SELECTION ---
+# --- SIMPLIFIED ANIMATION LOGIC ---
 
 func updateAnimation() -> void:
 	if not sprite or not sprite.sprite_frames:
@@ -233,39 +226,31 @@ func updateAnimation() -> void:
 
 	var animName := "idle"
 	var isJumping = currentState == State.LAND and not is_on_floor()
+	#var targetScale := Vector2(1.0, 1.0)
 
 	if isJumping:
 		if sprite.sprite_frames.has_animation("jump"):
 			animName = "jump"
-			switchCollider(jumpCollision2D)
 		else:
 			animName = "idle"
-			switchCollider(idleCollision2D)
 	else:
 		match currentState:
 			State.LAND:
 				if abs(velocity.x) > 5.0:
 					animName = "walking"
-					switchCollider(walkingCollision2D)
 				else:
 					animName = "idle"
-					switchCollider(idleCollision2D)
 			State.SWIMMING:
 				if velocity.length() > 5.0:
 					if sprite.sprite_frames.has_animation("swim"):
 						animName = "swim"
-						# Swim uses walking collision if dedicated swim shape doesn't exist
-						switchCollider(walkingCollision2D)
 					else:
 						animName = "walking"
-						switchCollider(walkingCollision2D)
 				else:
 					if sprite.sprite_frames.has_animation("swimIdle"):
 						animName = "swimIdle"
-						switchCollider(idleCollision2D)
 					else:
 						animName = "idle"
-						switchCollider(idleCollision2D)
 
 	if sprite.sprite_frames.has_animation(animName):
 		if sprite.animation != animName:
@@ -274,26 +259,7 @@ func updateAnimation() -> void:
 		if sprite.animation != "idle":
 			sprite.play("idle")
 
-# --- HELPER FUNCTIONS (camelCase) ---
-
-func switchCollider(activeCollider: CollisionShape2D) -> void:
-	var colliders = [idleCollision2D, walkingCollision2D, jumpCollision2D]
-	for collider in colliders:
-		if collider:
-			# Safely disable or enable the shape at the end of the physics frame
-			var shouldDisable = (collider != activeCollider)
-			collider.set_deferred("disabled", shouldDisable)
-
-func handleColliderFacing() -> void:
-	var colliders = [idleCollision2D, walkingCollision2D, jumpCollision2D]
-	for collider in colliders:
-		if collider:
-			# If the collider has a horizontal offset, mirror its X position
-			# to match whichever way the player is facing.
-			if sprite.flip_h:
-				collider.position.x = -abs(collider.position.x)
-			else:
-				collider.position.x = abs(collider.position.x)
+	#sprite.scale = targetScale
 
 # --- SIGNAL RECEIVERS ---
 

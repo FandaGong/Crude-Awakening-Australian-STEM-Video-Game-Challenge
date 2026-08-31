@@ -1,7 +1,7 @@
 extends Label
 
 @export var player: CharacterBody2D
-@export var waterSurfaceY: float = 400.0 # Adjust this to match the Y coordinate of your water line
+@export var waterSurfaceY: float = 2100.0 # Adjust this to match the Y coordinate of your water line
 
 func _process(_delta: float) -> void:
 	if player:

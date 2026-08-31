@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://dj4sji5od0x3i"
+path="res://.godot/imported/oceanWave.aseprite-32afe6adc9bd2068a9b3a83b5570f9f3.res"
+
+[deps]
+
+source_file="res://assets/sprites/water/oceanWave.aseprite"
+dest_files=["res://.godot/imported/oceanWave.aseprite-32afe6adc9bd2068a9b3a83b5570f9f3.res"]
+
+[params]
+

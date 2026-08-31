@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://b3v4raw3bgbyn"
+path="res://.godot/imported/buttonPause.aseprite-580cefe8ee97195e8aa2a2b2fda2cecc.res"
+
+[deps]
+
+source_file="res://assets/UI/system/buttonPause.aseprite"
+dest_files=["res://.godot/imported/buttonPause.aseprite-580cefe8ee97195e8aa2a2b2fda2cecc.res"]
+
+[params]
+

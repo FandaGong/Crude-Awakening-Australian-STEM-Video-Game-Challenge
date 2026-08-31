@@ -1,0 +1,9 @@
+[gd_resource type="LabelSettings" format=3 uid="uid://bpksd23vhgtxi"]
+
+[ext_resource type="FontFile" uid="uid://c8wbwh75d2srp" path="res://assets/fonts/VCR_OSD_MONO_1.001.ttf" id="1_bklal"]
+
+[resource]
+font = ExtResource("1_bklal")
+font_size = 10
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)

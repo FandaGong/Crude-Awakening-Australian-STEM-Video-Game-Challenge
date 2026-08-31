@@ -20,7 +20,7 @@ var currentAir: float = maxAir
 var isDead: bool = false
 
 # --- INVENTORY & HOTBAR ---
-var inventory: Array[String] = ["Potion"] # Starts with the curing potion
+var inventory: Array[String] = ["Potion", "Harpoon", "Spear"] # Temporary test list
 var activeWeaponIndex: int = 0
 
 # --- MOVEMENT SPEED ---

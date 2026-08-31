@@ -1,3 +1,6 @@
 res://node_2d.tscn
 res://ui/menu_theme.tres
 res://player/player.gd
+res://ui.gd
+res://depth_label.gd
+res://largeLabels.tres

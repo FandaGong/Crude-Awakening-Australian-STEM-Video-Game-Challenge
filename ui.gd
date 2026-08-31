@@ -1,23 +1,25 @@
 extends CanvasLayer
 
-enum UIState { TITLE, LEVEL_SELECT, PLAYING, PAUSED, SETTINGS, SHOP }
+enum UIState { TITLE, PLAYING, PAUSED, SETTINGS, SHOP }
 
 var current_state: UIState = UIState.TITLE
 var state_before_settings: UIState = UIState.TITLE
 var state_before_shop: UIState = UIState.PLAYING
 
 @onready var title_screen: Control = $titleScreen
-@onready var level_select: Control = $levelSelect
 @onready var settings_menu: Control = $settingsMenu
 @onready var pause_menu: Control = $pauseMenu
 @onready var shop_menu: Control = $shopMenu
 @onready var hud: Control = $HUD
 
-@onready var boss_list_container: VBoxContainer = $levelSelect/Panel/bossScroll/bossListContainer
-@onready var level_select_crystal_label: Label = $levelSelect/Panel/crystalLabel
 @onready var weapon_list_container: VBoxContainer = $shopMenu/Panel/weaponScroll/weaponListContainer
 @onready var shop_crystal_label: Label = $shopMenu/Panel/crystalLabel
 @onready var hud_crystal_label: Label = $HUD/currencyPanel/crystalLabel
+
+# --- COOLDOWN & SLOT REFERENCES (Added to fix the "not declared" error) ---
+@onready var slot1: TextureButton = $HUD/hotbarContainer/slot1
+@onready var slot2: TextureButton = $HUD/hotbarContainer/slot2
+@onready var slot3: TextureButton = $HUD/hotbarContainer/slot3
 
 const ButtonDimFxScript := preload("res://scripts/ui/button_dim_fx.gd")
 
@@ -25,11 +27,35 @@ const ButtonDimFxScript := preload("res://scripts/ui/button_dim_fx.gd")
 @onready var player: CharacterBody2D = $"../World/player"
 @onready var world: Node2D = $"../World"
 
+var inventory_visible: bool = false
+
 func _ready() -> void:
 	add_to_group("ui_controller")
 	GameData.crystals_changed.connect(_on_crystals_changed)
 	_update_crystal_labels(GameData.crystals)
 	_set_state(UIState.TITLE)
+	
+	# Highlight slot 1 on startup
+	_update_hotbar_selection(1)
+	
+	# --- FOOLPROOF CODE SIGNAL CONNECTIONS ---
+	# Connects mouse clicks automatically, bypassing any editor connection mistakes
+	if slot1: slot1.pressed.connect(_on_slot1_pressed)
+	if slot2: slot2.pressed.connect(_on_slot2_pressed)
+	if slot3: slot3.pressed.connect(_on_slot3_pressed)
+	
+	# --- AUTOMATIC CONTAINER SIZE DIAGNOSTIC ---
+	# If your container has collapsed to (0, 0), this will print a warning in your console.
+	var hotbarContainer = $HUD/hotbarContainer
+	if hotbarContainer and hotbarContainer.size == Vector2.ZERO:
+		print("\n--- DIAGNOSTIC WARNING ---")
+		print("Your 'hotbarContainer' size has collapsed to (0, 0) at runtime!")
+		print("In Godot, a parent container with a size of (0, 0) cannot route mouse clicks to its children.")
+		print("To fix this:")
+		print("1. Select 'hotbarContainer' in the editor.")
+		print("2. Go to the Inspector -> Control -> Layout -> Transform -> Size.")
+		print("3. Set a minimum size (e.g., Width: 150, Height: 50) so the container covers the buttons.")
+		print("--------------------------\n")
 
 func _on_crystals_changed(new_amount: int) -> void:
 	_update_crystal_labels(new_amount)
@@ -37,8 +63,6 @@ func _on_crystals_changed(new_amount: int) -> void:
 func _update_crystal_labels(amount: int) -> void:
 	if hud_crystal_label:
 		hud_crystal_label.text = "Crystals: %d" % amount
-	if level_select_crystal_label:
-		level_select_crystal_label.text = "Aquamarine Crystals: %d" % amount
 	if shop_crystal_label:
 		shop_crystal_label.text = "Aquamarine Crystals: %d" % amount
 
@@ -74,21 +98,15 @@ func _unhandled_input(event: InputEvent) -> void:
 			_close_settings()
 		UIState.SHOP:
 			_close_shop()
-		UIState.LEVEL_SELECT:
-			_set_state(UIState.TITLE)
 		_:
 			return
 	get_viewport().set_input_as_handled()
 
-# --- Central state switcher ---------------------------------------------
-# settingsMenu and shopMenu are deliberately NOT touched here; they overlay
-# whatever state was active before they opened, and their own close
-# functions restore that state.
+# --- Central state switcher ---
 func _set_state(new_state: UIState) -> void:
 	current_state = new_state
 
 	title_screen.hide()
-	level_select.hide()
 	pause_menu.hide()
 	hud.hide()
 	get_tree().paused = false
@@ -96,10 +114,6 @@ func _set_state(new_state: UIState) -> void:
 	match new_state:
 		UIState.TITLE:
 			title_screen.show()
-			_disable_player()
-		UIState.LEVEL_SELECT:
-			level_select.show()
-			_populate_level_select()
 			_disable_player()
 		UIState.PLAYING:
 			hud.show()
@@ -123,39 +137,16 @@ func _disable_player() -> void:
 	player.set_physics_process(false)
 	player.set_process(false)
 
-# --- Title screen ---------------------------------------------------------
+# --- Title screen ---
 
 func _on_play_button_pressed() -> void:
 	world.teleport_player_to_pond()
 	_set_state(UIState.PLAYING)
 
-func _on_levels_button_pressed() -> void:
-	_set_state(UIState.LEVEL_SELECT)
-
 func _on_quit_button_pressed() -> void:
 	get_tree().quit()
 
-# --- Level select -----------------------------------------------------
-
-func _on_level_select_back_button_pressed() -> void:
-	_set_state(UIState.TITLE)
-
-const PLACEHOLDER_LEVEL_COUNT := 10
-
-func _populate_level_select() -> void:
-	if not boss_list_container:
-		return
-	for child in boss_list_container.get_children():
-		child.queue_free()
-
-	for i in range(1, PLACEHOLDER_LEVEL_COUNT + 1):
-		var btn := Button.new()
-		btn.set_script(ButtonDimFxScript)
-		btn.custom_minimum_size = Vector2(0, 40)
-		btn.text = "Level %d" % i
-		boss_list_container.add_child(btn)
-
-# --- Settings (usable from the title screen, HUD, or pause menu) ---------
+# --- Settings ---
 
 func _on_settings_button_pressed() -> void:
 	state_before_settings = current_state
@@ -170,7 +161,7 @@ func _close_settings() -> void:
 	settings_menu.hide()
 	_set_state(state_before_settings)
 
-# --- Shop (opened by merchants along the dive tunnel) ---------------------
+# --- Shop ---
 
 func open_shop() -> void:
 	if current_state == UIState.SHOP:
@@ -237,13 +228,10 @@ func _on_equip_weapon_pressed(weapon_id: String) -> void:
 	GameData.equip_weapon(weapon_id)
 	_populate_shop()
 
-# --- Escape / pause menu --------------------------------------------------
+# --- Escape / pause menu ---
 
 func _on_resume_button_pressed() -> void:
 	_set_state(UIState.PLAYING)
-
-func _on_pause_levels_button_pressed() -> void:
-	_set_state(UIState.LEVEL_SELECT)
 
 func _on_pause_main_menu_button_pressed() -> void:
 	_set_state(UIState.TITLE)
@@ -252,8 +240,6 @@ func _on_pause_quit_button_pressed() -> void:
 	get_tree().quit()
 
 # --- Inventory & Hotbar ---
-
-var inventory_visible: bool = false
 
 func _select_hotbar_slot(slot: int) -> void:
 	if not player:
@@ -273,20 +259,41 @@ func _toggle_inventory() -> void:
 		$HUD/inventoryPanel.visible = inventory_visible
 
 func _update_hotbar_selection(slot: int) -> void:
-	# Update hotbar slot highlighting
-	if has_node("HUD/hotbarContainer/slot1"):
-		var slot1 = $HUD/hotbarContainer/slot1
-		var slot2 = $HUD/hotbarContainer/slot2
-		var slot3 = $HUD/hotbarContainer/slot3
+	if not slot1 or not slot2 or not slot3:
+		return
 
-		slot1.texture_normal = preload("res://assets/UI/player/unselectedHotbarBox.png")
-		slot2.texture_normal = preload("res://assets/UI/player/unselectedHotbarBox.png")
-		slot3.texture_normal = preload("res://assets/UI/player/unselectedHotbarBox.png")
+	var unselectedTex = preload("res://assets/UI/player/unselectedHotbarBox.png")
+	var selectedTex = preload("res://assets/UI/player/selectedHotbarBox.png")
 
-		match slot:
-			1:
-				slot1.texture_normal = preload("res://assets/UI/player/selectedHotbarBox.png")
-			2:
-				slot2.texture_normal = preload("res://assets/UI/player/selectedHotbarBox.png")
-			3:
-				slot3.texture_normal = preload("res://assets/UI/player/selectedHotbarBox.png")
+	slot1.texture_normal = unselectedTex
+	slot2.texture_normal = unselectedTex
+	slot3.texture_normal = unselectedTex
+
+	match slot:
+		1:
+			slot1.texture_normal = selectedTex
+		2:
+			slot2.texture_normal = selectedTex
+		3:
+			slot3.texture_normal = selectedTex
+
+# --- Interactive HUD Buttons ---
+
+func _on_hud_pause_button_pressed() -> void:
+	if current_state == UIState.PLAYING:
+		_set_state(UIState.PAUSED)
+
+func _on_inventory_button_pressed() -> void:
+	_toggle_inventory()
+
+# --- MOUSE CLICK SIGNALS FOR HOTBAR SLOTS ---
+
+func _on_slot1_pressed() -> void:
+	print("Slot 1 physically clicked!")
+	_select_hotbar_slot(1)
+
+func _on_slot2_pressed() -> void:
+	_select_hotbar_slot(2)
+
+func _on_slot3_pressed() -> void:
+	_select_hotbar_slot(3)

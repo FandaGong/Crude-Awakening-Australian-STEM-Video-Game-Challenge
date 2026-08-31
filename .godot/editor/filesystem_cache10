@@ -1,5 +1,5 @@
 c0e83e06aca998d5cb9486b71212f450
-::res://::1788086883
+::res://::1788150348
 air_bar.gd::GDScript::8847657929348301115::1786350529::0::1::::<>TextureProgressBar<><>0<>0<><>::
 color_rect.gd::GDScript::5743776473913415766::1788087423::0::1::::<>ColorRect<><>0<>1<><>::
 depth_label.gd::GDScript::166662833886280415::1786350544::0::1::::<>Label<><>0<>0<><>::
@@ -10,11 +10,11 @@ icon.svg::CompressedTexture2D::5476992207863936669::1782296981::1782296994::1:::
 largeLabels.tres::LabelSettings::3460996841404429986::1786273609::0::1::::<><><>0<>0<><>::
 mutantMob.tscn::PackedScene::6902071133271941301::1786349400::0::1::::<><><>0<>0<><>::uid://yb5yvyqj36xd::::res://mutant_mob.gd<>uid://ckbdi5ivassqf::::res://icon.svg
 mutant_mob.gd::GDScript::1688462134709338365::1786349298::0::1::::<>CharacterBody2D<><>0<>0<><>::
-node_2d.tscn::PackedScene::8418572015918460936::1788088697::0::1::::<><><>0<>0<><>::uid://cd2fiokjygth8::::res://Player.tscn<>uid://bymrlw4t8sxh7::::res://ui.gd<>uid://3u0e1k7bkcl::::res://player/player.gd<>uid://cvh6j4d1shjlt::::res://assets/other/deep-blue-serenity-stockcake.jpg<>uid://djrq7r0tpgfp6::::res://world.gd<>uid://ckbdi5ivassqf::::res://icon.svg<>uid://co6slkcckvibd::::res://assets/other/splashLogo.png<>uid://g1a15nx672q::::res://npc.gd<>uid://bmx3vototqbu3::::res://assets/UI/quit-play/playButton.png<>uid://7nrb01m8x5ji::::res://health_bar.gd<>uid://dyb4vsivfjlvn::::res://air_bar.gd<>uid://damid8cexwft2::::res://dev_cameo.gd<>uid://b35kkjm7hn4t1::::res://assets/UI/settings/settingsButton.png<>uid://cmy6a44fksp0::::res://depth_label.gd<>uid://betn5tpog2gat::::res://assets/UI/quit-play/quitButton.png<>uid://bpksd23vhgtxi::::res://largeLabels.tres<>uid://cq5actbu64ntr::::res://scripts/ui/button_dim_fx.gd<>uid://m5qe2iam2up7::::res://arenas/tunnel_entrance.gd<>uid://drnw57u32vu0j::::res://arenas/tunnel_generator.gd<>uid://dxp7yet3qpoab::::res://ui/menu_theme.tres<>uid://cq00n6ic6j8f7::::res://assets/player/otterIDLE.png<>uid://b7feuhim70pxa::::res://assets/player/otterRUN.png
+node_2d.tscn::PackedScene::8418572015918460936::1788143831::0::1::::<><><>0<>0<><>::uid://cd2fiokjygth8::::res://Player.tscn<>uid://bymrlw4t8sxh7::::res://ui.gd<>uid://3u0e1k7bkcl::::res://player/player.gd<>uid://cvh6j4d1shjlt::::res://assets/other/deep-blue-serenity-stockcake.jpg<>uid://djrq7r0tpgfp6::::res://world.gd<>uid://ckbdi5ivassqf::::res://icon.svg<>uid://co6slkcckvibd::::res://assets/other/splashLogo.png<>uid://g1a15nx672q::::res://npc.gd<>uid://bmx3vototqbu3::::res://assets/UI/quit-play/playButton.png<>uid://7nrb01m8x5ji::::res://health_bar.gd<>uid://dyb4vsivfjlvn::::res://air_bar.gd<>uid://damid8cexwft2::::res://dev_cameo.gd<>uid://b35kkjm7hn4t1::::res://assets/UI/settings/settingsButton.png<>uid://cmy6a44fksp0::::res://depth_label.gd<>uid://betn5tpog2gat::::res://assets/UI/quit-play/quitButton.png<>uid://bpksd23vhgtxi::::res://largeLabels.tres<>uid://cq5actbu64ntr::::res://scripts/ui/button_dim_fx.gd<>uid://m5qe2iam2up7::::res://arenas/tunnel_entrance.gd<>uid://drnw57u32vu0j::::res://arenas/tunnel_generator.gd<>uid://dxp7yet3qpoab::::res://ui/menu_theme.tres<>uid://cq00n6ic6j8f7::::res://assets/player/otterIDLE.png<>uid://b7feuhim70pxa::::res://assets/player/otterRUN.png<>uid://cthwxvl5q5cqh::::res://assets/UI/player/playerBars/health.png<>uid://ckipju13jodso::::res://assets/UI/player/playerBars/oxygen.png<>uid://y3i80jv1t6rv::::res://assets/UI/player/playerBars/bar.png<>uid://bo0beqvmule20::::res://assets/UI/player/selectedHotbarBox.png<>uid://dif8sx60hgd5h::::res://assets/UI/player/unselectedHotbarBox.png<>uid://351ysl4qgrbe::::res://assets/player/otter_jump.png<>uid://bhvojqnn5uai8::::res://assets/UI/player/inventory.png
 npc.gd::GDScript::13966320910175534::1788087423::0::1::::<>Area2D<><>0<>0<><>::
 Player.tscn::PackedScene::5039464720191179819::1786102713::0::1::::<><><>0<>0<><>::
 README.md::TextFile::-1::1786259759::0::1::::<><><>0<>0<><>::
-ui.gd::GDScript::4096778497885717034::1788083420::0::1::::<>CanvasLayer<><>0<>0<><>::
+ui.gd::GDScript::4096778497885717034::1788090967::0::1::::<>CanvasLayer<><>0<>0<><>::
 world.gd::GDScript::7827085615330454001::1788087423::0::1::::<>Node2D<><>0<>0<><>::
 ::res://addons/::1786259091
 ::res://addons/AsepriteWizard/::1786259093
@@ -301,7 +301,7 @@ e48-eris-ocean-sunset-1x.png::CompressedTexture2D::3330476865585097423::17820561
 deep-blue-serenity-stockcake.jpg::CompressedTexture2D::6263157556001433477::1786198190::1788083794::1::::<><><>0<>0<>cd596ea8cb54fd00536d01093ba1b65b<>res://.godot/imported/deep-blue-serenity-stockcake.jpg-6dba98f126bc85ac04d139c3e392daee.ctex::
 splashLogo.aseprite::PackedDataContainer::7586123019603577705::1782101996::1788083794::1::::<><><>0<>0<>cd25a74609feca77024a9fd5e7e50dc1<>res://.godot/imported/splashLogo.aseprite-a1b52999299258c5c53cfb5fa97594b5.res::
 splashLogo.png::CompressedTexture2D::5820593966725437901::1785686164::1788083794::1::::<><><>0<>0<>d6767ae178ede2e481e85638732e29e9<>res://.godot/imported/splashLogo.png-9265fbb93b4aa536521b285edff4502d.ctex::
-::res://assets/player/::1788088673
+::res://assets/player/::1788088704
 otterIDLE.aseprite::PackedDataContainer::6526707623636265773::1786812898::1788083794::1::::<><><>0<>0<>a545ff554d9107a8ca422be59e7f8ee8<>res://.godot/imported/otterIDLE.aseprite-84848971fec02808461ea7098e5a75c9.res::
 otterIDLE.png::CompressedTexture2D::5949015090301119046::1786812902::1788083794::1::::<><><>0<>0<>58daa9d5e65a20395cf4f177e202e857<>res://.godot/imported/otterIDLE.png-c74936813e0bb9955b5244ecc5b48f52.ctex::
 otterRUN.aseprite::PackedDataContainer::1499825376243114476::1786814428::1788083794::1::::<><><>0<>0<>e66d16ee2810ad8fa86886e1f112fc44<>res://.godot/imported/otterRUN.aseprite-3b771e9c7d48dcba1c20b5b64566ef3f.res::
@@ -387,7 +387,7 @@ player_bullet.tscn::PackedScene::-1::1788083420::0::1::::<><><>0<>0<><>::res://b
 merchant.gd::GDScript::8247213241751229122::1788083420::0::1::::<>Area2D<><>0<>0<><>::
 merchant.tscn::PackedScene::-1::1788083420::0::1::::<><><>0<>0<><>::res://npc/merchant.gd
 ::res://player/::1788083420
-player.gd::GDScript::59061812572108735::1788088697::0::1::::<>CharacterBody2D<><>0<>0<><>::
+player.gd::GDScript::59061812572108735::1788142665::0::1::::<>CharacterBody2D<><>0<>0<><>::
 ::res://resources/::1788083420
 boss_data.gd::GDScript::6821731498509451276::1788083420::0::1::::BossData<>Resource<><>0<>0<><>::
 weapon_data.gd::GDScript::3474992985054677525::1788083420::0::1::::WeaponData<>Resource<><>0<>0<><>::
@@ -411,6 +411,6 @@ starter_spear.tres::Resource/WeaponData::-1::1788083420::0::1::::<><><>0<>0<><>:
 void_trident.tres::Resource/WeaponData::-1::1788083420::0::1::::<><><>0<>0<><>::res://resources/weapon_data.gd
 ::res://scripts/::1788083420
 ::res://scripts/ui/::1788085540
-button_dim_fx.gd::GDScript::5957798770244070883::1788085540::0::1::::<>TextureButton<><>0<>0<><>::
-::res://ui/::1788084898
-menu_theme.tres::Theme::8806557164626052465::1788084898::0::1::::<><><>0<>0<><>::
+button_dim_fx.gd::GDScript::5957798770244070883::1788143806::0::1::::<>TextureButton<><>0<>0<><>::
+::res://ui/::1788142201
+menu_theme.tres::Theme::8806557164626052465::1788142201::0::1::::<><><>0<>0<><>::

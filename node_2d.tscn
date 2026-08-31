@@ -27,10 +27,11 @@
 [ext_resource type="Texture2D" uid="uid://y3i80jv1t6rv" path="res://assets/UI/player/playerBars/bar.png" id="25_barback"]
 [ext_resource type="Texture2D" uid="uid://bo0beqvmule20" path="res://assets/UI/player/selectedHotbarBox.png" id="26_hotselected"]
 [ext_resource type="Texture2D" uid="uid://dif8sx60hgd5h" path="res://assets/UI/player/unselectedHotbarBox.png" id="27_hotunselected"]
+[ext_resource type="Texture2D" uid="uid://351ysl4qgrbe" path="res://assets/player/otter_jump.png" id="28_ebxd8"]
 [ext_resource type="Texture2D" uid="uid://bhvojqnn5uai8" path="res://assets/UI/player/inventory.png" id="28_inventory"]
-[ext_resource type="Texture2D" uid="uid://ceahwxvl5q5cqh" path="res://assets/UI/system/circleButtonBase.png" id="29_circlebutton"]
-[ext_resource type="Texture2D" uid="uid://csihjm13jodso" path="res://assets/UI/system/selectButton.png" id="30_selectbutton"]
-[ext_resource type="Texture2D" uid="uid://cyb5tgm2uedt9" path="res://assets/UI/system/backArrow.png" id="31_backarrow"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_ge17k"]
+font_size = 10
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ge17k"]
 size = Vector2(3383, 783.75)
@@ -96,6 +97,22 @@ region = Rect2(128, 0, 64, 64)
 atlas = ExtResource("21_ei405")
 region = Rect2(192, 0, 64, 64)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_ornx7"]
+atlas = ExtResource("28_ebxd8")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cnnru"]
+atlas = ExtResource("28_ebxd8")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_540hr"]
+atlas = ExtResource("28_ebxd8")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6ip5v"]
+atlas = ExtResource("28_ebxd8")
+region = Rect2(192, 0, 64, 64)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_2hxjc"]
 atlas = ExtResource("22_e8dv2")
 region = Rect2(0, 0, 64, 64)
@@ -137,7 +154,24 @@ animations = [{
 }],
 "loop": 1,
 "name": &"idle",
-"speed": 5.0
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ornx7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cnnru")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_540hr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6ip5v")
+}],
+"loop": 1,
+"name": &"jump",
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -160,11 +194,19 @@ animations = [{
 }],
 "loop": 1,
 "name": &"walking",
-"speed": 5.0
+"speed": 10.0
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ge17k"]
-height = 28.0
+radius = 48.0
+height = 152.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_47aep"]
+size = Vector2(135, 63)
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ebxd8"]
+radius = 32.0
+height = 120.0
 
 [node name="Main" type="Node2D" unique_id=525190435]
 
@@ -183,48 +225,60 @@ grow_vertical = 2
 
 [node name="bg" type="TextureRect" parent="UI/titleScreen" unique_id=660948153]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchors_preset = -1
+anchor_left = -0.9145833
+anchor_top = -0.9
+anchor_right = 2.3354166
+anchor_bottom = 2.3666666
+offset_left = 440.0
+offset_top = 249.0
+offset_right = 240.0
+offset_bottom = 135.0
 grow_horizontal = 2
 grow_vertical = 2
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("2_flf07")
+metadata/_edit_use_anchors_ = true
 
 [node name="title" type="TextureRect" parent="UI/titleScreen" unique_id=1812412451]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -595.0
-offset_top = -25.0
-offset_right = -355.0
-offset_bottom = 95.0
+offset_left = -120.0
+offset_right = 120.0
+offset_bottom = 120.0
 grow_horizontal = 2
-scale = Vector2(3, 3)
 texture = ExtResource("3_flf07")
 stretch_mode = 4
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UI/titleScreen" unique_id=2079890368]
 layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_left = 73.0
-offset_top = 14.0
-offset_right = 137.0
-offset_bottom = 176.5
-grow_vertical = 2
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -32.0
+offset_top = -162.5
+offset_right = 32.0
+grow_horizontal = 2
+grow_vertical = 0
 offset_transform_enabled = true
 
 [node name="playButton" type="TextureButton" parent="UI/titleScreen/VBoxContainer" unique_id=1505306190]
 layout_mode = 2
 texture_normal = ExtResource("4_k73cj")
-ignore_texture_size = true
 stretch_mode = 5
 script = ExtResource("9_btnfx")
 
 [node name="levelsButton" type="TextureButton" parent="UI/titleScreen/VBoxContainer" unique_id=1030967362]
 layout_mode = 2
+script = ExtResource("9_btnfx")
+
+[node name="quitButton" type="TextureButton" parent="UI/titleScreen/VBoxContainer" unique_id=980446081]
+layout_mode = 2
+texture_normal = ExtResource("7_7vxoj")
 script = ExtResource("9_btnfx")
 
 [node name="settingsButton" type="TextureButton" parent="UI/titleScreen" unique_id=1882498128]
@@ -238,11 +292,6 @@ offset_right = -8.0
 offset_bottom = 56.0
 grow_horizontal = 0
 texture_normal = ExtResource("6_fs4d3")
-script = ExtResource("9_btnfx")
-
-[node name="quitButton" type="TextureButton" parent="UI/titleScreen/VBoxContainer" unique_id=980446081]
-layout_mode = 2
-texture_normal = ExtResource("7_7vxoj")
 script = ExtResource("9_btnfx")
 
 [node name="levelSelect" type="Control" parent="UI" unique_id=203291542]
@@ -329,10 +378,10 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -240.0
+offset_left = -151.0
 offset_top = 16.0
-offset_right = -16.0
-offset_bottom = 56.0
+offset_right = -77.0
+offset_bottom = 35.0
 grow_horizontal = 0
 theme = ExtResource("13_menutheme")
 
@@ -341,9 +390,14 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -13.5
+offset_top = -5.5
+offset_right = 11.5
+offset_bottom = 3.5
 grow_horizontal = 2
 grow_vertical = 2
 text = "Crystals: 0"
+label_settings = SubResource("LabelSettings_ge17k")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -351,7 +405,6 @@ vertical_alignment = 1
 layout_mode = 1
 offset_right = 200.0
 offset_bottom = 20.0
-scale = Vector2(2, 2)
 texture_over = ExtResource("25_barback")
 texture_progress = ExtResource("23_health")
 script = ExtResource("4_nr8wp")
@@ -374,10 +427,9 @@ vertical_alignment = 1
 
 [node name="airBar" type="TextureProgressBar" parent="UI/HUD" unique_id=1106593634 node_paths=PackedStringArray("player")]
 layout_mode = 1
-offset_top = 44.0
+offset_top = 19.0
 offset_right = 200.0
-offset_bottom = 76.0
-scale = Vector2(2, 2)
+offset_bottom = 51.0
 texture_over = ExtResource("25_barback")
 texture_progress = ExtResource("24_oxygen")
 script = ExtResource("5_d2bti")
@@ -401,10 +453,8 @@ layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = -40.0
-offset_right = 112.0
-offset_bottom = -8.0
+offset_top = -32.0
+offset_right = 104.0
 grow_vertical = 0
 
 [node name="slot1" type="TextureButton" parent="UI/HUD/hotbarContainer" unique_id=1248344335]
@@ -484,7 +534,7 @@ script = ExtResource("9_btnfx")
 
 [node name="inventoryPanel" type="Control" parent="UI/HUD" unique_id=1755249018]
 visible = false
-layout_mode = 3
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -840,24 +890,51 @@ position = Vector2(-47994, -200)
 
 [node name="player" parent="World" unique_id=1331852227 instance=ExtResource("1_0e48y")]
 position = Vector2(1745, 781)
-scale = Vector2(0.5, 0.5)
 script = ExtResource("2_epypp")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="World/player" unique_id=1374419649]
-position = Vector2(0, -5)
+scale = Vector2(3, 3)
 sprite_frames = SubResource("SpriteFrames_g14lc")
 animation = &"idle"
+frame_progress = 0.05006511
+metadata/_aseprite_wizard_interface_config_ = {
+"layer_section": false,
+"pending_changes": {
+"embed_tex": true,
+"layers": [],
+"o_ex_p": "",
+"o_folder": "",
+"o_name": "",
+"only_visible": false,
+"scale": "1.0",
+"should_round_fps": true,
+"slice": "",
+"source": "",
+"source_uid": -1
+}
+}
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="World/player" unique_id=1595813394]
+[node name="idleCollision2D" type="CollisionShape2D" parent="World/player" unique_id=1595813394]
+position = Vector2(36, 20)
 shape = SubResource("CapsuleShape2D_ge17k")
+disabled = true
 
 [node name="Camera2D" type="Camera2D" parent="World/player" unique_id=1183113798]
-position = Vector2(-2, -76)
-zoom = Vector2(0.5, 0.5)
+position = Vector2(4, -62)
+zoom = Vector2(0.2, 0.2)
+
+[node name="walkingCollision2D" type="CollisionShape2D" parent="World/player" unique_id=245899497]
+position = Vector2(20.5, 64.5)
+shape = SubResource("RectangleShape2D_47aep")
+disabled = true
+
+[node name="jumpCollision2D" type="CollisionShape2D" parent="World/player" unique_id=1069782834]
+position = Vector2(4, 36)
+shape = SubResource("CapsuleShape2D_ebxd8")
+disabled = true
 
 [connection signal="pressed" from="UI/titleScreen/VBoxContainer/playButton" to="UI" method="_on_play_button_pressed"]
 [connection signal="pressed" from="UI/titleScreen/VBoxContainer/levelsButton" to="UI" method="_on_levels_button_pressed"]
-[connection signal="pressed" from="UI/titleScreen/VBoxContainer/settingsButton" to="UI" method="_on_settings_button_pressed"]
 [connection signal="pressed" from="UI/titleScreen/VBoxContainer/quitButton" to="UI" method="_on_quit_button_pressed"]
 [connection signal="pressed" from="UI/levelSelect/Panel/backButton" to="UI" method="_on_level_select_back_button_pressed"]
 [connection signal="pressed" from="UI/HUD/hudSettingsButton" to="UI" method="_on_settings_button_pressed"]

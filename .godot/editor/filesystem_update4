@@ -1,9 +1,3 @@
 res://node_2d.tscn
 res://ui/menu_theme.tres
-res://scripts/ui/button_dim_fx.gd
-res://color_rect.gd
-res://npc.gd
-res://world.gd
-res://bosses/boss.gd
 res://player/player.gd
-res://ui.gd

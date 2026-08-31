@@ -27,7 +27,7 @@ var activeWeaponIndex: int = 0
 @export var walkSpeed = 300.0
 @export var swimSpeed = 400.0
 @export var gravity = 980.0
-@export var jumpVelocity = -200.0
+@export var jumpVelocity = -350.0 # Adjusted slightly for a stronger jump
 @export var acceleration = 2000.0 # How quickly the player reaches walkSpeed
 @export var swimAcceleration = 900.0 # Smooths out swim direction changes
 
@@ -38,6 +38,11 @@ var coyoteTimer = 0.0
 var jumpBufferTimer = 0.0
 
 @onready var sprite = $AnimatedSprite2D
+
+# --- COLLIDERS (camelCase) ---
+@onready var idleCollision2D: CollisionShape2D = $idleCollision2D
+@onready var walkingCollision2D: CollisionShape2D = $walkingCollision2D
+@onready var jumpCollision2D: CollisionShape2D = $jumpCollision2D
 
 const PlayerBulletScene := preload("res://bullets/player_bullet.tscn")
 var shootCooldown: float = 0.0
@@ -73,6 +78,7 @@ func _physics_process(delta: float) -> void:
 	handleHotbarInput()
 	handleShootInput()
 	updateAnimation()
+	handleColliderFacing() # Flips colliders if player turns around
 	move_and_slide()
 
 func _updateJumpTimers(delta: float) -> void:
@@ -219,27 +225,47 @@ func _getEquippedWeapon() -> WeaponData:
 	_weaponCache[weapon_id] = weapon
 	return weapon
 
+# --- UPDATED ANIMATION & COLLIDER SELECTION ---
+
 func updateAnimation() -> void:
 	if not sprite or not sprite.sprite_frames:
 		return
 
 	var animName := "idle"
-	var is_jumping = currentState == State.LAND and not is_on_floor()
-	var target_scale := Vector2(1.0, 2.0)
+	var isJumping = currentState == State.LAND and not is_on_floor()
 
-	if is_jumping:
-		animName = "idle"
-		target_scale = Vector2(1.0, 2.0)
+	if isJumping:
+		if sprite.sprite_frames.has_animation("jump"):
+			animName = "jump"
+			switchCollider(jumpCollision2D)
+		else:
+			animName = "idle"
+			switchCollider(idleCollision2D)
 	else:
 		match currentState:
 			State.LAND:
-				animName = "walking" if abs(velocity.x) > 5.0 else "idle"
+				if abs(velocity.x) > 5.0:
+					animName = "walking"
+					switchCollider(walkingCollision2D)
+				else:
+					animName = "idle"
+					switchCollider(idleCollision2D)
 			State.SWIMMING:
-				animName = "walking" if abs(velocity.x) > 5.0 else "idle"
-		if abs(velocity.x) > 5.0:
-			target_scale = Vector2(2.0, 1.0)
-		else:
-			target_scale = Vector2(1.0, 2.0)
+				if velocity.length() > 5.0:
+					if sprite.sprite_frames.has_animation("swim"):
+						animName = "swim"
+						# Swim uses walking collision if dedicated swim shape doesn't exist
+						switchCollider(walkingCollision2D)
+					else:
+						animName = "walking"
+						switchCollider(walkingCollision2D)
+				else:
+					if sprite.sprite_frames.has_animation("swimIdle"):
+						animName = "swimIdle"
+						switchCollider(idleCollision2D)
+					else:
+						animName = "idle"
+						switchCollider(idleCollision2D)
 
 	if sprite.sprite_frames.has_animation(animName):
 		if sprite.animation != animName:
@@ -248,14 +274,32 @@ func updateAnimation() -> void:
 		if sprite.animation != "idle":
 			sprite.play("idle")
 
-	sprite.scale = target_scale
+# --- HELPER FUNCTIONS (camelCase) ---
+
+func switchCollider(activeCollider: CollisionShape2D) -> void:
+	var colliders = [idleCollision2D, walkingCollision2D, jumpCollision2D]
+	for collider in colliders:
+		if collider:
+			# Safely disable or enable the shape at the end of the physics frame
+			var shouldDisable = (collider != activeCollider)
+			collider.set_deferred("disabled", shouldDisable)
+
+func handleColliderFacing() -> void:
+	var colliders = [idleCollision2D, walkingCollision2D, jumpCollision2D]
+	for collider in colliders:
+		if collider:
+			# If the collider has a horizontal offset, mirror its X position
+			# to match whichever way the player is facing.
+			if sprite.flip_h:
+				collider.position.x = -abs(collider.position.x)
+			else:
+				collider.position.x = abs(collider.position.x)
 
 # --- SIGNAL RECEIVERS ---
 
 func _on_water_area_body_entered(body: Node2D) -> void:
 	if body == self:
 		currentState = State.SWIMMING
-		# Slowly damp falling speed upon hitting the water instead of stopping instantly
 		velocity.y = clamp(velocity.y, -swimSpeed, swimSpeed)
 
 func _on_water_area_body_exited(body: Node2D) -> void:
@@ -263,5 +307,4 @@ func _on_water_area_body_exited(body: Node2D) -> void:
 		currentState = State.LAND
 
 func _on_weapon_equipped(_weapon_id: String) -> void:
-	# Invalidate weapon cache when weapon is changed
 	_weaponCache.clear()

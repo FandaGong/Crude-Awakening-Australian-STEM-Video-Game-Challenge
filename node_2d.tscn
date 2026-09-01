@@ -23,9 +23,11 @@
 [ext_resource type="Texture2D" uid="uid://0dnon15sn6m2" path="res://assets/UI/settings/settingsBG.png" id="18_2u7jv"]
 [ext_resource type="Texture2D" uid="uid://cmioo11ufhsl1" path="res://assets/UI/system/buttonPause.png" id="18_c4wnb"]
 [ext_resource type="Texture2D" uid="uid://brh4r0bjkqf7m" path="res://assets/UI/system/buttonPlay.png" id="20_7plk7"]
+[ext_resource type="Texture2D" uid="uid://c3t8b4eask7rj" path="res://assets/UI/settings/sliderTrue.png" id="21_4qosj"]
 [ext_resource type="Texture2D" uid="uid://bqdgx2ghpf6df" path="res://assets/UI/settings/exitButton.png" id="21_7plk7"]
 [ext_resource type="Texture2D" uid="uid://cq00n6ic6j8f7" path="res://assets/player/otterIDLE.png" id="21_ei405"]
 [ext_resource type="LabelSettings" uid="uid://c1wpo13xiwthg" path="res://largeLabels.tres" id="21_fbwgr"]
+[ext_resource type="Texture2D" uid="uid://dbx38mhrmsieq" path="res://assets/UI/settings/sliderFalse.png" id="22_cjlbh"]
 [ext_resource type="Texture2D" uid="uid://b7feuhim70pxa" path="res://assets/player/otterRUN.png" id="22_e8dv2"]
 [ext_resource type="Texture2D" uid="uid://cthwxvl5q5cqh" path="res://assets/UI/player/playerBars/health.png" id="23_health"]
 [ext_resource type="Texture2D" uid="uid://cwcgkt0uw4ijg" path="res://assets/sprites/ground (grass and dirt)/level grass.png" id="24_6ip5v"]
@@ -57,6 +59,18 @@ texture_margin_left = 30.0
 texture_margin_top = 30.0
 texture_margin_right = 30.0
 texture_margin_bottom = 60.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3ngjr"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qilgh"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4qosj"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kfelt"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_cjlbh"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ytlpd"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bbheg"]
 texture = ExtResource("18_2u7jv")
@@ -687,41 +701,61 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -198.0
-offset_top = -104.0
-offset_right = 230.0
-offset_bottom = 100.0
+offset_top = -116.0
+offset_right = 218.0
+offset_bottom = 132.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("8_q5dlx")
 theme_override_styles/panel = SubResource("StyleBoxTexture_ebxd8")
 
-[node name="particlesButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=1606853047]
+[node name="bgmButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=84036431]
 layout_mode = 0
-offset_left = 66.0
-offset_top = 199.0
-offset_right = 110.0
-offset_bottom = 223.0
+offset_left = 253.0
+offset_top = 68.0
+offset_right = 285.0
+offset_bottom = 84.0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_3ngjr")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_qilgh")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_4qosj")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_kfelt")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_cjlbh")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ytlpd")
+theme_override_icons/checked = ExtResource("21_4qosj")
+theme_override_icons/unchecked = ExtResource("22_cjlbh")
 
-[node name="reduceMotionButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=625897432]
+[node name="Label" type="Label" parent="UI/settingsMenu/Panel/bgmButton" unique_id=797123166]
 layout_mode = 0
-offset_left = 65.0
-offset_top = 73.0
-offset_right = 109.0
-offset_bottom = 97.0
+offset_left = 34.0
+offset_top = 2.0
+offset_right = 90.0
+offset_bottom = 13.0
+text = "BGM"
+label_settings = ExtResource("8_hqns4")
 
-[node name="colorblindButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=702958870]
+[node name="soundEffectsButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=403706817]
 layout_mode = 0
-offset_left = 65.0
-offset_top = 281.0
-offset_right = 109.0
-offset_bottom = 305.0
+offset_left = 252.0
+offset_top = 93.0
+offset_right = 284.0
+offset_bottom = 109.0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_3ngjr")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_qilgh")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_4qosj")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_kfelt")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_cjlbh")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ytlpd")
+theme_override_icons/checked = ExtResource("21_4qosj")
+theme_override_icons/unchecked = ExtResource("22_cjlbh")
 
-[node name="soundButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=2062861524]
+[node name="Label" type="Label" parent="UI/settingsMenu/Panel/soundEffectsButton" unique_id=1183198273]
 layout_mode = 0
-offset_left = 67.0
-offset_top = 127.0
-offset_right = 111.0
-offset_bottom = 151.0
+offset_left = 35.0
+offset_top = 3.0
+offset_right = 112.0
+offset_bottom = 14.0
+text = "Sound Effects"
+label_settings = ExtResource("8_hqns4")
 
 [node name="closeButton" type="TextureButton" parent="UI/settingsMenu/Panel" unique_id=1709673179]
 layout_mode = 0
@@ -730,6 +764,96 @@ offset_top = 16.0
 offset_right = 957.0
 offset_bottom = 60.0
 script = ExtResource("9_btnfx")
+
+[node name="reduceMotionButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=1531014113]
+layout_mode = 0
+offset_left = 33.0
+offset_top = 87.0
+offset_right = 65.0
+offset_bottom = 103.0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_3ngjr")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_qilgh")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_4qosj")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_kfelt")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_cjlbh")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ytlpd")
+theme_override_icons/checked = ExtResource("21_4qosj")
+theme_override_icons/unchecked = ExtResource("22_cjlbh")
+
+[node name="Label" type="Label" parent="UI/settingsMenu/Panel/reduceMotionButton" unique_id=679046433]
+layout_mode = 0
+offset_left = 33.0
+offset_top = 2.0
+offset_right = 110.0
+offset_bottom = 13.0
+text = "Reduce Motion"
+label_settings = ExtResource("8_hqns4")
+
+[node name="colorblindButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=1016187361]
+layout_mode = 0
+offset_left = 33.0
+offset_top = 110.0
+offset_right = 65.0
+offset_bottom = 126.0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_3ngjr")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_qilgh")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_4qosj")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_kfelt")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_cjlbh")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ytlpd")
+theme_override_icons/checked = ExtResource("21_4qosj")
+theme_override_icons/unchecked = ExtResource("22_cjlbh")
+
+[node name="Label" type="Label" parent="UI/settingsMenu/Panel/colorblindButton" unique_id=1383535878]
+layout_mode = 0
+offset_left = 34.0
+offset_top = 3.0
+offset_right = 93.0
+offset_bottom = 14.0
+text = "Colorblind"
+label_settings = ExtResource("8_hqns4")
+
+[node name="particlesButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=1687058592]
+layout_mode = 0
+offset_left = 33.0
+offset_top = 64.0
+offset_right = 65.0
+offset_bottom = 80.0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_3ngjr")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_qilgh")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_4qosj")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_kfelt")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_cjlbh")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ytlpd")
+theme_override_icons/checked = ExtResource("21_4qosj")
+theme_override_icons/unchecked = ExtResource("22_cjlbh")
+
+[node name="Label" type="Label" parent="UI/settingsMenu/Panel/particlesButton" unique_id=1802868712]
+layout_mode = 0
+offset_left = 34.0
+offset_top = 2.0
+offset_right = 90.0
+offset_bottom = 13.0
+text = "Particles"
+label_settings = ExtResource("8_hqns4")
+
+[node name="soundLabel" type="Label" parent="UI/settingsMenu/Panel" unique_id=238209664]
+layout_mode = 0
+offset_left = 255.0
+offset_top = 23.0
+offset_right = 343.0
+offset_bottom = 51.0
+text = "Sound"
+label_settings = ExtResource("21_fbwgr")
+
+[node name="generalLabel" type="Label" parent="UI/settingsMenu/Panel" unique_id=805448548]
+layout_mode = 0
+offset_left = 31.0
+offset_top = 24.0
+offset_right = 154.0
+offset_bottom = 52.0
+text = "General"
+label_settings = ExtResource("21_fbwgr")
 
 [node name="shopMenu" type="Control" parent="UI" unique_id=399556253]
 process_mode = 3
@@ -805,6 +929,7 @@ script = ExtResource("9_btnfx")
 [node name="pauseMenu" type="Control" parent="UI" unique_id=1991277421]
 process_mode = 3
 visible = false
+z_index = -1
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -988,6 +1113,8 @@ position = Vector2(-47994, -200)
 [node name="player" parent="World" unique_id=1331852227 instance=ExtResource("1_0e48y")]
 position = Vector2(1745, 781)
 script = ExtResource("2_epypp")
+walkSpeed = 600.0
+swimSpeed = 800.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="World/player" unique_id=1374419649]
 scale = Vector2(3, 3)

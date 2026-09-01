@@ -231,6 +231,7 @@ func _on_equip_weapon_pressed(weapon_id: String) -> void:
 # --- Escape / pause menu ---
 
 func _on_resume_button_pressed() -> void:
+	_close_settings()
 	_set_state(UIState.PLAYING)
 
 func _on_pause_main_menu_button_pressed() -> void:

@@ -1,3 +1,5 @@
 res://node_2d.tscn
 res://defaultUIbg.tres
+res://player/player.gd
+res://ui/menu_theme.tres
 res://ui.gd

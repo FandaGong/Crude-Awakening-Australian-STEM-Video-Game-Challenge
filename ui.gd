@@ -62,7 +62,7 @@ func _on_crystals_changed(new_amount: int) -> void:
 
 func _update_crystal_labels(amount: int) -> void:
 	if hud_crystal_label:
-		hud_crystal_label.text = "Crystals: %d" % amount
+		hud_crystal_label.text = "LG Material: %d" % amount
 	if shop_crystal_label:
 		shop_crystal_label.text = "Aquamarine Crystals: %d" % amount
 

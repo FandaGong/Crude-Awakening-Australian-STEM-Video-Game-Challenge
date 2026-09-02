@@ -81,10 +81,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			_select_hotbar_slot(3)
 			get_viewport().set_input_as_handled()
 			return
-		if keycode == KEY_E:
-			_toggle_inventory()
-			get_viewport().set_input_as_handled()
-			return
+		#if keycode == KEY_E:
+		#	_toggle_inventory()
+		#	get_viewport().set_input_as_handled()
+		#	return
 
 	if not event.is_action_pressed("ui_cancel"):
 		return
@@ -252,12 +252,12 @@ func _select_hotbar_slot(slot: int) -> void:
 	player.activeWeaponIndex = slot - 1
 	_update_hotbar_selection(slot)
 
-func _toggle_inventory() -> void:
-	if current_state != UIState.PLAYING:
-		return
-	inventory_visible = !inventory_visible
-	if has_node("HUD/inventoryPanel"):
-		$HUD/inventoryPanel.visible = inventory_visible
+#func _toggle_inventory() -> void:
+#	if current_state != UIState.PLAYING:
+#		return
+#	inventory_visible = !inventory_visible
+#	if has_node("HUD/inventoryPanel"):
+#		$HUD/inventoryPanel.visible = inventory_visible
 
 func _update_hotbar_selection(slot: int) -> void:
 	if not slot1 or not slot2 or not slot3:
@@ -284,8 +284,8 @@ func _on_hud_pause_button_pressed() -> void:
 	if current_state == UIState.PLAYING:
 		_set_state(UIState.PAUSED)
 
-func _on_inventory_button_pressed() -> void:
-	_toggle_inventory()
+#func _on_inventory_button_pressed() -> void:
+#	_toggle_inventory()
 
 # --- MOUSE CLICK SIGNALS FOR HOTBAR SLOTS ---
 

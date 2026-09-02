@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://b70jagegaj01y"]
+
+[ext_resource type="Script" uid="uid://gveo8rvjidg" path="res://scripts/items/item_data.gd" id="1_107as"]
+
+[resource]
+script = ExtResource("1_107as")
+id = "goggles"
+name = "Diving Goggles"
+item_type = 1
+metadata/_custom_type_script = "uid://gveo8rvjidg"

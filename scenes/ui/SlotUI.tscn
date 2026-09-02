@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://brc5nh8tkwoi8"]
+
+[ext_resource type="Script" uid="uid://frf3so1knd0x" path="res://scenes/ui/slot_ui.gd" id="1_itx44"]
+
+[node name="SlotUi" type="PanelContainer" unique_id=377835059]
+offset_right = 1.0
+offset_bottom = 23.0
+script = ExtResource("1_itx44")
+
+[node name="Icon" type="TextureRect" parent="." unique_id=2098982592]
+layout_mode = 2
+
+[node name="CountLabel" type="Label" parent="." unique_id=727744250]
+layout_mode = 2

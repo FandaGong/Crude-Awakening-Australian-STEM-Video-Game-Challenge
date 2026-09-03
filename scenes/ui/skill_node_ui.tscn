@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://l5pg1ishoyll"]
+
+[ext_resource type="Script" uid="uid://c25j8wte1uvj4" path="res://scenes/ui/skill_node_ui.gd" id="1_yx43e"]
+[ext_resource type="Texture2D" uid="uid://bxa0mwf2681qu" path="res://assets/UI/player/inventoryButton.png" id="2_sik6a"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_6uidu"]
+
+[node name="SkillNodeUi" type="TextureButton" unique_id=1440460607]
+texture_normal = SubResource("PlaceholderTexture2D_6uidu")
+script = ExtResource("1_yx43e")
+
+[node name="Icon" type="TextureRect" parent="." unique_id=150679636]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("2_sik6a")
+
+[node name="Border" type="TextureRect" parent="." unique_id=1638046769]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="KeystoneGlow" type="TextureRect" parent="." unique_id=1919575773]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0

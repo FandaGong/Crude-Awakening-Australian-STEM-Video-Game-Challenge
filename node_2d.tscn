@@ -851,6 +851,7 @@ stretch_mode = 0
 script = ExtResource("9_btnfx")
 
 [node name="inventoryPanel" type="Control" parent="UI/HUD" unique_id=1755249018]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -952,6 +953,7 @@ layout_mode = 2
 layout_mode = 2
 
 [node name="robotInventoryPanel" type="Control" parent="UI/HUD" unique_id=1354064504]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1128,10 +1130,10 @@ theme_override_styles/panel = SubResource("StyleBoxTexture_ebxd8")
 
 [node name="bgmButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=84036431]
 layout_mode = 0
-offset_left = 253.0
-offset_top = 68.0
-offset_right = 285.0
-offset_bottom = 84.0
+offset_left = 216.0
+offset_top = 72.0
+offset_right = 248.0
+offset_bottom = 88.0
 theme_override_styles/normal = SubResource("StyleBoxEmpty_3ngjr")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_qilgh")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_4qosj")
@@ -1152,10 +1154,10 @@ label_settings = ExtResource("8_hqns4")
 
 [node name="soundEffectsButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=403706817]
 layout_mode = 0
-offset_left = 252.0
-offset_top = 93.0
-offset_right = 284.0
-offset_bottom = 109.0
+offset_left = 216.0
+offset_top = 97.0
+offset_right = 248.0
+offset_bottom = 113.0
 theme_override_styles/normal = SubResource("StyleBoxEmpty_3ngjr")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_qilgh")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_4qosj")
@@ -1173,14 +1175,6 @@ offset_right = 112.0
 offset_bottom = 14.0
 text = "Sound Effects"
 label_settings = ExtResource("8_hqns4")
-
-[node name="closeButton" type="TextureButton" parent="UI/settingsMenu/Panel" unique_id=1709673179]
-layout_mode = 0
-offset_left = 912.0
-offset_top = 16.0
-offset_right = 957.0
-offset_bottom = 60.0
-script = ExtResource("9_btnfx")
 
 [node name="reduceMotionButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=1531014113]
 layout_mode = 0
@@ -1256,10 +1250,10 @@ label_settings = ExtResource("8_hqns4")
 
 [node name="soundLabel" type="Label" parent="UI/settingsMenu/Panel" unique_id=238209664]
 layout_mode = 0
-offset_left = 255.0
-offset_top = 23.0
-offset_right = 343.0
-offset_bottom = 51.0
+offset_left = 218.0
+offset_top = 27.0
+offset_right = 306.0
+offset_bottom = 55.0
 text = "Sound"
 label_settings = ExtResource("21_fbwgr")
 
@@ -1271,6 +1265,16 @@ offset_right = 154.0
 offset_bottom = 52.0
 text = "General"
 label_settings = ExtResource("21_fbwgr")
+
+[node name="closeSettingsButton" type="TextureButton" parent="UI/settingsMenu/Panel" unique_id=210517809]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 0
+offset_left = 361.0
+offset_top = 22.0
+offset_right = 393.0
+offset_bottom = 54.0
+texture_normal = ExtResource("21_7plk7")
+script = ExtResource("9_btnfx")
 
 [node name="shopMenu" type="Control" parent="UI" unique_id=399556253]
 process_mode = 3
@@ -1289,6 +1293,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 color = Color(0.02, 0.04, 0.07, 1)
 
 [node name="Panel" type="Panel" parent="UI/shopMenu" unique_id=221481532]
@@ -1345,7 +1350,6 @@ script = ExtResource("9_btnfx")
 
 [node name="pauseMenu" type="Control" parent="UI" unique_id=1991277421]
 process_mode = 3
-visible = false
 z_index = -1
 layout_mode = 3
 anchors_preset = 15
@@ -1380,19 +1384,6 @@ theme_override_font_sizes/font_size = 32
 text = "Paused"
 label_settings = ExtResource("21_fbwgr")
 horizontal_alignment = 1
-
-[node name="VBoxContainer" type="VBoxContainer" parent="UI/pauseMenu/Panel" unique_id=552028226]
-layout_mode = 0
-offset_left = 60.0
-offset_top = 94.0
-offset_right = 157.0
-offset_bottom = 243.0
-theme_override_constants/separation = -9
-
-[node name="pauseMainMenuButton" type="TextureButton" parent="UI/pauseMenu/Panel/VBoxContainer" unique_id=287843144]
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-script = ExtResource("9_btnfx")
 
 [node name="resumeButton" type="TextureButton" parent="UI/pauseMenu/Panel" unique_id=738544646]
 custom_minimum_size = Vector2(0, 30)
@@ -1629,9 +1620,8 @@ position = Vector2(1776, 736)
 [connection signal="pressed" from="UI/HUD/inventoryButton" to="UI" method="_on_inventory_button_pressed"]
 [connection signal="pressed" from="UI/HUD/inventoryButton" to="UI/HUD/inventoryPanel" method="_on_inventory_button_pressed"]
 [connection signal="pressed" from="UI/HUD/hudPauseButton" to="UI" method="_on_hud_pause_button_pressed"]
-[connection signal="pressed" from="UI/settingsMenu/Panel/closeButton" to="UI" method="_on_close_button_pressed"]
+[connection signal="pressed" from="UI/settingsMenu/Panel/closeSettingsButton" to="UI" method="_on_close_settings_button_pressed"]
 [connection signal="pressed" from="UI/shopMenu/Panel/shopCloseButton" to="UI" method="_on_shop_close_button_pressed"]
-[connection signal="pressed" from="UI/pauseMenu/Panel/VBoxContainer/pauseMainMenuButton" to="UI" method="_on_pause_main_menu_button_pressed"]
 [connection signal="pressed" from="UI/pauseMenu/Panel/resumeButton" to="UI" method="_on_resume_button_pressed"]
 [connection signal="pressed" from="UI/pauseMenu/Panel/pauseSettingsButton" to="UI" method="_on_settings_button_pressed"]
 [connection signal="pressed" from="UI/pauseMenu/Panel/pauseQuitButton" to="UI" method="_on_pause_quit_button_pressed"]

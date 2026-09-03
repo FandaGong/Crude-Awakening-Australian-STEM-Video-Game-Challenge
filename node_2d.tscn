@@ -1559,10 +1559,6 @@ offset_bottom = -36.0
 text = "Dive deeper..."
 horizontal_alignment = 1
 
-[node name="tunnelEntrance2" type="Area2D" parent="World/trenchScene" unique_id=648959743]
-position = Vector2(-19322, 2200)
-script = ExtResource("11_tunnelentrance")
-
 [node name="diveTunnel" type="Node2D" parent="World" unique_id=1512852104]
 position = Vector2(-9232, 1429)
 script = ExtResource("12_tunnelgen")

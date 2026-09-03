@@ -14,8 +14,8 @@ var currentHealth: float = maxHealth
 @export var maxAir: float = 100.0 # Oxygen capacity
 var currentAir: float = maxAir
 
-@export var drownDamageRate: float = 10.0 # Damage per second when drowning
-@export var airRecoveryRate: float = 50.0 # How fast oxygen recovers on land
+@export var drownDamageRate: float = 5.0 # Damage per second when drowning
+@export var airRecoveryRate: float = 5.0 # How fast oxygen recovers on land
 
 var isDead: bool = false
 
@@ -166,7 +166,7 @@ func handleSwimmingMovement(delta: float) -> void:
 
 func depleteAir(delta: float) -> void:
 	if currentAir > 0:
-		currentAir -= 10.0 * delta
+		currentAir -= 0.5 * delta
 		currentAir = max(0.0, currentAir)
 	else:
 		takeDamage(drownDamageRate * delta)

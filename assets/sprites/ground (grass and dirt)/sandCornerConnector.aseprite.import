@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://dj51bdaaccwng"
+path="res://.godot/imported/sandCornerConnector.aseprite-922d552fd8b852b003036d3121be60d6.res"
+
+[deps]
+
+source_file="res://assets/sprites/ground (grass and dirt)/sandCornerConnector.aseprite"
+dest_files=["res://.godot/imported/sandCornerConnector.aseprite-922d552fd8b852b003036d3121be60d6.res"]
+
+[params]
+

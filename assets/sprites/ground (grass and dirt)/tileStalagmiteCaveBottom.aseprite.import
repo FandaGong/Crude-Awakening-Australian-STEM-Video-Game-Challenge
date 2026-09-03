@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://bfd3gjk5vexaa"
+path="res://.godot/imported/tileStalagmiteCaveBottom.aseprite-eead1c4e8bd1c7edfd527f5b39ba74b7.res"
+
+[deps]
+
+source_file="res://assets/sprites/ground (grass and dirt)/tileStalagmiteCaveBottom.aseprite"
+dest_files=["res://.godot/imported/tileStalagmiteCaveBottom.aseprite-eead1c4e8bd1c7edfd527f5b39ba74b7.res"]
+
+[params]
+

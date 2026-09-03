@@ -22,6 +22,7 @@ var isDead: bool = false
 # --- INVENTORY & HOTBAR ---
 var inventory: Array[String] = ["Potion", "Harpoon", "Spear"] # Temporary test list
 var activeWeaponIndex: int = 0
+var hasRobotCompanion: bool = false
 
 # --- SPRITE VISUAL SCALE ---
 @export var baseScale: float = 3.0

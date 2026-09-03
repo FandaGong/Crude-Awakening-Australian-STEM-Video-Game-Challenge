@@ -1,6 +1,7 @@
 extends Area2D
 
 @onready var speech_bubble: Label = $speechBubble
+@onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 var player_inside: bool = false
 var has_given_potion: bool = false
@@ -11,13 +12,18 @@ var has_given_potion: bool = false
 
 func _ready() -> void:
 	speech_bubble.hide()
+	
+	# Play the default animation for the NPC sprite
+	if animated_sprite:
+		animated_sprite.play("default")
 
 func _on_body_entered(body: Node2D) -> void:
 	if body == player and not has_given_potion:
 		player_inside = true
-		speech_bubble.text = "Take this Potion of Curing!\nPress 'Space' to accept and go to the beach."
+		# Award robot immediately and tell player to press space
+		player.hasRobotCompanion = true
+		speech_bubble.text = "The Scientist gave you the robot companion!\n(Press SPACE to continue)"
 		speech_bubble.show()
-
 func _on_body_exited(body: Node2D) -> void:
 	if body == player:
 		player_inside = false

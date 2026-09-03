@@ -27,7 +27,12 @@ const ButtonDimFxScript := preload("res://scripts/ui/button_dim_fx.gd")
 @onready var player: CharacterBody2D = $"../World/player"
 @onready var world: Node2D = $"../World"
 
+# --- Inventory Panel References ---
+@onready var inventory_panel: Control = $HUD/inventoryPanel
 var inventory_visible: bool = false
+
+@onready var robot_inventory_panel: Control = $HUD/robotInventoryPanel
+var robot_inventory_visible: bool = false
 
 func _ready() -> void:
 	add_to_group("ui_controller")
@@ -81,12 +86,27 @@ func _unhandled_input(event: InputEvent) -> void:
 			_select_hotbar_slot(3)
 			get_viewport().set_input_as_handled()
 			return
-		#if keycode == KEY_E:
-		#	_toggle_inventory()
-		#	get_viewport().set_input_as_handled()
-		#	return
+		if keycode == KEY_E:
+			_toggle_inventory()
+			get_viewport().set_input_as_handled()
+			return
+		if keycode == KEY_R:
+			_toggle_robot_inventory()
+			get_viewport().set_input_as_handled()
+			return
 
 	if not event.is_action_pressed("ui_cancel"):
+		return
+
+	# Close inventories if they're open
+	if inventory_visible:
+		_toggle_inventory()
+		get_viewport().set_input_as_handled()
+		return
+	
+	if robot_inventory_visible:
+		_toggle_robot_inventory()
+		get_viewport().set_input_as_handled()
 		return
 
 	match current_state:
@@ -242,6 +262,27 @@ func _on_pause_quit_button_pressed() -> void:
 
 # --- Inventory & Hotbar ---
 
+func _toggle_inventory() -> void:
+	if current_state != UIState.PLAYING:
+		return
+	inventory_visible = !inventory_visible
+	if inventory_panel:
+		inventory_panel.visible = inventory_visible
+
+func _on_inventory_button_pressed() -> void:
+	_toggle_inventory()
+
+
+func _toggle_robot_inventory() -> void:
+	if current_state != UIState.PLAYING:
+		return
+	# Only allow opening if the player has actually unlocked the robot
+	if not player or not player.hasRobotCompanion:
+		return
+	robot_inventory_visible = !robot_inventory_visible
+	if robot_inventory_panel:
+		robot_inventory_panel.visible = robot_inventory_visible
+
 func _select_hotbar_slot(slot: int) -> void:
 	if not player:
 		return
@@ -251,13 +292,6 @@ func _select_hotbar_slot(slot: int) -> void:
 		return
 	player.activeWeaponIndex = slot - 1
 	_update_hotbar_selection(slot)
-
-#func _toggle_inventory() -> void:
-#	if current_state != UIState.PLAYING:
-#		return
-#	inventory_visible = !inventory_visible
-#	if has_node("HUD/inventoryPanel"):
-#		$HUD/inventoryPanel.visible = inventory_visible
 
 func _update_hotbar_selection(slot: int) -> void:
 	if not slot1 or not slot2 or not slot3:
@@ -283,9 +317,6 @@ func _update_hotbar_selection(slot: int) -> void:
 func _on_hud_pause_button_pressed() -> void:
 	if current_state == UIState.PLAYING:
 		_set_state(UIState.PAUSED)
-
-#func _on_inventory_button_pressed() -> void:
-#	_toggle_inventory()
 
 # --- MOUSE CLICK SIGNALS FOR HOTBAR SLOTS ---
 

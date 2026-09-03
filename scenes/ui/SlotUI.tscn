@@ -1,14 +1,32 @@
 [gd_scene format=3 uid="uid://brc5nh8tkwoi8"]
 
 [ext_resource type="Script" uid="uid://frf3so1knd0x" path="res://scenes/ui/slot_ui.gd" id="1_itx44"]
+[ext_resource type="FontFile" uid="uid://c8wbwh75d2srp" path="res://assets/fonts/VCR_OSD_MONO_1.001.ttf" id="3_gbh5r"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yshov"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_xcqps"]
+font = ExtResource("3_gbh5r")
+font_size = 3
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)
 
 [node name="SlotUi" type="PanelContainer" unique_id=377835059]
-offset_right = 1.0
+custom_minimum_size = Vector2(24, 24)
+custom_maximum_size = Vector2(24, 24)
+propagate_maximum_size = false
+offset_right = 12.0
 offset_bottom = 23.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_yshov")
 script = ExtResource("1_itx44")
 
 [node name="Icon" type="TextureRect" parent="." unique_id=2098982592]
 layout_mode = 2
+stretch_mode = 5
 
 [node name="CountLabel" type="Label" parent="." unique_id=727744250]
 layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+text = "n"
+label_settings = SubResource("LabelSettings_xcqps")

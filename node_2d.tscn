@@ -184,6 +184,9 @@ size = Vector2(3235, 8720)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_tunnelgate"]
 size = Vector2(300, 60)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tunnelgate"]
+size = Vector2(300, 60)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_2nhjh"]
 atlas = ExtResource("21_ei405")
 region = Rect2(0, 0, 64, 64)
@@ -1482,6 +1485,21 @@ script = ExtResource("11_tunnelentrance")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="World/trenchScene/tunnelEntrance" unique_id=2062212986]
 position = Vector2(13, 411)
+shape = SubResource("RectangleShape2D_tunnelgate")
+
+[node name="Label" type="Label" parent="World/trenchScene/tunnelEntrance" unique_id=1739620269]
+offset_left = -70.0
+offset_top = -60.0
+offset_right = 70.0
+offset_bottom = -36.0
+text = "Dive deeper..."
+horizontal_alignment = 1
+
+[node name="tunnelEntrance" type="Area2D" parent="World/trenchScene" unique_id=2074168964]
+position = Vector2(-19322, 2200)
+script = ExtResource("11_tunnelentrance")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/trenchScene/tunnelEntrance" unique_id=2062212986]
 shape = SubResource("RectangleShape2D_tunnelgate")
 
 [node name="Label" type="Label" parent="World/trenchScene/tunnelEntrance" unique_id=1739620269]

@@ -49,7 +49,6 @@
 [ext_resource type="Texture2D" uid="uid://351ysl4qgrbe" path="res://assets/player/otter_jump.png" id="28_ebxd8"]
 [ext_resource type="Texture2D" uid="uid://burighnsei4xj" path="res://assets/sprites/ground (grass and dirt)/tileCornerGrass.png" id="28_fbwgr"]
 [ext_resource type="Texture2D" uid="uid://bhvojqnn5uai8" path="res://assets/UI/player/inventory.png" id="28_inventory"]
-[ext_resource type="PackedScene" uid="uid://l5pg1ishoyll" path="res://scenes/ui/skill_node_ui.tscn" id="28_qu7as"]
 [ext_resource type="Texture2D" uid="uid://cuexmkr5gqy8u" path="res://assets/sprites/ground (grass and dirt)/tileCornerGrassRight.png" id="29_7mj2a"]
 [ext_resource type="Texture2D" uid="uid://cvyi87huxskij" path="res://assets/sprites/ground (grass and dirt)/tileTopGrass.png" id="30_fshgd"]
 [ext_resource type="Texture2D" uid="uid://ccjvkw2gw3qq2" path="res://assets/sprites/ground (grass and dirt)/tileSandTop.png" id="35_7mj2a"]
@@ -61,6 +60,7 @@
 [ext_resource type="Texture2D" uid="uid://da8piqq13p1sp" path="res://assets/sprites/corals/coralTube.png" id="38_3ngjr"]
 [ext_resource type="Texture2D" uid="uid://b3guub1mgpnx4" path="res://assets/sprites/corals/seagrass.png" id="39_qilgh"]
 [ext_resource type="Texture2D" uid="uid://bsllnbnyx3ke5" path="res://assets/sprites/water/ocean.png" id="40_3ngjr"]
+[ext_resource type="Texture2D" uid="uid://d2fasa8ferwww" path="res://assets/backgrounds/spawnBG/mountainsBG/2.Trees_back.png" id="41_6uidu"]
 [ext_resource type="Texture2D" uid="uid://dvroa5mroc353" path="res://assets/sprites/water/oceanWave.png" id="41_qilgh"]
 [ext_resource type="Texture2D" uid="uid://ek2mv3oubk4l" path="res://assets/sprites/ground (grass and dirt)/sand.png" id="47_kejda"]
 [ext_resource type="Texture2D" uid="uid://cbkxx4vouyl8x" path="res://assets/sprites/ground (grass and dirt)/sandCornerConnector.png" id="48_uqk8q"]
@@ -79,8 +79,6 @@ texture_margin_right = 30.0
 texture_margin_bottom = 60.0
 expand_margin_left = 29.0
 expand_margin_bottom = 30.0
-
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_j02gt"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ebxd8"]
 texture = ExtResource("18_2u7jv")
@@ -957,7 +955,6 @@ layout_mode = 2
 layout_mode = 2
 
 [node name="robotInventoryPanel" type="Control" parent="UI/HUD" unique_id=1354064504]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1028,10 +1025,10 @@ layout_mode = 2
 
 [node name="gridContainer" type="GridContainer" parent="UI/HUD/robotInventoryPanel/inventoryPanelBg" unique_id=2134785433]
 layout_mode = 0
-offset_left = 121.0
-offset_top = 155.0
-offset_right = 327.0
-offset_bottom = 205.0
+offset_left = 26.0
+offset_top = 175.0
+offset_right = 232.0
+offset_bottom = 225.0
 theme_override_constants/h_separation = 2
 theme_override_constants/v_separation = 2
 columns = 8
@@ -1086,18 +1083,10 @@ layout_mode = 2
 
 [node name="SkillTreeUi" parent="UI/HUD/robotInventoryPanel/inventoryPanelBg" unique_id=1285967863 instance=ExtResource("27_6uidu")]
 layout_mode = 0
-offset_left = 197.0
-offset_top = 69.0
-offset_right = 197.0
-offset_bottom = 69.0
-
-[node name="SkillNodeUi" parent="UI/HUD/robotInventoryPanel/inventoryPanelBg" unique_id=1440460607 instance=ExtResource("28_qu7as")]
-layout_mode = 0
-offset_left = 131.0
-offset_top = 56.0
-offset_right = 155.0
-offset_bottom = 80.0
-texture_normal = SubResource("PlaceholderTexture2D_j02gt")
+offset_left = 137.0
+offset_top = 62.0
+offset_right = 137.0
+offset_bottom = 62.0
 
 [node name="hudPauseButton" type="TextureButton" parent="UI/HUD" unique_id=2145829017]
 layout_mode = 1
@@ -1469,15 +1458,15 @@ position = Vector2(1, 2)
 shape = SubResource("CircleShape2D_ge17k")
 
 [node name="speechBubble" type="Label" parent="World/pondScene/strugglingAnimal" unique_id=1290822907]
-offset_left = 1364.0
-offset_top = 1340.0
-offset_right = 1528.0
-offset_bottom = 1363.0
+offset_left = -67.0
+offset_top = -54.0
+offset_right = 97.0
+offset_bottom = -31.0
 size_flags_horizontal = 4
 label_settings = ExtResource("8_hqns4")
 
 [node name="devCameo" type="Area2D" parent="World/pondScene" unique_id=1213576989 node_paths=PackedStringArray("player", "forest_spawn")]
-position = Vector2(2154, 1488)
+position = Vector2(1790, 1488)
 script = ExtResource("5_d21ai")
 player = NodePath("../../player")
 forest_spawn = NodePath("../../trenchScene/trenchSpawn")
@@ -1491,10 +1480,10 @@ position = Vector2(0, 3)
 shape = SubResource("CircleShape2D_g14lc")
 
 [node name="speechBubble" type="Label" parent="World/pondScene/devCameo" unique_id=1809250121]
-offset_left = -1099.0
-offset_top = 1137.0
-offset_right = -440.0
-offset_bottom = 1234.0
+offset_left = -59.0
+offset_top = -57.0
+offset_right = 49.0
+offset_bottom = -35.0
 label_settings = ExtResource("8_hqns4")
 horizontal_alignment = 1
 
@@ -1515,20 +1504,34 @@ z_index = -100
 [node name="skyLayer" type="Parallax2D" parent="World/pondScene/atmosphere" unique_id=90539953]
 z_index = -100
 scroll_scale = Vector2(0, 0)
+scroll_offset = Vector2(0, 67)
 
 [node name="Sprite2D" type="Sprite2D" parent="World/pondScene/atmosphere/skyLayer" unique_id=2125380188]
-position = Vector2(247, 196.00002)
+position = Vector2(245.99998, 67.00001)
 scale = Vector2(1.55, 1.55)
 texture = ExtResource("35_037st")
 
-[node name="mountainLayer" type="Parallax2D" parent="World/pondScene/atmosphere" unique_id=398967057]
-z_index = -100
+[node name="mountainLayerFront" type="Parallax2D" parent="World/pondScene/atmosphere" unique_id=398967057]
+z_index = -98
 scroll_scale = Vector2(0.2, 0.05)
-repeat_size = Vector2(320, 0)
+scroll_offset = Vector2(0, 108)
+repeat_size = Vector2(496, 0)
 
-[node name="Sprite2D" type="Sprite2D" parent="World/pondScene/atmosphere/mountainLayer" unique_id=979628449]
-position = Vector2(248, 166)
+[node name="Sprite2D" type="Sprite2D" parent="World/pondScene/atmosphere/mountainLayerFront" unique_id=979628449]
+position = Vector2(246, 91)
+scale = Vector2(1.55, 1.55)
 texture = ExtResource("36_6orn5")
+
+[node name="mountainLayerBack" type="Parallax2D" parent="World/pondScene/atmosphere" unique_id=1137807066]
+z_index = -99
+scroll_scale = Vector2(0.1, 0.02)
+scroll_offset = Vector2(0, 108)
+repeat_size = Vector2(496, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="World/pondScene/atmosphere/mountainLayerBack" unique_id=1126916034]
+position = Vector2(246, 57.000008)
+scale = Vector2(1.55, 1.55)
+texture = ExtResource("41_6uidu")
 
 [node name="trenchScene" type="Node2D" parent="World" unique_id=1013212590]
 
@@ -1621,9 +1624,10 @@ position = Vector2(-547, 1293)
 tile_map_data = PackedByteArray("AABhAAcAAgAAAAAAAABiAAcAAgAAAAAAAABjAAcAAgAAAAAAAABkAAcAAgAAAAAAAABlAAcAAgAAAAAAAABmAAcAAgAAAAAAAABnAAcAAgAAAAAAAABoAAcAAgAAAAAAAABpAAcAAgAAAAAAAABqAAcAAgAAAAAAAABrAAcAAgAAAAAAAABsAAcAAgAAAAAAAABtAAcAAgAAAAAAAABuAAcAAgAAAAAAAABvAAcAAgAAAAAAAABwAAcAAgAAAAAAAABxAAcAAgAAAAAAAAByAAcAAgAAAAAAAABzAAcAAgAAAAAAAAB0AAcAAgAAAAAAAAB1AAcAAgAAAAAAAAB2AAcAAgAAAAAAAAB3AAcAAgAAAAAAAAB4AAcAAgAAAAAAAAB5AAcAAgAAAAAAAAB6AAcAAgAAAAAAAABiAAgAAwAAAAAAAABjAAgAAwAAAAAAAABkAAgAAwAAAAAAAABlAAgAAwAAAAAAAABmAAgAAwAAAAAAAABnAAgAAwAAAAAAAABoAAgAAwAAAAAAAABpAAgAAwAAAAAAAABqAAgAAwAAAAAAAABrAAgAAwAAAAAAAABsAAgAAwAAAAAAAABtAAgAAwAAAAAAAABuAAgAAwAAAAAAAABvAAgAAwAAAAAAAABwAAgAAwAAAAAAAABxAAgAAwAAAAAAAAByAAgAAwAAAAAAAABzAAgAAwAAAAAAAAB0AAgAAwAAAAAAAAB1AAgAAwAAAAAAAAB2AAgAAwAAAAAAAAB3AAgAAwAAAAAAAAB4AAgAAwAAAAAAAAB5AAgAAwAAAAAAAAB6AAgAAwAAAAAAAAB6AAkAAwAAAAAAAAB5AAkAAwAAAAAAAAB4AAkAAwAAAAAAAAB5AAoAAwAAAAAAAAB6AAoAAwAAAAAAAAB6AAsAAwAAAAAAAAB5AAsAAwAAAAAAAAB4AAsAAwAAAAAAAAB3AAsAAwAAAAAAAAB3AAoAAwAAAAAAAAB4AAoAAwAAAAAAAAB3AAkAAwAAAAAAAAB2AAoAAwAAAAAAAAB2AAsAAwAAAAAAAAB1AAsAAwAAAAAAAAB0AAsAAwAAAAAAAABzAAsAAwAAAAAAAAByAAsAAwAAAAAAAABxAAsAAwAAAAAAAAB0AAoAAwAAAAAAAAB1AAoAAwAAAAAAAAB2AAkAAwAAAAAAAAB1AAkAAwAAAAAAAAB0AAkAAwAAAAAAAABzAAkAAwAAAAAAAAByAAoAAwAAAAAAAABxAAoAAwAAAAAAAABwAAoAAwAAAAAAAABvAAoAAwAAAAAAAABuAAoAAwAAAAAAAABuAAkAAwAAAAAAAABtAAkAAwAAAAAAAABvAAkAAwAAAAAAAABwAAkAAwAAAAAAAABxAAkAAwAAAAAAAAByAAkAAwAAAAAAAABzAAoAAwAAAAAAAABjAAkAAwAAAAAAAABkAAkAAwAAAAAAAABlAAkAAwAAAAAAAABmAAkAAwAAAAAAAABnAAkAAwAAAAAAAABoAAkAAwAAAAAAAABpAAkAAwAAAAAAAABqAAkAAwAAAAAAAABrAAkAAwAAAAAAAABsAAkAAwAAAAAAAABwAAsAAwAAAAAAAABvAAsAAwAAAAAAAABuAAsAAwAAAAAAAABtAAsAAwAAAAAAAABsAAsAAwAAAAAAAABrAAsAAwAAAAAAAABqAAsAAwAAAAAAAABpAAsAAwAAAAAAAABoAAsAAwAAAAAAAABnAAsAAwAAAAAAAABmAAsAAwAAAAAAAABlAAsAAwAAAAAAAABkAAoAAwAAAAAAAABlAAoAAwAAAAAAAABmAAoAAwAAAAAAAABnAAoAAwAAAAAAAABoAAoAAwAAAAAAAABpAAoAAwAAAAAAAABqAAoAAwAAAAAAAABrAAoAAwAAAAAAAABsAAoAAwAAAAAAAABtAAoAAwAAAAAAAABgAAcAAgAAAAAAAABhAAgAAwAAAAAAAABiAAkAAwAAAAAAAABjAAoAAwAAAAAAAABkAAsAAwAAAAAAAAA=")
 tile_set = SubResource("TileSet_g14lc")
 
-[node name="CompanionRobot" parent="World" unique_id=723586175 instance=ExtResource("59_6orn5")]
+[node name="CompanionRobot" parent="World" unique_id=723586175 node_paths=PackedStringArray("player") instance=ExtResource("59_6orn5")]
 z_index = 100
 position = Vector2(1776, 736)
+player = NodePath("../player")
 
 [connection signal="pressed" from="UI/titleScreen/VBoxContainer/playButton" to="UI" method="_on_play_button_pressed"]
 [connection signal="pressed" from="UI/titleScreen/VBoxContainer/quitButton" to="UI" method="_on_quit_button_pressed"]

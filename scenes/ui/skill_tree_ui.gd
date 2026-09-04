@@ -6,7 +6,7 @@ extends Control
 @onready var skill_title: Label = $DetailsPanel/SkillNameLabel
 @onready var skill_desc: Label = $DetailsPanel/DescriptionLabel
 @onready var skill_cost: Label = $DetailsPanel/CostLabel
-@onready var unlock_button: Button = $DetailsPanel/UnlockButton
+@onready var unlock_button: TextureButton = $DetailsPanel/UnlockButton
 
 var selected_node: SkillNodeData = null
 

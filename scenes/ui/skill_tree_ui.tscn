@@ -2,6 +2,19 @@
 
 [ext_resource type="PackedScene" uid="uid://l5pg1ishoyll" path="res://scenes/ui/skill_node_ui.tscn" id="1_a5thb"]
 [ext_resource type="Script" uid="uid://cygubjm8d1slv" path="res://scenes/ui/skill_tree_ui.gd" id="1_kf18i"]
+[ext_resource type="LabelSettings" uid="uid://cfyy81mj33a5y" path="res://smallerLabels.tres" id="2_7oq71"]
+[ext_resource type="LabelSettings" uid="uid://bpksd23vhgtxi" path="res://smallLabels.tres" id="2_xxak1"]
+[ext_resource type="Texture2D" uid="uid://0dnon15sn6m2" path="res://assets/UI/settings/settingsBG.png" id="4_7oq71"]
+[ext_resource type="Texture2D" uid="uid://bcq65fdtr0bce" path="res://assets/UI/system/circleButtonBase.png" id="4_okeyf"]
+
+[sub_resource type="Theme" id="Theme_uqk8q"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_6uidu"]
+texture = ExtResource("4_7oq71")
+texture_margin_left = 30.0
+texture_margin_top = 30.0
+texture_margin_right = 30.0
+texture_margin_bottom = 60.0
 
 [node name="SkillTreeUi" type="Control" unique_id=1285967863]
 layout_mode = 3
@@ -23,111 +36,152 @@ layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 
-[node name="Control" type="Control" parent="." unique_id=1828874242]
+[node name="Header" type="Control" parent="." unique_id=1828874242]
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="TitleLabel" type="Label" parent="Control" unique_id=1456059325]
+[node name="TitleLabel" type="Label" parent="Header" unique_id=1456059325]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 
-[node name="CompendiumDataLabel" type="Label" parent="Control" unique_id=1024230892]
+[node name="CompendiumDataLabel" type="Label" parent="Header" unique_id=1024230892]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 
 [node name="BranchesContainer" type="HBoxContainer" parent="." unique_id=775340522]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_right = 94.0
+offset_bottom = 68.0
+theme_override_constants/separation = 0
 
 [node name="Branch1_Targeting" type="VBoxContainer" parent="BranchesContainer" unique_id=150043670]
+custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
 
 [node name="Label" type="Label" parent="BranchesContainer/Branch1_Targeting" unique_id=394299527]
 layout_mode = 2
+size_flags_horizontal = 4
+text = "Targeting"
+label_settings = ExtResource("2_7oq71")
 
 [node name="Node_target_1" parent="BranchesContainer/Branch1_Targeting" unique_id=1440460607 instance=ExtResource("1_a5thb")]
 layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="Node_target_2" parent="BranchesContainer/Branch1_Targeting" unique_id=876781850 instance=ExtResource("1_a5thb")]
 layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="Node_target_3" parent="BranchesContainer/Branch1_Targeting" unique_id=1632882841 instance=ExtResource("1_a5thb")]
 layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="Node_target_4" parent="BranchesContainer/Branch1_Targeting" unique_id=484816029 instance=ExtResource("1_a5thb")]
 layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="Branch2_Synergy" type="VBoxContainer" parent="BranchesContainer" unique_id=1914896239]
+custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
 
 [node name="Label" type="Label" parent="BranchesContainer/Branch2_Synergy" unique_id=316011166]
 layout_mode = 2
+size_flags_horizontal = 4
+text = "Synergy"
+label_settings = ExtResource("2_7oq71")
 
 [node name="Node_target_1" parent="BranchesContainer/Branch2_Synergy" unique_id=1658625658 instance=ExtResource("1_a5thb")]
 layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="Node_target_2" parent="BranchesContainer/Branch2_Synergy" unique_id=896486988 instance=ExtResource("1_a5thb")]
 layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="Node_target_3" parent="BranchesContainer/Branch2_Synergy" unique_id=1198400232 instance=ExtResource("1_a5thb")]
 layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="Node_target_4" parent="BranchesContainer/Branch2_Synergy" unique_id=1501899788 instance=ExtResource("1_a5thb")]
 layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="Branch3_Compendium" type="VBoxContainer" parent="BranchesContainer" unique_id=1625607349]
+custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
 
 [node name="Label" type="Label" parent="BranchesContainer/Branch3_Compendium" unique_id=97340874]
 layout_mode = 2
+size_flags_horizontal = 4
+text = "Compendium"
+label_settings = ExtResource("2_7oq71")
 
 [node name="Node_target_1" parent="BranchesContainer/Branch3_Compendium" unique_id=1398827455 instance=ExtResource("1_a5thb")]
 layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="Node_target_2" parent="BranchesContainer/Branch3_Compendium" unique_id=346399405 instance=ExtResource("1_a5thb")]
 layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="Node_target_3" parent="BranchesContainer/Branch3_Compendium" unique_id=932175347 instance=ExtResource("1_a5thb")]
 layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="Node_target_4" parent="BranchesContainer/Branch3_Compendium" unique_id=1192121526 instance=ExtResource("1_a5thb")]
 layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="Branch4_Overheat" type="VBoxContainer" parent="BranchesContainer" unique_id=1281083657]
+custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
 
 [node name="Label" type="Label" parent="BranchesContainer/Branch4_Overheat" unique_id=2128162536]
 layout_mode = 2
+size_flags_horizontal = 4
+text = "Overheat"
+label_settings = ExtResource("2_7oq71")
 
 [node name="Node_target_1" parent="BranchesContainer/Branch4_Overheat" unique_id=301043530 instance=ExtResource("1_a5thb")]
 layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="Node_target_2" parent="BranchesContainer/Branch4_Overheat" unique_id=733627691 instance=ExtResource("1_a5thb")]
 layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="Node_target_3" parent="BranchesContainer/Branch4_Overheat" unique_id=1570057209 instance=ExtResource("1_a5thb")]
 layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="Node_target_4" parent="BranchesContainer/Branch4_Overheat" unique_id=560567102 instance=ExtResource("1_a5thb")]
 layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="DetailsPanel" type="PanelContainer" parent="." unique_id=1463610899]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 4.0
+offset_top = 21.0
+offset_right = 96.0
+offset_bottom = 143.0
+theme = SubResource("Theme_uqk8q")
+theme_override_styles/panel = SubResource("StyleBoxTexture_6uidu")
 
 [node name="SkillNameLabel" type="Label" parent="DetailsPanel" unique_id=488174693]
 layout_mode = 2
+label_settings = ExtResource("2_xxak1")
 
 [node name="DescriptionLabel" type="Label" parent="DetailsPanel" unique_id=755651943]
 layout_mode = 2
+label_settings = ExtResource("2_xxak1")
 
 [node name="CostLabel" type="Label" parent="DetailsPanel" unique_id=435087235]
 layout_mode = 2
+label_settings = ExtResource("2_xxak1")
 
 [node name="UnlockButton" type="TextureButton" parent="DetailsPanel" unique_id=1939122299]
 layout_mode = 2
+texture_normal = ExtResource("4_okeyf")

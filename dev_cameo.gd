@@ -22,7 +22,7 @@ func _on_body_entered(body: Node2D) -> void:
 		player_inside = true
 		# Award robot immediately and tell player to press space
 		player.hasRobotCompanion = true
-		speech_bubble.text = "The Scientist gave you the robot companion!\n(Press SPACE to continue)"
+		speech_bubble.text = "The Scientist gave you the robot companion!\n(Press C to continue)"
 		speech_bubble.show()
 func _on_body_exited(body: Node2D) -> void:
 	if body == player:
@@ -31,7 +31,7 @@ func _on_body_exited(body: Node2D) -> void:
 
 func _process(_delta: float) -> void:
 	# ui_accept is mapped to Spacebar / Enter by default in Godot
-	if player_inside and Input.is_action_just_pressed("ui_accept"):
+	if player_inside and Input.is_action_just_pressed("interact"):
 		give_potion_and_teleport()
 
 func give_potion_and_teleport() -> void:

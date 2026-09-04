@@ -71,14 +71,7 @@
 [ext_resource type="Texture2D" uid="uid://dsbvba1pucne6" path="res://assets/sprites/ground (grass and dirt)/tileStalagmiteCaveSide.png" id="64_5fipt"]
 [ext_resource type="Texture2D" uid="uid://u7hjf1uwx7la" path="res://assets/sprites/ground (grass and dirt)/tileStalagmiteCaveTop.png" id="65_j02gt"]
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ma08v"]
-texture = ExtResource("18_2u7jv")
-texture_margin_left = 30.0
-texture_margin_top = 30.0
-texture_margin_right = 30.0
-texture_margin_bottom = 60.0
-expand_margin_left = 29.0
-expand_margin_bottom = 30.0
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6uidu"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ebxd8"]
 texture = ExtResource("18_2u7jv")
@@ -660,27 +653,28 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="currencyPanel" type="Panel" parent="UI/HUD" unique_id=727946038]
+[node name="largeTrash" type="Panel" parent="UI/HUD" unique_id=727946038]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -90.0
-offset_top = -4.0
-offset_right = -16.0
-offset_bottom = 54.0
+offset_left = -104.0
+offset_top = 18.0
+offset_right = -40.0
+offset_bottom = 32.0
 grow_horizontal = 0
-theme_override_styles/panel = SubResource("StyleBoxTexture_ma08v")
+theme_override_styles/panel = SubResource("StyleBoxEmpty_6uidu")
 
-[node name="crystalIcon" type="TextureRect" parent="UI/HUD/currencyPanel" unique_id=1143108022]
+[node name="crystalIcon" type="TextureRect" parent="UI/HUD/largeTrash" unique_id=1143108022]
 layout_mode = 0
-offset_left = -5.0
-offset_top = 2.0
-offset_right = 27.0
-offset_bottom = 34.0
+offset_left = 17.0
+offset_top = -4.0
+offset_right = 49.0
+offset_bottom = 28.0
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("9_2v765")
 
-[node name="crystalLabel" type="Label" parent="UI/HUD/currencyPanel" unique_id=907320463]
+[node name="crystalLabel" type="Label" parent="UI/HUD/largeTrash" unique_id=907320463]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -863,14 +857,23 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("21_ma08v")
 
+[node name="ColorRect" type="ColorRect" parent="UI/HUD/inventoryPanel" unique_id=1328485646]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.43137255)
+
 [node name="inventoryPanelBg" type="TextureRect" parent="UI/HUD/inventoryPanel" unique_id=1001661230]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -64.0
-offset_right = 64.0
-offset_bottom = 128.0
+offset_left = -128.0
+offset_right = 128.0
+offset_bottom = 256.0
 grow_horizontal = 2
 mouse_filter = 2
 texture = ExtResource("28_inventory")
@@ -955,6 +958,7 @@ layout_mode = 2
 layout_mode = 2
 
 [node name="robotInventoryPanel" type="Control" parent="UI/HUD" unique_id=1354064504]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -963,6 +967,15 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("21_robotinv")
+
+[node name="ColorRect" type="ColorRect" parent="UI/HUD/robotInventoryPanel" unique_id=201770622]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.43137255)
 
 [node name="inventoryPanelBg" type="TextureRect" parent="UI/HUD/robotInventoryPanel" unique_id=396319859]
 layout_mode = 1
@@ -1087,6 +1100,15 @@ offset_left = 137.0
 offset_top = 62.0
 offset_right = 137.0
 offset_bottom = 62.0
+
+[node name="Label" type="Label" parent="UI/HUD/robotInventoryPanel/inventoryPanelBg" unique_id=899089843]
+layout_mode = 0
+offset_left = 33.0
+offset_top = 49.0
+offset_right = 121.0
+offset_bottom = 58.0
+text = "Robot Inventory"
+label_settings = ExtResource("8_hqns4")
 
 [node name="hudPauseButton" type="TextureButton" parent="UI/HUD" unique_id=2145829017]
 layout_mode = 1
@@ -1625,12 +1647,12 @@ tile_map_data = PackedByteArray("AABhAAcAAgAAAAAAAABiAAcAAgAAAAAAAABjAAcAAgAAAAA
 tile_set = SubResource("TileSet_g14lc")
 
 [node name="CompanionRobot" parent="World" unique_id=723586175 node_paths=PackedStringArray("player") instance=ExtResource("59_6orn5")]
-z_index = 100
 position = Vector2(1776, 736)
 player = NodePath("../player")
 
 [connection signal="pressed" from="UI/titleScreen/VBoxContainer/playButton" to="UI" method="_on_play_button_pressed"]
 [connection signal="pressed" from="UI/titleScreen/VBoxContainer/quitButton" to="UI" method="_on_quit_button_pressed"]
+[connection signal="pressed" from="UI/titleScreen/settingsButton" to="UI" method="_on_settings_button_pressed"]
 [connection signal="pressed" from="UI/HUD/hotbarContainer/slot1" to="UI" method="_on_slot_1_pressed"]
 [connection signal="pressed" from="UI/HUD/hotbarContainer/slot2" to="UI" method="_on_slot_2_pressed"]
 [connection signal="pressed" from="UI/HUD/hotbarContainer/slot3" to="UI" method="_on_slot_3_pressed"]

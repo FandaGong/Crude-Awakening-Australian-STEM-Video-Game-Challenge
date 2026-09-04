@@ -35,6 +35,7 @@ offset_bottom = 40.0
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+label_settings = ExtResource("2_xxak1")
 
 [node name="Header" type="Control" parent="." unique_id=1828874242]
 anchors_preset = 0
@@ -45,11 +46,15 @@ offset_bottom = 40.0
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+label_settings = ExtResource("2_xxak1")
 
 [node name="CompendiumDataLabel" type="Label" parent="Header" unique_id=1024230892]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
+offset_left = 4.0
+offset_top = 72.0
+offset_right = 44.0
+offset_bottom = 95.0
+label_settings = ExtResource("2_xxak1")
 
 [node name="BranchesContainer" type="HBoxContainer" parent="." unique_id=775340522]
 layout_mode = 0
@@ -162,11 +167,12 @@ layout_mode = 2
 size_flags_horizontal = 4
 
 [node name="DetailsPanel" type="PanelContainer" parent="." unique_id=1463610899]
+visible = false
 layout_mode = 0
-offset_left = 4.0
-offset_top = 21.0
-offset_right = 96.0
-offset_bottom = 143.0
+offset_left = 87.0
+offset_top = -8.0
+offset_right = 179.0
+offset_bottom = 114.0
 theme = SubResource("Theme_uqk8q")
 theme_override_styles/panel = SubResource("StyleBoxTexture_6uidu")
 

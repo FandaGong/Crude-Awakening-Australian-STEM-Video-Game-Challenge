@@ -128,6 +128,7 @@ func _set_state(new_state: UIState) -> void:
 
 	title_screen.hide()
 	pause_menu.hide()
+	settings_menu.hide()
 	hud.hide()
 	get_tree().paused = false
 
@@ -251,6 +252,11 @@ func _on_equip_weapon_pressed(weapon_id: String) -> void:
 # --- Escape / pause menu ---
 
 func _on_resume_button_pressed() -> void:
+	_close_settings()
+	_set_state(UIState.PLAYING)
+	
+func _on_close_settings_button_pressed() -> void:
+	print("BUTTON PRESSED")
 	_close_settings()
 	_set_state(UIState.PLAYING)
 

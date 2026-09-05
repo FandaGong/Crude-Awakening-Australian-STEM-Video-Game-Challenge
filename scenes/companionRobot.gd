@@ -8,7 +8,9 @@ extends Node2D
 
 # --- CURING MODULE CONTROLS ---
 @export var cure_range: float = 250.0
-@export var base_cure_speed: float = 20.0 
+@export var base_cure_speed: float = 20.0
+@export var healing_injection_amount: float = 20.0
+@export var healing_injection_interval: float = 1.0
 
 # --- INTERNAL STATES ---
 var timePassed: float = 0.0
@@ -23,8 +25,15 @@ var overheat_timer: float = 0.0
 
 # Rescue Protocol Cooldown (Node 2.4)
 var rescue_cooldown: float = 0.0
+var healing_injection_timer: float = 0.0
 
 @onready var light_beam: Line2D = get_node_or_null("CureBeam")
+
+func _ready() -> void:
+	if light_beam:
+		light_beam.default_color = Color(0.3, 1.0, 0.5, 0.9)
+		light_beam.width = 3.0
+	healing_injection_timer = healing_injection_interval
 
 func _physics_process(delta: float) -> void:
 	if not player or not player.hasRobotCompanion:
@@ -110,6 +119,8 @@ func _select_targets() -> Array[Node2D]:
 		effective_range *= 1.25
 
 	var mobs = get_tree().get_nodes_in_group("corrupted_mobs")
+	# Bosses use the same healing-injection pipeline as field animals.
+	mobs.append_array(get_tree().get_nodes_in_group("boss"))
 	var valid_mobs: Array[Node2D] = []
 	var spotlight_pos = GameData.get("photonic_spotlight_position") if "photonic_spotlight_position" in GameData else null
 
@@ -150,7 +161,11 @@ func _handle_targeting_and_curing(delta: float) -> void:
 	if is_overheated:
 		speed_modifier += 0.30
 
-	var cure_rate = base_cure_speed * speed_modifier
+	healing_injection_timer -= delta
+	if healing_injection_timer > 0.0:
+		return
+	healing_injection_timer = healing_injection_interval
+	var cure_rate = healing_injection_amount * speed_modifier
 
 	# Unique Ability: Overcharge Prism (Split Beam up to 3 targets)
 	if GameData.equip_robot_module_id == "overcharge_prism":
@@ -159,7 +174,7 @@ func _handle_targeting_and_curing(delta: float) -> void:
 		for i in range(num_targets):
 			var mob = targets[i]
 			if mob.has_method("apply_cure"):
-				mob.apply_cure(split_rate * delta)
+				mob.apply_cure(split_rate)
 			_draw_assist_beam(i, mob.global_position)
 	else:
 		var primary_target = targets[0]
@@ -167,18 +182,18 @@ func _handle_targeting_and_curing(delta: float) -> void:
 		# Unique Ability: Static Frequency Modulator (Chain-Curing Arc)
 		if GameData.equip_robot_module_id == "static_modulator":
 			if primary_target.has_method("apply_cure"):
-				primary_target.apply_cure(cure_rate * delta)
+				primary_target.apply_cure(cure_rate)
 			
-			if targets.size() > 1:
-				var secondary = targets[1]
-				if secondary.global_position.distance_to(primary_target.global_position) < 80.0:
-					if secondary.has_method("apply_cure") and secondary.has_method("apply_slow"):
-						secondary.apply_cure((cure_rate * 0.5) * delta)
+				if targets.size() > 1:
+					var secondary = targets[1]
+					if secondary.global_position.distance_to(primary_target.global_position) < 80.0:
+						if secondary.has_method("apply_cure") and secondary.has_method("apply_slow"):
+							secondary.apply_cure(cure_rate * 0.5)
 						secondary.apply_slow(0.30, 1.0)
 					_draw_chain_arc(primary_target.global_position, secondary.global_position)
 		else:
 			if primary_target.has_method("apply_cure"):
-				primary_target.apply_cure(cure_rate * delta)
+				primary_target.apply_cure(cure_rate)
 				
 			if primary_target.get("is_cured") and GameData.equip_robot_module_id == "beak_sovereign":
 				_trigger_beak_cure_burst(primary_target.global_position)

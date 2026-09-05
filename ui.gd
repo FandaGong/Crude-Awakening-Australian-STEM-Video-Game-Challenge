@@ -14,7 +14,7 @@ var state_before_shop: UIState = UIState.PLAYING
 
 @onready var weapon_list_container: VBoxContainer = $shopMenu/Panel/weaponScroll/weaponListContainer
 @onready var shop_crystal_label: Label = $shopMenu/Panel/crystalLabel
-@onready var hud_crystal_label: Label = $HUD/currencyPanel/crystalLabel
+@onready var hud_crystal_label: Label = $HUD/largeTrash/crystalLabel
 
 # --- COOLDOWN & SLOT REFERENCES (Added to fix the "not declared" error) ---
 @onready var slot1: TextureButton = $HUD/hotbarContainer/slot1
@@ -37,7 +37,8 @@ var robot_inventory_visible: bool = false
 func _ready() -> void:
 	add_to_group("ui_controller")
 	GameData.crystals_changed.connect(_on_crystals_changed)
-	_update_crystal_labels(GameData.crystals)
+	GameData.trash_tokens_changed.connect(_on_trash_tokens_changed)
+	_update_crystal_labels(GameData.trash_tokens)
 	_set_state(UIState.TITLE)
 	
 	# Highlight slot 1 on startup
@@ -65,9 +66,12 @@ func _ready() -> void:
 func _on_crystals_changed(new_amount: int) -> void:
 	_update_crystal_labels(new_amount)
 
+func _on_trash_tokens_changed(new_amount: int) -> void:
+	_update_crystal_labels(new_amount)
+
 func _update_crystal_labels(amount: int) -> void:
 	if hud_crystal_label:
-		hud_crystal_label.text = "LG Material: %d" % amount
+		hud_crystal_label.text = "Recycled Trash: %d" % amount
 	if shop_crystal_label:
 		shop_crystal_label.text = "Aquamarine Crystals: %d" % amount
 
@@ -271,6 +275,11 @@ func _on_pause_quit_button_pressed() -> void:
 func _toggle_inventory() -> void:
 	if current_state != UIState.PLAYING:
 		return
+	# Inventory can be viewed early, but installation of upgrades is blocked by
+	# GameData until the robot is assigned by the scientist.
+	if not inventory_visible and robot_inventory_visible:
+		robot_inventory_visible = false
+		robot_inventory_panel.hide()
 	inventory_visible = !inventory_visible
 	if inventory_panel:
 		inventory_panel.visible = inventory_visible
@@ -285,6 +294,9 @@ func _toggle_robot_inventory() -> void:
 	# Only allow opening if the player has actually unlocked the robot
 	if not player or not player.hasRobotCompanion:
 		return
+	if not robot_inventory_visible and inventory_visible:
+		inventory_visible = false
+		inventory_panel.hide()
 	robot_inventory_visible = !robot_inventory_visible
 	if robot_inventory_panel:
 		robot_inventory_panel.visible = robot_inventory_visible

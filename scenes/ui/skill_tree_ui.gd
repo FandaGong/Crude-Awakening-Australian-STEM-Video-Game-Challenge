@@ -12,11 +12,11 @@ var selected_node: SkillNodeData = null
 
 func _ready() -> void:
 	unlock_button.pressed.connect(_on_unlock_button_pressed)
-	GameData.compendium_data_changed.connect(_update_currency_display)
+	GameData.trash_tokens_changed.connect(_update_currency_display)
 	GameData.robot_unlocked_changed.connect(_update_lock_state)
 	
 	_update_lock_state(GameData.is_robot_unlocked)
-	_update_currency_display(GameData.compendium_data)
+	_update_currency_display(GameData.trash_tokens)
 	_connect_all_nodes(self)
 	details_panel.hide()
 
@@ -31,7 +31,7 @@ func _update_lock_state(unlocked: bool) -> void:
 	lock_overlay.visible = not unlocked
 
 func _update_currency_display(amount: int) -> void:
-	data_label.text = "Compendium Data: %d TB" % amount
+	data_label.text = "Recycled Trash: %d" % amount
 	_refresh_details_panel()
 
 func _on_node_selected(data: SkillNodeData) -> void:

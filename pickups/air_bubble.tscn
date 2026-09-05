@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://pickups/air_bubble.gd" id="1_bubble"]
+[ext_resource type="Texture2D" uid="uid://ckbdi5ivassqf" path="res://icon.svg" id="2_bubble"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_bubble"]
+radius = 10.0
+
+[node name="AirBubble" type="Area2D"]
+script = ExtResource("1_bubble")
+collision_layer = 4
+collision_mask = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(0.7, 0.95, 1, 0.85)
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("2_bubble")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_bubble")

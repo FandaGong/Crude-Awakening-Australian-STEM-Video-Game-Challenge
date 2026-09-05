@@ -7,6 +7,7 @@ var velocity: Vector2 = Vector2.ZERO
 var damage: float = 8.0
 var color: Color = Color(1.0, 0.3, 0.3)
 var lifetime: float = 6.0
+var damage_type: String = "physical" # e.g. "acid" for sponge bubbles
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
@@ -24,5 +25,5 @@ func _draw() -> void:
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.has_method("takeDamage"):
-		body.takeDamage(damage)
+		body.takeDamage(damage, damage_type)
 	queue_free()

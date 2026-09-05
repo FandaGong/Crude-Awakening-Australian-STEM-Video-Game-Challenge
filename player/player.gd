@@ -17,6 +17,7 @@ var currentAir: float = maxAir
 @export var airRecoveryRate: float = 5.0 # How fast oxygen recovers on land
 
 var isDead: bool = false
+var respawn_immunity: float = 0.0
 
 # --- INVENTORY & HOTBAR ---
 var inventory: Array[String] = ["Potion", "Fish", "Shell"] # Temporary test list
@@ -95,6 +96,11 @@ func _bind_water_area(water: Area2D) -> void:
 		water.body_exited.connect(_on_water_area_body_exited)
 
 func _physics_process(delta: float) -> void:
+	respawn_immunity = maxf(0.0, respawn_immunity - delta)
+	if respawn_immunity > 0.0 and sprite:
+		sprite.visible = int(respawn_immunity * 12.0) % 2 == 0
+	elif sprite:
+		sprite.visible = true
 	if isDead:
 		velocity.x = move_toward(velocity.x, 0, walkSpeed * delta)
 		move_and_slide()
@@ -217,7 +223,7 @@ func recoverAir(delta: float) -> void:
 		currentAir = min(maxAir, currentAir)
 
 func takeDamage(amount: float, damage_type: String = "physical") -> void:
-	if isDead:
+	if isDead or respawn_immunity > 0.0:
 		return
 		
 	# Porous Sponge Charm: immunity to acid bubble damage, restores +5 Air instead
@@ -303,6 +309,7 @@ func respawn(atPosition: Vector2) -> void:
 	sprite.flip_v = false
 	sprite.flip_h = false
 	currentSwimAngle = 0.0
+	respawn_immunity = 2.5
 	respawned.emit()
 
 # --- HOTBAR & ABILITIES ---
@@ -324,6 +331,10 @@ func _on_hotbar_selected(slot: int) -> void:
 		ui._update_hotbar_selection(slot)
 
 func handleShootInput() -> void:
+	# Mouse-aimed abilities are robot-converted upgrades. The otter has no
+	# access to them until the scientist assigns the companion.
+	if not GameData.is_robot_unlocked:
+		return
 	if not Input.is_action_just_pressed("shoot") or activeSlotIndex >= GameData.active_abilities.size():
 		return
 

@@ -1,0 +1,39 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://dvk6a7yhwbxi"]
+
+[ext_resource type="Texture2D" uid="uid://co4r03wvq22cf" path="res://assets/player/robotIdel.png" id="1_q66y1"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4bhp1"]
+atlas = ExtResource("1_q66y1")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_r4jpb"]
+atlas = ExtResource("1_q66y1")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0xuhl"]
+atlas = ExtResource("1_q66y1")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m6r8g"]
+atlas = ExtResource("1_q66y1")
+region = Rect2(48, 0, 16, 16)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4bhp1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_r4jpb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0xuhl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m6r8g")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]

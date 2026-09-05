@@ -1,9 +1,9 @@
 extends Node2D
 
 ## Builds the single dive tunnel the player swims down to reach every boss.
-## It reads all 10 BossData resources and places a "gate" at each boss's
+## It reads all of the BossData resources and places a "gate" at each boss's
 ## depth, plus a merchant roughly halfway between consecutive gates. This is
-## built at runtime so adding an 11th boss is just adding another .tres file
+## built at runtime so adding another boss is just adding another .tres file
 ## and bumping GameData.TOTAL_BOSSES — no hand-edited level geometry needed.
 
 const MerchantScene := preload("res://npc/merchant.tscn")
@@ -23,6 +23,7 @@ func _ready() -> void:
 	_build_shaft_visual(boss_list)
 	_spawn_boss_gates(boss_list)
 	_spawn_merchants(boss_list)
+	_spawn_field_mobs(boss_list)
 
 func _load_all_boss_data() -> Array:
 	var list: Array = []
@@ -113,6 +114,8 @@ func _spawn_boss_gates(boss_list: Array) -> void:
 func _on_gate_body_entered(body: Node2D, boss_id: int) -> void:
 	if not body.is_in_group("player"):
 		return
+	if not GameData.is_robot_unlocked:
+		return
 	if not GameData.is_boss_unlocked(boss_id):
 		return
 	if world.has_method("enter_boss_arena"):
@@ -137,3 +140,63 @@ func _place_merchant(y: float) -> void:
 func _on_merchant_interacted() -> void:
 	if world.has_method("open_shop"):
 		world.open_shop()
+
+# =============================================================================
+# FIELD MOBS - randomly pregenerated once when the tunnel is built (not
+# spawned live while the player watches). Each depth segment between one
+# boss gate and the next is that Historical Turning Point's "level": it
+# gets that level's specific creature type, per the design doc, plus
+# sponges and bubbles, which spawn in every level.
+# =============================================================================
+
+const MutantMobScene := preload("res://mutantMob.tscn")
+const AirBubbleScene := preload("res://pickups/air_bubble.tscn")
+
+const MOBS_PER_SEGMENT := 8
+const SPONGES_PER_SEGMENT := 3
+const BUBBLES_PER_SEGMENT := 5
+const SEGMENT_EDGE_MARGIN := 80.0 # keep mobs clear of the boss gates
+
+const BOSS_TYPE_TO_MOB_TYPE := {
+	"crab": MutantMob.MobType.CRAB,
+	"jellyfish": MutantMob.MobType.JELLYFISH,
+	"shell": MutantMob.MobType.SHELL,
+	"anglerfish": MutantMob.MobType.ANGLERFISH,
+	# "whale" and "kraken" levels have no smaller field-mob version of their
+	# own in the design doc - those segments just get sponges/bubbles.
+}
+
+func _spawn_field_mobs(boss_list: Array) -> void:
+	var half_width := TUNNEL_WIDTH / 2.0 - 24.0
+	var prev_y := 40.0
+	for boss_data in boss_list:
+		var segment_y := _depth_to_y(boss_data.depth_meters)
+		var lo: float = prev_y + SEGMENT_EDGE_MARGIN
+		var hi: float = segment_y - SEGMENT_EDGE_MARGIN
+		if hi > lo:
+			var mob_type = BOSS_TYPE_TO_MOB_TYPE.get(boss_data.boss_type, null)
+			if mob_type != null:
+				for i in range(MOBS_PER_SEGMENT):
+					_spawn_mob(mob_type, lo, hi, half_width)
+			for i in range(SPONGES_PER_SEGMENT):
+				_spawn_mob(MutantMob.MobType.SPONGE, lo, hi, half_width)
+			for i in range(BUBBLES_PER_SEGMENT):
+				_spawn_bubble(lo, hi, half_width)
+		prev_y = segment_y
+
+func _spawn_mob(mob_type, lo: float, hi: float, half_width: float) -> void:
+	var mob := MutantMobScene.instantiate()
+	add_child(mob)
+	mob.mob_type = mob_type
+	mob.global_position = global_position + Vector2(
+		randf_range(-half_width, half_width),
+		randf_range(lo, hi)
+	)
+
+func _spawn_bubble(lo: float, hi: float, half_width: float) -> void:
+	var bubble := AirBubbleScene.instantiate()
+	add_child(bubble)
+	bubble.global_position = global_position + Vector2(
+		randf_range(-half_width, half_width),
+		randf_range(lo, hi)
+	)

@@ -5,10 +5,12 @@
 [resource]
 script = ExtResource("1_bossdata")
 id = 6
-boss_name = "Abyssal Warden"
-max_health = 807
-crystal_reward = 269
-depth_meters = 850
-bullet_speed_mult = 1.5
-pattern_interval = 1.15
-color = Color(0.297, 0.85, 0.85, 1)
+boss_name = "The Kraken"
+max_health = 1000
+crystal_reward = 600
+drop_item_paths = ["res://resources/items/gazer_helmet.tres", "res://resources/items/beak_sovereign.tres"]
+depth_meters = 1400
+bullet_speed_mult = 1.0
+pattern_interval = 0.5
+color = Color(0.25, 0.05, 0.3, 1)
+boss_type = "kraken"

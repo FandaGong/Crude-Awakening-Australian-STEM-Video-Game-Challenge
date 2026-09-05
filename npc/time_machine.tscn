@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://dk7x6me4lssnq"]
+
+[ext_resource type="Script" uid="uid://d32wqser7ct8n" path="res://npc/time_machine.gd" id="1_timemachine"]
+[ext_resource type="LabelSettings" uid="uid://bpksd23vhgtxi" path="res://smallLabels.tres" id="2_5273v"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_timemachine"]
+radius = 60.0
+
+[node name="TimeMachine" type="Area2D" unique_id=1320426419]
+script = ExtResource("1_timemachine")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1085212260]
+shape = SubResource("CircleShape2D_timemachine")
+
+[node name="Ring" type="Polygon2D" parent="." unique_id=460328382]
+color = Color(0.6, 0.4, 0.9, 1)
+polygon = PackedVector2Array(0, -50, 35, -35, 50, 0, 35, 35, 0, 50, -35, 35, -50, 0, -35, -35)
+
+[node name="Prompt" type="Label" parent="." unique_id=26343405]
+offset_left = -70.0
+offset_top = -80.0
+offset_right = 70.0
+offset_bottom = -56.0
+text = "Press C to time travel"
+label_settings = ExtResource("2_5273v")
+horizontal_alignment = 1

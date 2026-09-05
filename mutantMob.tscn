@@ -24,3 +24,10 @@ sprite_frames = SubResource("SpriteFrames_ge17k")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1613176967]
 shape = SubResource("RectangleShape2D_g14lc")
+
+[node name="HitBox" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="HitBoxShape" type="CollisionShape2D" parent="HitBox"]
+shape = SubResource("RectangleShape2D_g14lc")

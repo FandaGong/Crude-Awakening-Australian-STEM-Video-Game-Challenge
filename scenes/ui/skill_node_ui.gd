@@ -13,7 +13,7 @@ var node_data: SkillNodeData
 func _ready() -> void:
 	pressed.connect(_on_pressed)
 	GameData.skill_unlocked.connect(func(_id): update_state())
-	GameData.compendium_data_changed.connect(func(_val): update_state())
+	GameData.trash_tokens_changed.connect(func(_val): update_state())
 	GameData.robot_unlocked_changed.connect(func(_val): update_state())
 	
 	if GameData.skill_database.has(skill_id):

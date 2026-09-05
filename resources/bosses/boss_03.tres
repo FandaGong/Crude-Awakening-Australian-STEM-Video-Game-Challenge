@@ -5,10 +5,12 @@
 [resource]
 script = ExtResource("1_bossdata")
 id = 3
-boss_name = "The Drowned Sentinel"
-max_health = 294
-crystal_reward = 98
-depth_meters = 400
-bullet_speed_mult = 1.2
-pattern_interval = 1.42
-color = Color(0.739, 0.85, 0.297, 1)
+boss_name = "The Calcified Shell"
+max_health = 360
+crystal_reward = 160
+drop_item_paths = ["res://resources/items/pearl_crown.tres", "res://resources/items/overcharge_prism.tres", "res://resources/items/shell_item.tres"]
+depth_meters = 520
+bullet_speed_mult = 1.1
+pattern_interval = 1.4
+color = Color(0.85, 0.8, 0.7, 1)
+boss_type = "shell"

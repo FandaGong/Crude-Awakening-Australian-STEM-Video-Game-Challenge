@@ -5,10 +5,12 @@
 [resource]
 script = ExtResource("1_bossdata")
 id = 2
-boss_name = "Coral Widow"
-max_health = 210
-crystal_reward = 70
-depth_meters = 250
-bullet_speed_mult = 1.1
-pattern_interval = 1.51
-color = Color(0.85, 0.629, 0.297, 1)
+boss_name = "The Solar-Drift Jellyfish"
+max_health = 260
+crystal_reward = 100
+drop_item_paths = ["res://resources/items/bio_electric_vest.tres", "res://resources/items/static_modulator.tres"]
+depth_meters = 320
+bullet_speed_mult = 1.05
+pattern_interval = 1.5
+color = Color(1.0, 0.75, 0.2, 1)
+boss_type = "jellyfish"

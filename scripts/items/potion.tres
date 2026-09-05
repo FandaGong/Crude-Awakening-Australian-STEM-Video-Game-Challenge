@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_cu0ug")
-id = "goggles"
-name = "Diving Goggles"
+id = "potion"
+name = "Potion"
 item_type = 1
 metadata/_custom_type_script = "uid://gveo8rvjidg"

@@ -4,6 +4,6 @@
 
 [resource]
 script = ExtResource("1_fvce7")
-id = "potion"
-name = "Potion"
+id = "goggles"
+name = "Diving Goggles"
 metadata/_custom_type_script = "uid://gveo8rvjidg"

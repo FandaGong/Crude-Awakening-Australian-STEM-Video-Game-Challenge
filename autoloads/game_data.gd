@@ -14,12 +14,14 @@ signal inventory_updated
 signal equipment_changed(slot_type: ItemData.ItemType, item: ItemData)
 
 signal compendium_data_changed(new_amount: int)
+signal trash_tokens_changed(new_amount: int)
 signal skill_unlocked(skill_id: String)
 signal robot_unlocked_changed(unlocked: bool)
 
 # --- Constants & Variables -----------------------------------------------
-const TOTAL_BOSSES := 10
+const TOTAL_BOSSES := 6 # the six Historical Turning Points: Crab, Jellyfish, Shell, Anglerfish, Whale, Kraken
 const SAVE_PATH := "user://crude_awakening_save.json"
+const PERSIST_SESSION := false
 
 # Progression (Otter)
 var crystals: int = 0
@@ -38,6 +40,13 @@ var compendium_data: int = 0:
 	set(value):
 		compendium_data = max(0, value)
 		compendium_data_changed.emit(compendium_data)
+
+# Recyclable debris, not crystals, funds robot upgrades. A token represents
+# one small piece; medium and large debris are worth 3 and 5 tokens.
+var trash_tokens: int = 0:
+	set(value):
+		trash_tokens = max(0, value)
+		trash_tokens_changed.emit(trash_tokens)
 
 var unlocked_skills: Dictionary = {}
 var skill_database: Dictionary = {}
@@ -68,6 +77,7 @@ var active_abilities: Array[String] = ["jelly_stinger", "crab_pincer", "pearlesc
 
 # --- Global Effect Timers ---
 var bubble_booster_timer: float = 0.0
+var time_revival_pending: bool = false
 
 # --- Lifecycle -----------------------------------------------------------
 
@@ -110,6 +120,11 @@ func add_item(item: ItemData, amount: int = 1) -> bool:
 	return false # Inventory is full
 
 func equip_item(slot_type: ItemData.ItemType, item: ItemData) -> void:
+	# All wearable and robot upgrades are powered, identified, and installed by
+	# the companion robot. Keep the pre-robot wasteland sequence upgrade-free,
+	# including calls that bypass the inventory UI.
+	if not is_robot_unlocked:
+		return
 	match slot_type:
 		ItemData.ItemType.HEAD:
 			equip_head = item
@@ -129,6 +144,8 @@ func equip_item(slot_type: ItemData.ItemType, item: ItemData) -> void:
 	save_game()
 
 func equip_gear(slot_type: String, item_id: String) -> void:
+	if not is_robot_unlocked:
+		return
 	# String fallback method for direct assignments
 	var path = "res://resources/items/%s.tres" % item_id
 	if ResourceLoader.exists(path):
@@ -148,6 +165,11 @@ func add_crystals(amount: int) -> void:
 	if amount <= 0: return
 	crystals += amount
 	crystals_changed.emit(crystals)
+	save_game()
+
+func add_trash(size: String = "small") -> void:
+	var token_value: int = int({"small": 1, "medium": 3, "large": 5}.get(size, 1))
+	trash_tokens += token_value
 	save_game()
 
 func spend_crystals(amount: int) -> bool:
@@ -176,6 +198,8 @@ func mark_boss_defeated(boss_id: int) -> void:
 func owns_weapon(weapon_id: String) -> bool: return owned_weapon_ids.has(weapon_id)
 
 func purchase_weapon(weapon_id: String, cost: int) -> bool:
+	if not is_robot_unlocked:
+		return false
 	if owns_weapon(weapon_id) or not spend_crystals(cost): return false
 	owned_weapon_ids.append(weapon_id)
 	weapon_purchased.emit(weapon_id)
@@ -183,6 +207,8 @@ func purchase_weapon(weapon_id: String, cost: int) -> bool:
 	return true
 
 func equip_weapon(weapon_id: String) -> void:
+	if not is_robot_unlocked:
+		return
 	if not owns_weapon(weapon_id): return
 	equipped_weapon_id = weapon_id
 	weapon_equipped.emit(weapon_id)
@@ -235,7 +261,7 @@ func can_unlock(skill_id: String) -> bool:
 	if has_skill(skill_id):
 		return false
 	var node: SkillNodeData = skill_database[skill_id]
-	if compendium_data < node.cost:
+	if trash_tokens < node.cost:
 		return false
 	if node.required_node_id != "" and not has_skill(node.required_node_id):
 		return false
@@ -245,7 +271,7 @@ func unlock_skill(skill_id: String) -> bool:
 	if not can_unlock(skill_id):
 		return false
 	var node: SkillNodeData = skill_database[skill_id]
-	compendium_data -= node.cost
+	trash_tokens -= node.cost
 	unlocked_skills[skill_id] = true
 	skill_unlocked.emit(skill_id)
 	save_game()
@@ -254,6 +280,8 @@ func unlock_skill(skill_id: String) -> bool:
 # --- Persistence -------------------------------------------------------------
 
 func save_game() -> void:
+	if not PERSIST_SESSION:
+		return
 	var data := {
 		"crystals": crystals,
 		"highest_unlocked_boss": highest_unlocked_boss,
@@ -264,6 +292,7 @@ func save_game() -> void:
 		# Robot & Skill Tree Data
 		"is_robot_unlocked": is_robot_unlocked,
 		"compendium_data": compendium_data,
+		"trash_tokens": trash_tokens,
 		"unlocked_skills": unlocked_skills,
 		"active_abilities": active_abilities,
 		
@@ -282,6 +311,8 @@ func save_game() -> void:
 		file.close()
 
 func load_game() -> void:
+	if not PERSIST_SESSION:
+		return
 	if not FileAccess.file_exists(SAVE_PATH): return
 	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
 	var parsed = JSON.parse_string(file.get_as_text())
@@ -298,8 +329,15 @@ func load_game() -> void:
 	# Load Robot & Skill Tree properties
 	is_robot_unlocked = parsed.get("is_robot_unlocked", false)
 	compendium_data = parsed.get("compendium_data", 0)
+	trash_tokens = parsed.get("trash_tokens", 0)
 	unlocked_skills = parsed.get("unlocked_skills", {})
-	active_abilities = parsed.get("active_abilities", ["jelly_stinger", "crab_pincer", "pearlescent_volley"])
+	# JSON arrays are untyped at runtime. Rebuild the typed Array[String]
+	# explicitly so older save files cannot cause a load-time type error.
+	active_abilities.clear()
+	var saved_abilities: Array = parsed.get("active_abilities", ["jelly_stinger", "crab_pincer", "pearlescent_volley"])
+	for ability in saved_abilities:
+		if ability is String:
+			active_abilities.append(ability)
 	
 	# Deserialize equipment resources
 	var equip_data = parsed.get("equipment", {})
@@ -348,6 +386,7 @@ func reset_save() -> void:
 	equipped_weapon_id = "starter_spear"
 	is_robot_unlocked = false
 	compendium_data = 0
+	trash_tokens = 0
 	unlocked_skills = {}
 	active_abilities = ["jelly_stinger", "crab_pincer", "pearlescent_volley"]
 	

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = "overcharge_prism"
+name = "Overcharge Prism"
+description = "Split Beam: the Robot's curing laser splits to hit up to 3 mobs at once."
+item_type = 0

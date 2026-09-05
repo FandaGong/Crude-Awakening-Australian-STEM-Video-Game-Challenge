@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = "pearl_crown"
+name = "Pearl Crown"
+description = "Increases the Robot's auto-firing range and lock-on speed by 25%."
+item_type = 1

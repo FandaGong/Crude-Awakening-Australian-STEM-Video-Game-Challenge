@@ -1,24 +1,26 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://br3ipfvpcqjvk"]
 
-[ext_resource type="Script" path="res://npc/merchant.gd" id="1_merchant"]
+[ext_resource type="Script" uid="uid://dpranrd6qktd7" path="res://npc/merchant.gd" id="1_merchant"]
+[ext_resource type="LabelSettings" uid="uid://bpksd23vhgtxi" path="res://smallLabels.tres" id="2_ysita"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_merchant"]
 radius = 56.0
 
-[node name="Merchant" type="Area2D"]
+[node name="Merchant" type="Area2D" unique_id=1857603361]
 script = ExtResource("1_merchant")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1951512459]
 shape = SubResource("CircleShape2D_merchant")
 
-[node name="Body" type="Polygon2D" parent="."]
+[node name="Body" type="Polygon2D" parent="." unique_id=202680363]
 color = Color(0.85, 0.7, 0.2, 1)
 polygon = PackedVector2Array(0, -30, 18, -10, 18, 30, -18, 30, -18, -10)
 
-[node name="Prompt" type="Label" parent="."]
+[node name="Prompt" type="Label" parent="." unique_id=1163974868]
 offset_left = -60.0
 offset_top = -60.0
 offset_right = 60.0
 offset_bottom = -36.0
-horizontal_alignment = 1
 text = "Press C to trade"
+label_settings = ExtResource("2_ysita")
+horizontal_alignment = 1

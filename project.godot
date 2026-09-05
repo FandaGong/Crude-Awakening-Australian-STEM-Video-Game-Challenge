@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 GameData="*res://autoloads/game_data.gd"
 StoryManager="*res://autoloads/story_manager.gd"
+Effects="*res://autoloads/effects.gd"
 _mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 
 [display]

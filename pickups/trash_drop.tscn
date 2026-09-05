@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://pickups/trash_drop.gd" id="1_trash"]
+[ext_resource type="Texture2D" path="res://assets/sprites/trash/trashDropIcon.png" id="2_icon"]
+[ext_resource type="Texture2D" path="res://assets/sprites/trash/trashDropGlow.png" id="3_glow"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_glow"]
+blend_mode = 1
+
+[node name="TrashDrop" type="Node2D"]
+z_index = 50
+script = ExtResource("1_trash")
+
+[node name="Glow" type="Sprite2D" parent="."]
+material = SubResource("CanvasItemMaterial_glow")
+modulate = Color(1, 1, 1, 0.55)
+scale = Vector2(1.6, 1.6)
+texture = ExtResource("3_glow")
+
+[node name="Icon" type="Sprite2D" parent="."]
+texture = ExtResource("2_icon")

@@ -2,19 +2,31 @@
 
 [ext_resource type="Script" uid="uid://d32wqser7ct8n" path="res://npc/time_machine.gd" id="1_timemachine"]
 [ext_resource type="LabelSettings" uid="uid://bpksd23vhgtxi" path="res://smallLabels.tres" id="2_5273v"]
+[ext_resource type="Texture2D" uid="uid://b2ru7gn667e2w" path="res://assets/sprites/timeMachine/A_time_machine_an_entrance_on.png" id="2_o1a3h"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_timemachine"]
-radius = 60.0
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ekalh"]
+size = Vector2(46, 80)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ge17k"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_o1a3h")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
 
 [node name="TimeMachine" type="Area2D" unique_id=1320426419]
 script = ExtResource("1_timemachine")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1085212260]
-shape = SubResource("CircleShape2D_timemachine")
+position = Vector2(18, 7)
+shape = SubResource("RectangleShape2D_ekalh")
 
-[node name="Ring" type="Polygon2D" parent="." unique_id=460328382]
-color = Color(0.6, 0.4, 0.9, 1)
-polygon = PackedVector2Array(0, -50, 35, -35, 50, 0, 35, 35, 0, 50, -35, 35, -50, 0, -35, -35)
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=664078345]
+sprite_frames = SubResource("SpriteFrames_ge17k")
 
 [node name="Prompt" type="Label" parent="." unique_id=26343405]
 offset_left = -70.0

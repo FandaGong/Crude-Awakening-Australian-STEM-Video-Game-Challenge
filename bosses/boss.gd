@@ -350,6 +350,8 @@ func takeDamage(amount: float) -> void:
 	if not boss_data.curable_by_normal_means and not whale_cured_by_event:
 		return
 	current_health = minf(boss_data.max_health, current_health + amount)
+	if Effects and amount > 0.0:
+		Effects.show_number(global_position, amount, true)
 	health_changed.emit(current_health, boss_data.max_health)
 	if current_health >= boss_data.max_health:
 		_die()
@@ -418,7 +420,10 @@ func _kraken_tentacle_suction() -> void:
 
 func _die() -> void:
 	is_defeated = true
-	GameData.add_trash("large")
+	if Effects:
+		Effects.spawn_trash_drop(global_position, "large")
+	else:
+		GameData.add_trash("large")
 	GameData.compendium_data += 1
 	for item_path in boss_data.drop_item_paths:
 		if ResourceLoader.exists(item_path):

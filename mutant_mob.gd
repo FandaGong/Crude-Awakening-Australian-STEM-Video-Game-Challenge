@@ -277,6 +277,8 @@ func apply_cure(amount: float) -> void:
 	if isCured:
 		return
 	currentHealth = minf(max_health, currentHealth + amount)
+	if Effects and amount > 0.0:
+		Effects.show_number(global_position, amount, true)
 	if currentHealth >= max_health:
 		cureMob()
 
@@ -308,9 +310,13 @@ func apply_knockback(impulse: Vector2) -> void:
 func cureMob() -> void:
 	isCured = true
 	# A healed animal is catalogued rather than destroyed and leaves recyclable
-	# debris lodged in its corruption for the robot's upgrades.
+	# debris lodged in its corruption for the robot's upgrades. The debris is
+	# spawned as a physical drop (see pickups/trash_drop.gd) that scatters,
+	# settles, and flies itself into the HUD counter; GameData.trash_tokens
+	# is credited by the drop when it arrives, not here.
 	if GameData:
 		GameData.compendium_data += 1
-		GameData.add_trash(trash_size)
+	if Effects:
+		Effects.spawn_trash_drop(global_position, trash_size)
 	cured.emit(self)
 	queue_free()

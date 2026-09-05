@@ -245,6 +245,8 @@ func takeDamage(amount: float, damage_type: String = "physical") -> void:
 		final_damage *= 0.5
 
 	currentHealth = max(0.0, currentHealth - final_damage)
+	if Effects and final_damage > 0.0:
+		Effects.show_number(global_position, final_damage, false)
 	
 	# Gazer Helmet: taking body damage flashes shockwave to stun nearby mobs
 	if GameData.equip_head_id == "gazer_helmet" and gazer_cooldown <= 0.0 and damage_type == "physical":
@@ -290,6 +292,8 @@ func heal(amount: float) -> void:
 	if isDead:
 		return
 	currentHealth = min(maxHealth, currentHealth + amount)
+	if Effects and amount > 0.0:
+		Effects.show_number(global_position, amount, true)
 
 func die() -> void:
 	if isDead:

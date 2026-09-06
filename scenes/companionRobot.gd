@@ -27,7 +27,16 @@ var overheat_timer: float = 0.0
 var rescue_cooldown: float = 0.0
 var healing_injection_timer: float = 0.0
 
+# Default-attack beam state (Node 2.4 base attack, no robot module equipped).
+# Instead of dumping the whole heal on the mob the instant the beam fires,
+# the line stays locked onto that mob and the heal trickles in for as long
+# as the line is drawn.
+var active_beam_target: Node2D = null
+var active_beam_heal_rate: float = 0.0 # heal per second while the beam is up
+var active_beam_time_left: float = 0.0
+
 @onready var light_beam: Line2D = get_node_or_null("CureBeam")
+var _dialogue_box: DialogueBox = null
 
 func _ready() -> void:
 	if light_beam:
@@ -58,13 +67,25 @@ func _physics_process(delta: float) -> void:
 	_process_unique_gear_and_modules(delta)
 
 	# --- 3. TARGETING & CURING MECHANICS ---
-	_handle_targeting_and_curing(delta)
+	# The robot holds its fire for as long as any story dialogue is on
+	# screen (its own briefing lines included) so it never starts curing a
+	# mob mid-sentence.
+	if _is_speaking():
+		if light_beam:
+			light_beam.visible = false
+	else:
+		_handle_targeting_and_curing(delta)
 
 	# --- 4. OVERHEAT SYSTEMS ---
 	_handle_overheat(delta)
 
 	# --- 5. RESCUE PROTOCOLS ---
 	_check_rescue_protocol(delta)
+
+func _is_speaking() -> bool:
+	if not _dialogue_box or not is_instance_valid(_dialogue_box):
+		_dialogue_box = get_tree().get_first_node_in_group("dialogue_box") as DialogueBox
+	return _dialogue_box != null and _dialogue_box.is_open()
 
 func _process_unique_gear_and_modules(delta: float) -> void:
 	# Baleen Resonance Core: Pull all nearby air bubbles toward player every 10s
@@ -142,9 +163,21 @@ func _select_targets() -> Array[Node2D]:
 
 # --- CURING SYSTEM ---
 func _handle_targeting_and_curing(delta: float) -> void:
+	# The default attack fires from the robot's default equipment (the
+	# weapon sitting in its 12 equip slots). Drag it out and the robot has
+	# nothing to fire with.
+	if not GameData.robot_default_weapon_equipped:
+		_clear_active_beam()
+		return
+
 	var targets = _select_targets()
+
+	# Keep any in-flight beam tracking its mob and trickling in its heal
+	# every frame, independent of the once-per-interval firing cadence.
+	_update_active_beam(delta)
+
 	if targets.is_empty():
-		if light_beam:
+		if light_beam and not active_beam_target:
 			light_beam.visible = false
 		return
 
@@ -192,20 +225,55 @@ func _handle_targeting_and_curing(delta: float) -> void:
 						secondary.apply_slow(0.30, 1.0)
 					_draw_chain_arc(primary_target.global_position, secondary.global_position)
 		else:
-			if primary_target.has_method("apply_cure"):
-				primary_target.apply_cure(cure_rate)
-				
-			if primary_target.get("is_cured") and GameData.equip_robot_module_id == "beak_sovereign":
-				_trigger_beak_cure_burst(primary_target.global_position)
-
-		if light_beam:
-			light_beam.visible = true
-			light_beam.points = [Vector2.ZERO, to_local(primary_target.global_position)]
+			# Default beam: lock onto the mob and spread the heal over the
+			# lifetime of the line instead of dumping it all at once.
+			_start_beam(primary_target, cure_rate)
 
 	if GameData.has_skill("heat_1") and not is_overheated:
 		overheat_gauge += 15.0 * delta
 		if overheat_gauge >= max_overheat:
 			_enter_overheat()
+
+# Locks the default-attack beam onto a mob for the length of the current
+# firing interval; the heal for that shot is delivered gradually by
+# _update_active_beam() rather than all at once.
+func _start_beam(target: Node2D, total_heal: float) -> void:
+	active_beam_target = target
+	active_beam_time_left = healing_injection_interval
+	active_beam_heal_rate = total_heal / healing_injection_interval
+	if light_beam:
+		light_beam.visible = true
+		light_beam.points = [Vector2.ZERO, to_local(target.global_position)]
+
+# Runs every frame the beam is alive: re-draws the line to the mob's
+# current position and applies its share of the heal for this tick. The
+# beam disappears (and the line is cleared) once its time runs out or the
+# mob it was locked onto goes away.
+func _update_active_beam(delta: float) -> void:
+	if not active_beam_target or not is_instance_valid(active_beam_target):
+		_clear_active_beam()
+		return
+
+	var tick_time = min(delta, active_beam_time_left)
+	if active_beam_target.has_method("apply_cure"):
+		active_beam_target.apply_cure(active_beam_heal_rate * tick_time)
+
+	if light_beam:
+		light_beam.visible = true
+		light_beam.points = [Vector2.ZERO, to_local(active_beam_target.global_position)]
+
+	active_beam_time_left -= delta
+	if active_beam_time_left <= 0.0:
+		if active_beam_target.get("is_cured") and GameData.equip_robot_module_id == "beak_sovereign":
+			_trigger_beak_cure_burst(active_beam_target.global_position)
+		_clear_active_beam()
+
+func _clear_active_beam() -> void:
+	active_beam_target = null
+	active_beam_heal_rate = 0.0
+	active_beam_time_left = 0.0
+	if light_beam:
+		light_beam.visible = false
 
 func _trigger_beak_cure_burst(origin: Vector2) -> void:
 	var mobs = get_tree().get_nodes_in_group("corrupted_mobs")

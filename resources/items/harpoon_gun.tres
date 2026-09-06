@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_item"]
+[ext_resource type="Texture2D" path="res://assets/items/harpoon_gun_icon.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_item")
+id = "harpoon_gun"
+name = "Harpoon Gun"
+description = "Fires a heavy piercing harpoon bolt."
+icon = ExtResource("2_icon")
+item_type = 4

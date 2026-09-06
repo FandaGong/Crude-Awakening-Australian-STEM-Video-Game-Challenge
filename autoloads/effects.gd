@@ -2,11 +2,19 @@ extends Node
 
 ## Small, stateless helper for shared visual feedback that several scripts
 ## need (player, mobs, bosses): floating damage/heal numbers, spawning a
-## mob's trash drop(s), and pulsing the HUD trash counter. Autoloaded as
-## `Effects` (see project.godot). Nothing here holds gameplay state.
+## mob's trash drop(s)/item drop(s), and pulsing the HUD trash counter.
+## Autoloaded as `Effects` (see project.godot). Nothing here holds gameplay
+## state beyond the `level_will_change` broadcast below.
+
+## Emitted by world.gd right before it moves the otter to a different level,
+## boss arena, or overworld area. Any still-uncollected ItemDrop listens for
+## this and immediately teleports itself into the robot's inventory rather
+## than being left behind and lost.
+signal level_will_change
 
 const FloatingNumberScene := preload("res://effects/floating_number.tscn")
 const TrashDropScene := preload("res://pickups/trash_drop.tscn")
+const ItemDropScene := preload("res://pickups/item_drop.tscn")
 
 ## Spawns a floating "+N" (green, healing/curing) or "-N" (red, damage)
 ## number at a world position.
@@ -33,6 +41,30 @@ func spawn_trash_drop(origin: Vector2, trash_size: String, count: int = 1) -> vo
 		drop.trash_size = trash_size
 		scene.add_child(drop)
 		drop.global_position = origin
+
+## Spawns a physical, collectible drop for a real ItemData (gear, robot
+## module, charm, ability, etc.) at `origin` - typically a just-cured mob or
+## boss. Each drop scatters outward like a trash drop, settles according to
+## its surroundings (sinks if in water, drops onto the ground if not), and
+## then waits to be walked over. Uncollected drops teleport themselves into
+## the robot's inventory after a minute or if the level changes first -
+## see pickups/item_drop.gd.
+func spawn_item_drop(origin: Vector2, item: ItemData, count: int = 1) -> void:
+	if not item:
+		return
+	var scene := get_tree().current_scene
+	if not scene:
+		return
+	for i in range(max(1, count)):
+		var drop := ItemDropScene.instantiate()
+		scene.add_child(drop)
+		drop.global_position = origin
+		drop.setup(item)
+
+## Called by world.gd immediately before any transition that moves the otter
+## away from the area a drop might be sitting in.
+func notify_level_changing() -> void:
+	level_will_change.emit()
 
 ## Bounces + flashes the HUD trash counter icon. Called by each trash drop
 ## the instant it's absorbed into the counter.

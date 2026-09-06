@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://ce2jmwn8lqfsb"
+path="res://.godot/imported/Gamemusic-beach-loop_–_fantagong.mp3-f936acb5e4c99b03970833898acb0530.mp3str"
+
+[deps]
+
+source_file="res://assets/Music BGM /Gamemusic-beach-loop_–_fantagong.mp3"
+dest_files=["res://.godot/imported/Gamemusic-beach-loop_–_fantagong.mp3-f936acb5e4c99b03970833898acb0530.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

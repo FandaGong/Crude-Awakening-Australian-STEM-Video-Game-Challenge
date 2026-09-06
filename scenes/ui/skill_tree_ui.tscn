@@ -5,7 +5,7 @@
 [ext_resource type="LabelSettings" uid="uid://cfyy81mj33a5y" path="res://smallerLabels.tres" id="2_7oq71"]
 [ext_resource type="LabelSettings" uid="uid://bpksd23vhgtxi" path="res://smallLabels.tres" id="2_xxak1"]
 [ext_resource type="Texture2D" uid="uid://0dnon15sn6m2" path="res://assets/UI/settings/settingsBG.png" id="4_7oq71"]
-[ext_resource type="Texture2D" uid="uid://bcq65fdtr0bce" path="res://assets/UI/system/circleButtonBase.png" id="4_okeyf"]
+[ext_resource type="Texture2D" uid="uid://bcq65fdtr0bce" path="res://assets/UI/system/circleButtonBase.png" id="6_7oq71"]
 
 [sub_resource type="Theme" id="Theme_uqk8q"]
 
@@ -15,6 +15,10 @@ texture_margin_left = 30.0
 texture_margin_top = 30.0
 texture_margin_right = 30.0
 texture_margin_bottom = 60.0
+expand_margin_left = 15.0
+expand_margin_top = 15.0
+expand_margin_right = 15.0
+expand_margin_bottom = 45.0
 
 [node name="SkillTreeUi" type="Control" unique_id=1285967863]
 layout_mode = 3
@@ -75,18 +79,22 @@ label_settings = ExtResource("2_7oq71")
 [node name="Node_target_1" parent="BranchesContainer/Branch1_Targeting" unique_id=1440460607 instance=ExtResource("1_a5thb")]
 layout_mode = 2
 size_flags_horizontal = 4
+skill_id = "target_1"
 
 [node name="Node_target_2" parent="BranchesContainer/Branch1_Targeting" unique_id=876781850 instance=ExtResource("1_a5thb")]
 layout_mode = 2
 size_flags_horizontal = 4
+skill_id = "target_2"
 
 [node name="Node_target_3" parent="BranchesContainer/Branch1_Targeting" unique_id=1632882841 instance=ExtResource("1_a5thb")]
 layout_mode = 2
 size_flags_horizontal = 4
+skill_id = "target_3"
 
 [node name="Node_target_4" parent="BranchesContainer/Branch1_Targeting" unique_id=484816029 instance=ExtResource("1_a5thb")]
 layout_mode = 2
 size_flags_horizontal = 4
+skill_id = "target_4"
 
 [node name="Branch2_Synergy" type="VBoxContainer" parent="BranchesContainer" unique_id=1914896239]
 custom_minimum_size = Vector2(25, 0)
@@ -101,18 +109,22 @@ label_settings = ExtResource("2_7oq71")
 [node name="Node_target_1" parent="BranchesContainer/Branch2_Synergy" unique_id=1658625658 instance=ExtResource("1_a5thb")]
 layout_mode = 2
 size_flags_horizontal = 4
+skill_id = "synergy_1"
 
 [node name="Node_target_2" parent="BranchesContainer/Branch2_Synergy" unique_id=896486988 instance=ExtResource("1_a5thb")]
 layout_mode = 2
 size_flags_horizontal = 4
+skill_id = "synergy_2"
 
 [node name="Node_target_3" parent="BranchesContainer/Branch2_Synergy" unique_id=1198400232 instance=ExtResource("1_a5thb")]
 layout_mode = 2
 size_flags_horizontal = 4
+skill_id = "synergy_3"
 
 [node name="Node_target_4" parent="BranchesContainer/Branch2_Synergy" unique_id=1501899788 instance=ExtResource("1_a5thb")]
 layout_mode = 2
 size_flags_horizontal = 4
+skill_id = "synergy_4"
 
 [node name="Branch3_Compendium" type="VBoxContainer" parent="BranchesContainer" unique_id=1625607349]
 custom_minimum_size = Vector2(25, 0)
@@ -127,18 +139,22 @@ label_settings = ExtResource("2_7oq71")
 [node name="Node_target_1" parent="BranchesContainer/Branch3_Compendium" unique_id=1398827455 instance=ExtResource("1_a5thb")]
 layout_mode = 2
 size_flags_horizontal = 4
+skill_id = "comp_1"
 
 [node name="Node_target_2" parent="BranchesContainer/Branch3_Compendium" unique_id=346399405 instance=ExtResource("1_a5thb")]
 layout_mode = 2
 size_flags_horizontal = 4
+skill_id = "comp_2"
 
 [node name="Node_target_3" parent="BranchesContainer/Branch3_Compendium" unique_id=932175347 instance=ExtResource("1_a5thb")]
 layout_mode = 2
 size_flags_horizontal = 4
+skill_id = "comp_3"
 
 [node name="Node_target_4" parent="BranchesContainer/Branch3_Compendium" unique_id=1192121526 instance=ExtResource("1_a5thb")]
 layout_mode = 2
 size_flags_horizontal = 4
+skill_id = "comp_4"
 
 [node name="Branch4_Overheat" type="VBoxContainer" parent="BranchesContainer" unique_id=1281083657]
 custom_minimum_size = Vector2(25, 0)
@@ -153,41 +169,80 @@ label_settings = ExtResource("2_7oq71")
 [node name="Node_target_1" parent="BranchesContainer/Branch4_Overheat" unique_id=301043530 instance=ExtResource("1_a5thb")]
 layout_mode = 2
 size_flags_horizontal = 4
+skill_id = "heat_1"
 
 [node name="Node_target_2" parent="BranchesContainer/Branch4_Overheat" unique_id=733627691 instance=ExtResource("1_a5thb")]
 layout_mode = 2
 size_flags_horizontal = 4
+skill_id = "heat_2"
 
 [node name="Node_target_3" parent="BranchesContainer/Branch4_Overheat" unique_id=1570057209 instance=ExtResource("1_a5thb")]
 layout_mode = 2
 size_flags_horizontal = 4
+skill_id = "heat_3"
 
 [node name="Node_target_4" parent="BranchesContainer/Branch4_Overheat" unique_id=560567102 instance=ExtResource("1_a5thb")]
 layout_mode = 2
 size_flags_horizontal = 4
+skill_id = "heat_4"
 
-[node name="DetailsPanel" type="PanelContainer" parent="." unique_id=1463610899]
-visible = false
+[node name="DetailsPanel" type="Panel" parent="." unique_id=722269432]
 layout_mode = 0
-offset_left = 87.0
-offset_top = -8.0
-offset_right = 179.0
-offset_bottom = 114.0
+offset_left = 111.0
+offset_top = -1.0
+offset_right = 223.0
+offset_bottom = 54.0
 theme = SubResource("Theme_uqk8q")
 theme_override_styles/panel = SubResource("StyleBoxTexture_6uidu")
 
+[node name="UnlockButton" type="TextureButton" parent="DetailsPanel" unique_id=1939122299]
+layout_mode = 0
+offset_left = 72.0
+offset_top = 16.0
+offset_right = 104.0
+offset_bottom = 48.0
+texture_normal = ExtResource("6_7oq71")
+
+[node name="Label" type="Label" parent="DetailsPanel/UnlockButton" unique_id=2030626059]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 14.0
+offset_right = 25.0
+offset_bottom = 18.0
+label_settings = ExtResource("2_7oq71")
+
 [node name="SkillNameLabel" type="Label" parent="DetailsPanel" unique_id=488174693]
-layout_mode = 2
+layout_mode = 1
+offset_left = 10.0
+offset_top = 9.0
+offset_right = 63.0
+offset_bottom = 18.0
+offset_transform_position = Vector2(1233213, 0)
 label_settings = ExtResource("2_xxak1")
 
 [node name="DescriptionLabel" type="Label" parent="DetailsPanel" unique_id=755651943]
-layout_mode = 2
-label_settings = ExtResource("2_xxak1")
+custom_maximum_size = Vector2(80, -1)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 10.0
+offset_top = -7.5
+offset_right = 68.0
+offset_bottom = 13.5
+grow_vertical = 2
+label_settings = ExtResource("2_7oq71")
+autowrap_mode = 3
 
 [node name="CostLabel" type="Label" parent="DetailsPanel" unique_id=435087235]
-layout_mode = 2
-label_settings = ExtResource("2_xxak1")
-
-[node name="UnlockButton" type="TextureButton" parent="DetailsPanel" unique_id=1939122299]
-layout_mode = 2
-texture_normal = ExtResource("4_okeyf")
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 81.0
+offset_top = -45.0
+offset_right = 96.0
+offset_bottom = -36.0
+grow_vertical = 0
+label_settings = ExtResource("2_7oq71")
+horizontal_alignment = 1

@@ -17,6 +17,7 @@ signal compendium_data_changed(new_amount: int)
 signal trash_tokens_changed(new_amount: int)
 signal skill_unlocked(skill_id: String)
 signal robot_unlocked_changed(unlocked: bool)
+signal robot_default_weapon_equipped_changed(is_equipped: bool)
 
 # --- Constants & Variables -----------------------------------------------
 const TOTAL_BOSSES := 6 # the six Historical Turning Points: Crab, Jellyfish, Shell, Anglerfish, Whale, Kraken
@@ -72,8 +73,26 @@ var equip_accessory_id: String:
 var equip_robot_module_id: String:
 	get: return equip_robot_module.id if (equip_robot_module and "id" in equip_robot_module) else ""
 
+# --- Robot Default Weapon Tracking ---
+# The robot's default attack fires from the starting weapon that is placed
+# into its first equip slot. RobotInventoryPanel keeps this in sync with
+# whether that item still sits somewhere among the 12 equip slots.
+var robot_default_weapon_id: String = ""
+var robot_default_weapon_equipped: bool = true:
+	set(value):
+		if robot_default_weapon_equipped == value:
+			return
+		robot_default_weapon_equipped = value
+		robot_default_weapon_equipped_changed.emit(value)
+
 # --- Active Hotbar Abilities (3 slots) ---
 var active_abilities: Array[String] = ["jelly_stinger", "crab_pincer", "pearlescent_volley"]
+
+# Item ids that represent a mouse-aimed hotbar ability rather than a
+# stackable/equippable item. Collecting one of these (see item_drop.gd)
+# unlocks it for the hotbar in addition to sitting in the inventory as a
+# keepsake - see add_item() below.
+const ABILITY_ITEM_IDS := ["jelly_stinger", "crab_pincer", "pearlescent_volley", "abyssal_flare"]
 
 # --- Global Effect Timers ---
 var bubble_booster_timer: float = 0.0
@@ -97,6 +116,14 @@ func _process(delta: float) -> void:
 # --- Inventory & Equipping Logic -----------------------------------------
 
 func add_item(item: ItemData, amount: int = 1) -> bool:
+	# Ability items unlock the matching mouse-aimed hotbar ability the first
+	# time they're collected (e.g. Abyssal Flare from the Abyssal Anglerfish).
+	# They still fall through and take up an inventory slot too, same as any
+	# other collected item.
+	if item and "id" in item and item.id in ABILITY_ITEM_IDS and not active_abilities.has(item.id):
+		active_abilities.append(item.id)
+		save_game()
+
 	# 1. Stack into existing slots
 	for slot in inventory_slots:
 		if slot.item_data == item and slot.quantity < item.max_stack:
@@ -213,6 +240,16 @@ func equip_weapon(weapon_id: String) -> void:
 	equipped_weapon_id = weapon_id
 	weapon_equipped.emit(weapon_id)
 	save_game()
+
+# Looks up the ItemData representation of the currently equipped weapon so it
+# can be displayed as an icon (e.g. in the robot's equip inventory). Weapons
+# are otherwise tracked purely by WeaponData/id string, so this is just a
+# display-facing bridge between the two systems.
+func get_equipped_weapon_item() -> ItemData:
+	var path := "res://resources/items/%s.tres" % equipped_weapon_id
+	if ResourceLoader.exists(path):
+		return load(path)
+	return null
 
 # --- Robot Skill Tree Database ---------------------------------------------
 

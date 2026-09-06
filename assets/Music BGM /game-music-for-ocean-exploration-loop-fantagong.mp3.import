@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://gi30nlb5itru"
+path="res://.godot/imported/game-music-for-ocean-exploration-loop-fantagong.mp3-ccb22418c9c840cb8ba62edef36b68a5.mp3str"
+
+[deps]
+
+source_file="res://assets/Music BGM /game-music-for-ocean-exploration-loop-fantagong.mp3"
+dest_files=["res://.godot/imported/game-music-for-ocean-exploration-loop-fantagong.mp3-ccb22418c9c840cb8ba62edef36b68a5.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

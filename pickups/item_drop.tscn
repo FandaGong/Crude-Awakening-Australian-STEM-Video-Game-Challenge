@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://bm8nufjw17d6b"]
+
+[ext_resource type="Script" uid="uid://d13yrta4dfjgd" path="res://pickups/item_drop.gd" id="1_item_drop"]
+[ext_resource type="Texture2D" uid="uid://71prxw8dp33v" path="res://assets/sprites/trash/trashDropIcon.png" id="2_icon"]
+[ext_resource type="Texture2D" uid="uid://bti3u2epbsx60" path="res://assets/sprites/trash/trashDropGlow.png" id="3_glow"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_glow"]
+blend_mode = 1
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pickup"]
+radius = 22.0
+
+[node name="ItemDrop" type="Node2D" unique_id=1371816747]
+z_index = 50
+script = ExtResource("1_item_drop")
+
+[node name="Glow" type="Sprite2D" parent="." unique_id=467499199]
+modulate = Color(1, 1, 1, 0.55)
+material = SubResource("CanvasItemMaterial_glow")
+scale = Vector2(1.6, 1.6)
+texture = ExtResource("3_glow")
+
+[node name="Icon" type="Sprite2D" parent="." unique_id=941804458]
+texture = ExtResource("2_icon")
+
+[node name="PickupArea" type="Area2D" parent="." unique_id=640014253]
+collision_layer = 4
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PickupArea" unique_id=2109175635]
+shape = SubResource("CircleShape2D_pickup")

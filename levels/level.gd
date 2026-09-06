@@ -74,6 +74,12 @@ func _on_mob_cured(_mob: MutantMob) -> void:
 	if _remaining_mobs == 0:
 		mobs_cleared.emit()
 
+## True once every preloaded field mob has already been cured. Used when
+## re-entering a level (e.g. after dying to its boss) to tell whether the
+## one-shot mobs_cleared signal has already fired and won't fire again.
+func mobs_already_cleared() -> bool:
+	return _remaining_mobs <= 0
+
 func _on_merchant_interacted() -> void:
 	var world := get_tree().get_first_node_in_group("world")
 	if world and world.has_method("open_shop"):

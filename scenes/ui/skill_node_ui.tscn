@@ -18,6 +18,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 texture = SubResource("PlaceholderTexture2D_sik6a")
 
 [node name="Border" type="TextureRect" parent="." unique_id=1638046769]
@@ -27,6 +28,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="KeystoneGlow" type="TextureRect" parent="." unique_id=1919575773]
 layout_mode = 1
@@ -35,3 +37,4 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2

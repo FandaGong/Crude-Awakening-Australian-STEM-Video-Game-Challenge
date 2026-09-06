@@ -17,6 +17,18 @@ const EnemyBullet := preload("res://bullets/enemy_bullet.tscn")
 @export var baseSpeed: float = 50.0
 @export_enum("small", "medium", "large") var trash_size := "small"
 
+# Field mobs (as opposed to their boss versions in bosses/boss.gd) have a
+# chance to drop the matching material item from the design doc when cured:
+# Jellyfish -> Jelly Stinger, Crab -> Crab Pincer, Sponge -> Porous Sponge
+# Charm ("Environment Drop: Sponges"). Shell and Anglerfish field mobs have
+# no matching mob drop - those items are boss-only (see boss.gd).
+const MOB_DROP_ITEM_PATHS := {
+	MobType.JELLYFISH: "res://resources/items/jelly_stinger.tres",
+	MobType.CRAB: "res://resources/items/crab_pincer.tres",
+	MobType.SPONGE: "res://resources/items/porous_sponge_charm.tres",
+}
+const MOB_DROP_CHANCE := 0.35
+
 # --- Per-type tunables (defaults match the design doc) ---
 @export_group("Shell")
 @export var shell_body_damage: float = 10.0
@@ -318,5 +330,14 @@ func cureMob() -> void:
 		GameData.compendium_data += 1
 	if Effects:
 		Effects.spawn_trash_drop(global_position, trash_size)
+		_maybe_spawn_item_drop()
 	cured.emit(self)
 	queue_free()
+
+func _maybe_spawn_item_drop() -> void:
+	var item_path: String = MOB_DROP_ITEM_PATHS.get(mob_type, "")
+	if item_path == "" or randf() > MOB_DROP_CHANCE:
+		return
+	if not ResourceLoader.exists(item_path):
+		return
+	Effects.spawn_item_drop(global_position, load(item_path))

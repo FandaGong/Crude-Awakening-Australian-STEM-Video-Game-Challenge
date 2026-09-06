@@ -16,8 +16,8 @@ func _ready() -> void:
 		speech_bubble.hide()
 	if animated_sprite:
 		animated_sprite.play("default")
-	body_entered.connect(_on_body_entered)
-	body_exited.connect(_on_body_exited)
+	#body_entered.connect(_on_body_entered) # unneeded because it is already connected in the UI
+	#body_exited.connect(_on_body_exited)	# causes • 0:00:00:765 npc.gd:19 @_ready): Signal 'body_entered' is already connected to given callable 'Area2D(npc.gd)::_on_body_entered' in that object.
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not player_in_range or not event.is_action_pressed("interact") or not dialogue_box or dialogue_box.is_open():

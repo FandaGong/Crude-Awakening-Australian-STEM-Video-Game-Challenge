@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://effects/black_hole.gd" id="1_hole"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_hole"]
+animations = [{
+"frames": [],
+"loop": true,
+"name": &"default",
+"speed": 8.0
+}]
+
+[node name="BlackHole" type="Node2D"]
+script = ExtResource("1_hole")
+z_index = 250
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_hole")

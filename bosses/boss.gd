@@ -426,8 +426,10 @@ func _die() -> void:
 		GameData.add_trash("large")
 	GameData.compendium_data += 1
 	for item_path in boss_data.drop_item_paths:
-		if ResourceLoader.exists(item_path):
-			GameData.add_item(load(item_path))
+		if ResourceLoader.exists(item_path) and Effects:
+			# Physical drops now, rather than an instant inventory grant, so
+			# they scatter and settle like every other drop (see item_drop.gd).
+			Effects.spawn_item_drop(global_position, load(item_path))
 	GameData.mark_boss_defeated(boss_data.id)
 	defeated.emit(boss_data.id, boss_data.crystal_reward)
 	queue_free()

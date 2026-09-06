@@ -225,24 +225,43 @@ func _populate_shop() -> void:
 		info.text = "%s — dmg %d — %s" % [weapon.weapon_name, int(weapon.damage), weapon.description]
 		row.add_child(info)
 
-		var action_btn := Button.new()
+		# 1. Instantiate the correct node type to match button_dim_fx.gd
+		var action_btn := TextureButton.new()
 		action_btn.set_script(ButtonDimFxScript)
+		
+		# Give the TextureButton a minimum size so the label text fits comfortably
+		action_btn.custom_minimum_size = Vector2(120, 32)
+
+		# 2. Build a child Label inside the TextureButton to display the text
+		var btn_label := Label.new()
+		btn_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		btn_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		
+		# Force the label to automatically span and cover the entire button hitbox area
+		btn_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		action_btn.add_child(btn_label)
 
 		var owned: bool = GameData.owns_weapon(weapon_id)
 		var equipped: bool = GameData.equipped_weapon_id == weapon_id
 
+		# 3. Assign text string variables to our child label node instead of the button base
 		if equipped:
-			action_btn.text = "Equipped"
+			btn_label.text = "Equipped"
 			action_btn.disabled = true
 		elif owned:
-			action_btn.text = "Equip"
+			btn_label.text = "Equip"
 			action_btn.pressed.connect(_on_equip_weapon_pressed.bind(weapon_id))
 		else:
-			action_btn.text = "Buy (%d)" % weapon.cost
+			btn_label.text = "Buy (%d)" % weapon.cost
 			action_btn.disabled = GameData.crystals < weapon.cost
 			action_btn.pressed.connect(_on_buy_weapon_pressed.bind(weapon_id, weapon.cost))
 
 		row.add_child(action_btn)
+		
+			
+		
+		
+
 
 func _on_buy_weapon_pressed(weapon_id: String, cost: int) -> void:
 	if GameData.purchase_weapon(weapon_id, cost):
@@ -308,7 +327,7 @@ func _select_hotbar_slot(slot: int) -> void:
 		return
 	if player.inventory.size() < slot:
 		return
-	player.activeWeaponIndex = slot - 1
+	player.activeSlotIndex = slot - 1
 	_update_hotbar_selection(slot)
 
 func _update_hotbar_selection(slot: int) -> void:

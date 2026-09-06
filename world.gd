@@ -3,21 +3,22 @@ extends Node2D
 const ArenaScene := preload("res://arenas/boss_arena.tscn")
 const TimeTravelOverlayScene := preload("res://ui/time_travel_overlay.tscn")
 const BossScene := preload("res://bosses/boss.tscn")
+const TimeMachineScene := preload("res://npc/time_machine.tscn")
+const BlackHoleEffectScene := preload("res://effects/black_hole.tscn")
 const ARENA_OFFSET := Vector2(6000, 0)
 const LEVEL_COUNT := 6
 
 @onready var pond_scene: Node2D = $pondScene
-@onready var trench_scene: Node2D = $trenchScene
 @onready var ending_scene: Node2D = $endingScene
 @onready var dive_tunnel: Node2D = $diveTunnel
 @onready var levels_root: Node2D = $Levels
 
 @onready var pond_spawn: Marker2D = $pondScene/pondSpawn
 @onready var lab_return_spawn: Marker2D = $pondScene/labReturnSpawn
-@onready var trench_spawn: Marker2D = $trenchScene/trenchSpawn
 @onready var ending_spawn: Marker2D = $endingScene/endingSpawn
 
 @onready var player: CharacterBody2D = $player
+@onready var time_machine: Area2D = $pondScene/TimeMachine
 
 var current_spawn_position: Vector2 = Vector2.ZERO
 var current_boss_arena: Node = null
@@ -33,6 +34,12 @@ var current_level_index: int = -1 # -1 = not currently inside a level
 var current_level_boss: Node = null
 var current_level_boss_data: BossData = null
 
+# The return-trip time machine dropped into the current level (see
+# _spawn_level_time_machine()). It always sits at that level's player_spawn
+# marker - the same coordinates the otter arrives at - and stays inert
+# until its level's boss is cured.
+var current_level_time_machine: Area2D = null
+
 func _ready() -> void:
 	add_to_group("world")
 	if player.has_signal("died"):
@@ -45,40 +52,91 @@ func _ready() -> void:
 # --- Overworld areas --------------------------------------------------------
 
 func teleport_player_to_pond() -> void:
+	Effects.notify_level_changing()
 	_clear_active_boss_arena()
 	_clear_level_boss()
+	_clear_level_time_machine()
 	current_level_index = -1
 	current_spawn_position = pond_spawn.global_position
 	player.global_position = current_spawn_position
 	player.currentState = player.State.LAND
 
 ## Sends the player back to the scientist's lab hub (the 2126 wasteland
-## around pondScene) without re-running the opening pond sequence. Used
-## every time a level's boss is cured, so the otter can catch its breath
-## and walk back into the time machine for the next Historical Turning
-## Point.
+## around pondScene) without re-running the opening pond sequence. Called
+## once the otter actually uses a level's own time machine after its boss
+## has been cured (see _on_level_boss_defeated() / time_machine.gd), so the
+## otter can catch its breath and walk back into the main time machine for
+## the next Historical Turning Point.
+##
+## Rather than just popping into existence at labReturnSpawn, the otter now
+## visibly steps back out of the original lab time machine itself: a small
+## black hole opens up on it, the otter hops out, and the hole shrinks away.
 func return_to_lab() -> void:
+	Effects.notify_level_changing()
 	_clear_active_boss_arena()
 	_clear_level_boss()
+	_clear_level_time_machine()
 	current_level_index = -1
-	var spawn: Marker2D = lab_return_spawn if lab_return_spawn else pond_spawn
-	current_spawn_position = spawn.global_position
+	var fallback: Marker2D = lab_return_spawn if lab_return_spawn else pond_spawn
+	var spawn_pos: Vector2 = (
+		time_machine.global_position + Vector2(18.0, 55.0)
+		if time_machine else fallback.global_position
+	)
+	current_spawn_position = spawn_pos
+	_play_lab_arrival_effect(spawn_pos)
+
+## Grows a small black hole at spawn_pos, pops the otter out of it once
+## it's fully open, then shrinks the hole away and frees it.
+func _play_lab_arrival_effect(spawn_pos: Vector2) -> void:
+	player.currentState = player.State.LAND
+	var original_scale: Vector2 = player.scale
+	player.visible = false
+
+	var hole := BlackHoleEffectScene.instantiate()
+	add_child(hole)
+	hole.global_position = spawn_pos
+	await hole.grow()
+
+	player.global_position = spawn_pos
+	player.scale = original_scale
+	player.visible = true
+
+	# A little hop "out of" the hole rather than just appearing flat-footed.
+	var hop := create_tween()
+	hop.tween_property(player, "global_position:y", spawn_pos.y - 20.0, 0.15) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	hop.tween_property(player, "global_position:y", spawn_pos.y, 0.2) \
+		.set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+	await hop.finished
+
+	await hole.shrink_and_free()
+
+## Sends the player right to the time machine's doorway instead of the
+## general lab spawn. Used only when the otter dies mid-level and gets
+## rewound back through the machine, so they visibly step back out of it
+## rather than just reappearing somewhere in the lab.
+func return_to_time_machine() -> void:
+	Effects.notify_level_changing()
+	_clear_active_boss_arena()
+	_clear_level_boss()
+	_clear_level_time_machine()
+	current_level_index = -1
+	var spawn: Vector2 = lab_return_spawn.global_position if lab_return_spawn else pond_spawn.global_position
+	if time_machine:
+		spawn = time_machine.global_position + Vector2(18.0, 55.0)
+	current_spawn_position = spawn
 	player.global_position = current_spawn_position
 	player.currentState = player.State.LAND
 
-func transitionToTrench() -> void:
-	_clear_active_boss_arena()
-	current_spawn_position = trench_spawn.global_position
-	player.global_position = current_spawn_position
-	player.currentState = player.State.SWIMMING
-
 func transitionToEnding() -> void:
+	Effects.notify_level_changing()
 	_clear_active_boss_arena()
 	current_spawn_position = ending_spawn.global_position
 	player.global_position = current_spawn_position
 	player.currentState = player.State.LAND
 
 func enter_dive_tunnel() -> void:
+	Effects.notify_level_changing()
 	_clear_active_boss_arena()
 	current_spawn_position = dive_tunnel.global_position
 	player.global_position = current_spawn_position
@@ -93,6 +151,7 @@ func enter_boss_arena(boss_id: int) -> void:
 	if not ResourceLoader.exists(path):
 		return
 
+	Effects.notify_level_changing()
 	current_boss_data = load(path)
 	_clear_active_boss_arena()
 
@@ -153,6 +212,7 @@ func enter_level(era_index: int) -> void:
 		push_warning("world.gd: Levels/Level%d is missing from the scene." % (era_index + 1))
 		return
 
+	Effects.notify_level_changing()
 	_clear_active_boss_arena()
 	_clear_level_boss()
 	current_level_index = era_index
@@ -161,11 +221,35 @@ func enter_level(era_index: int) -> void:
 	player.global_position = current_spawn_position
 	player.currentState = player.State.SWIMMING
 
+	_spawn_level_time_machine(level, era_index)
+
 	var clear_callback := _on_level_mobs_cleared.bind(era_index)
 	if level.has_signal("mobs_cleared") and not level.is_connected("mobs_cleared", clear_callback):
 		level.connect("mobs_cleared", clear_callback)
 	level.set_mobs_active(false)
 	_show_level_briefing(era_index)
+
+## Drops this level's return-trip time machine right on top of the otter's
+## spawn point - the same coordinates every time this level is entered -
+## and plays its grow-in effect since it's appearing alongside them. It
+## stays inert (see time_machine.gd) until this level's boss is cured.
+func _spawn_level_time_machine(level: Node, era_index: int) -> void:
+	_clear_level_time_machine()
+	current_level_time_machine = TimeMachineScene.instantiate()
+	level.add_child(current_level_time_machine)
+	current_level_time_machine.global_position = level.player_spawn.global_position
+	current_level_time_machine.is_return_machine = true
+	if GameData.is_boss_defeated(era_index + 1):
+		# Re-entering an already-cured level (shouldn't normally happen,
+		# but just in case) - let it work immediately.
+		current_level_time_machine.enable_return()
+	if current_level_time_machine.has_method("play_spawn_effect"):
+		current_level_time_machine.play_spawn_effect()
+
+func _clear_level_time_machine() -> void:
+	if current_level_time_machine and is_instance_valid(current_level_time_machine):
+		current_level_time_machine.queue_free()
+	current_level_time_machine = null
 
 func _show_level_briefing(era_index: int) -> void:
 	if era_index < 0 or era_index >= StoryManager.ERAS.size():
@@ -177,7 +261,14 @@ func _show_level_briefing(era_index: int) -> void:
 	var briefing: Array = era.get("briefing", [])
 	dialogue_box.show_lines(PackedStringArray(briefing))
 	var level: Node = level_nodes[era_index]
-	dialogue_box.finished.connect(level.set_mobs_active.bind(true), CONNECT_ONE_SHOT)
+	var on_briefing_done := func() -> void:
+		level.set_mobs_active(true)
+		# Re-entering a level whose field mobs were already cured before the
+		# otter died to its boss: mobs_cleared already fired once and won't
+		# fire again, so spawn the boss directly instead of waiting forever.
+		if level.has_method("mobs_already_cleared") and level.mobs_already_cleared():
+			_spawn_level_boss(level, era_index)
+	dialogue_box.finished.connect(on_briefing_done, CONNECT_ONE_SHOT)
 
 func _on_level_mobs_cleared(era_index: int) -> void:
 	if era_index != current_level_index:
@@ -206,11 +297,14 @@ func _spawn_level_boss(level: Node, era_index: int) -> void:
 func _on_level_boss_defeated(_boss_id: int, _crystal_reward: int, _era_index: int) -> void:
 	await get_tree().create_timer(1.5).timeout
 	_clear_level_boss()
-	# The otter and robot ride the time machine's return trip back to the
-	# lab; stepping back into the time machine there (see time_machine.gd)
-	# is what advances StoryManager to the next era, or - after the sixth
-	# boss - out into the restored, sunlit ending.
-	return_to_lab()
+	# The otter no longer teleports home automatically - the level's own
+	# time machine (dropped at their spawn point when the level began) is
+	# now switched on. Stepping into it is what actually rides them back
+	# to labReturnSpawn (see time_machine.gd/_activate()); interacting with
+	# the lab's own machine there is what then advances StoryManager to the
+	# next era, or - after the sixth boss - out into the restored ending.
+	if current_level_time_machine and is_instance_valid(current_level_time_machine):
+		current_level_time_machine.enable_return()
 
 func _clear_level_boss() -> void:
 	if current_level_boss and is_instance_valid(current_level_boss):
@@ -233,7 +327,7 @@ func _on_player_died() -> void:
 	_play_rewind_screen()
 	await get_tree().create_timer(1.1).timeout
 	GameData.time_revival_pending = true
-	return_to_lab()
+	return_to_time_machine()
 	player.respawn(current_spawn_position)
 
 func _play_rewind_screen() -> void:

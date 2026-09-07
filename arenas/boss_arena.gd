@@ -5,7 +5,7 @@ extends Node2D
 ## template (instead of ten hand-built scenes) is what lets ten scaling
 ## bossfights exist without duplicating level geometry ten times over.
 
-signal boss_defeated(boss_id: int, crystal_reward: int)
+signal boss_defeated(boss_id: int)
 
 const BossScene := preload("res://bosses/boss.tscn")
 const ARENA_RADIUS := 420.0
@@ -26,5 +26,5 @@ func setup(boss_data: BossData) -> void:
 	boss_instance.global_position = boss_spawn.global_position
 	boss_instance.defeated.connect(_on_boss_defeated)
 
-func _on_boss_defeated(boss_id: int, crystal_reward: int) -> void:
-	boss_defeated.emit(boss_id, crystal_reward)
+func _on_boss_defeated(boss_id: int) -> void:
+	boss_defeated.emit(boss_id)

@@ -9,7 +9,7 @@ extends Area2D
 ## types from the design doc ("shell", "jellyfish", "crab", "anglerfish")
 ## and the two unique megabosses ("whale", "kraken") get their own patterns.
 
-signal defeated(boss_id: int, crystal_reward: int)
+signal defeated(boss_id: int)
 signal health_changed(current: float, max: float)
 
 const EnemyBullet := preload("res://bullets/enemy_bullet.tscn")
@@ -29,10 +29,13 @@ var _health_bar_full_width: float = 0.0
 
 # --- Shell: consecutive pearl volley then retract ---------------------------
 var _shell_pearls_fired: int = 0
-var _shell_retract_timer: float = 0.0
+var _shell_pearls: Array[Node2D] = []
+var _shell_state: String = "pause"
+var _shell_state_timer: float = 0.0
 
 # --- Jellyfish: random 5-10s circular shockwave -----------------------------
 var _shockwave_timer: float = 0.0
+var _jelly_angle: float = 0.0
 
 # --- Crab: charge-in melee ---------------------------------------------------
 var _crab_state: String = "wait"
@@ -42,17 +45,20 @@ var body_contact_cooldown: float = 0.0
 # --- Anglerfish: sustained triangle light beam ------------------------------
 var _beam_active: bool = false
 var _beam_timer: float = 0.0
+var _angler_orbit_angle: float = 0.0
+var _angler_beam_damage_accumulator: float = 0.0
+var _angler_bulb_damage_accumulator: float = 0.0
 @onready var light_cone: Polygon2D = get_node_or_null("LightCone")
 
 # --- Whale: shockwave + blowhole cure event ---------------------------------
 var whale_cured_by_event: bool = false
-var _whale_shockwave_telegraph: bool = false
 @onready var blowhole: Area2D = get_node_or_null("Blowhole")
 
 # --- Kraken: two-stage tentacle fight ----------------------------------------
 var kraken_stage: int = 1
 var _kraken_poke_x: float = 0.0
 var _kraken_suction_telegraph_timer: float = 0.0
+var _kraken_sway_time: float = 0.0
 
 func _ready() -> void:
 	add_to_group("boss")
@@ -63,6 +69,14 @@ func _ready() -> void:
 		current_health = 0.0 # bosses are healed from 0% to 100%, never killed
 		if visual:
 			visual.color = boss_data.color
+		if boss_data.boss_type == "kraken" and visual:
+			visual.scale = Vector2(3.8, 3.8)
+		if boss_data.boss_type == "jellyfish":
+			_shockwave_timer = randf_range(5.0, 10.0)
+		if boss_data.boss_type == "crab":
+			_crab_state_timer = 1.0
+		if boss_data.boss_type == "shell":
+			_shell_state_timer = 0.8
 	attack_timer = 0.5 # brief pause before the fight opens
 	health_changed.connect(_on_health_changed)
 	body_entered.connect(_on_body_entered)
@@ -132,7 +146,7 @@ func _aimed_spread(count: int, spread_deg: float, speed: float) -> void:
 		if not player:
 			return
 	var base_dir: Vector2 = (player.global_position - global_position).normalized()
-	var half := count / 2
+	var half := float(count) / 2.0
 	for i in range(count):
 		var offset_deg := deg_to_rad(float(i - half) * spread_deg)
 		_spawn_bullet(base_dir.rotated(offset_deg) * speed)
@@ -156,16 +170,29 @@ func _spawn_bullet(vel: Vector2) -> void:
 # =============================================================================
 
 func _process_shell(delta: float) -> void:
-	attack_timer -= delta
-	if attack_timer <= 0.0:
-		if _shell_pearls_fired < 5:
-			_fire_pearl()
-			_shell_pearls_fired += 1
-			attack_timer = 0.3 # fast consecutive volley
-		else:
-			# All 5 pearls retract back into the shell at once, then repeat.
-			_shell_pearls_fired = 0
-			attack_timer = 1.4
+	if not player or not is_instance_valid(player):
+		player = get_tree().get_first_node_in_group("player")
+		return
+	_shell_state_timer -= delta
+	match _shell_state:
+		"pause":
+			if _shell_state_timer <= 0.0:
+				_shell_state = "charge"
+				_shell_state_timer = 0.85
+		"charge":
+			var charge_dir := (player.global_position - global_position).normalized()
+			global_position += charge_dir * 250.0 * delta
+			if _shell_state_timer <= 0.0:
+				_shell_state = "volley"
+				_shell_state_timer = 0.5
+		"volley":
+			attack_timer -= delta
+			if attack_timer <= 0.0 and _shell_pearls_fired < 5:
+				_fire_pearl()
+				_shell_pearls_fired += 1
+				attack_timer = 0.25
+			if _shell_pearls_fired >= 5 and _shell_state_timer <= 0.0:
+				_retract_shell_pearls()
 
 func _fire_pearl() -> void:
 	if not player or not is_instance_valid(player):
@@ -179,16 +206,39 @@ func _fire_pearl() -> void:
 	b.velocity = dir * 260.0
 	b.color = Color(0.95, 0.92, 0.85)
 	b.damage = 15.0
+	_shell_pearls.append(b)
+
+func _retract_shell_pearls() -> void:
+	_shell_pearls_fired = 0
+	_shell_state = "pause"
+	_shell_state_timer = 1.2
+	attack_timer = 0.0
+	for pearl in _shell_pearls:
+		if not is_instance_valid(pearl):
+			continue
+		if "velocity" in pearl:
+			pearl.velocity = Vector2.ZERO
+		var tween := create_tween()
+		tween.tween_property(pearl, "global_position", global_position, 0.35)
+		tween.tween_callback(pearl.queue_free)
+	_shell_pearls.clear()
 
 # =============================================================================
 # BOSS JELLYFISH: gentle zaps + a big circular shockwave every 5-10s
 # =============================================================================
 
 func _process_jellyfish(delta: float) -> void:
+	if not player or not is_instance_valid(player):
+		player = get_tree().get_first_node_in_group("player")
+		return
+	_jelly_angle += delta * 0.7
+	var desired_position := player.global_position + Vector2.from_angle(_jelly_angle) * 128.0
+	global_position = global_position.move_toward(desired_position, 150.0 * delta)
 	attack_timer -= delta
-	if attack_timer <= 0.0:
-		_aimed_spread(3, 20.0, 90.0) # weak constant zap pattern (contact-tier)
-		attack_timer = 1.6
+	if attack_timer <= 0.0 and global_position.distance_to(player.global_position) <= 160.0:
+		player.takeDamage(5.0, "physical")
+		_draw_attack_line(player.global_position, Color(0.5, 0.9, 1.0, 0.85))
+		attack_timer = 1.2
 
 	_shockwave_timer -= delta
 	if _shockwave_timer <= 0.0:
@@ -205,10 +255,8 @@ func _fire_shockwave() -> void:
 	ring.points = pts
 	add_child(ring)
 
-	var radius := 20.0
 	var tween := create_tween()
 	tween.tween_method(func(r):
-		radius = r
 		var new_pts: Array[Vector2] = []
 		for i in range(33):
 			new_pts.append(Vector2.from_angle(i * TAU / 32.0) * r)
@@ -254,6 +302,12 @@ func _on_body_entered(body: Node2D) -> void:
 # =============================================================================
 
 func _process_anglerfish(delta: float) -> void:
+	if not player or not is_instance_valid(player):
+		player = get_tree().get_first_node_in_group("player")
+		return
+	_angler_orbit_angle += delta * 0.35
+	var desired_position := player.global_position + Vector2.from_angle(_angler_orbit_angle) * 100.0
+	global_position = global_position.move_toward(desired_position, 90.0 * delta)
 	attack_timer -= delta
 	if not _beam_active and attack_timer <= 0.0:
 		_beam_active = true
@@ -269,7 +323,13 @@ func _process_anglerfish(delta: float) -> void:
 
 	# Passive bulb glow always ticks a little damage at close range.
 	if player and is_instance_valid(player) and global_position.distance_to(player.global_position) < 70.0:
-		player.takeDamage(5.0 * delta, "physical")
+		_angler_bulb_damage_accumulator += 5.0 * delta
+		if _angler_bulb_damage_accumulator >= 1.0:
+			var bulb_tick: float = floor(_angler_bulb_damage_accumulator)
+			player.takeDamage(maxf(1.0, bulb_tick), "physical")
+			_angler_bulb_damage_accumulator -= bulb_tick
+	else:
+		_angler_bulb_damage_accumulator = 0.0
 
 func _apply_beam_damage(delta: float) -> void:
 	if not player or not is_instance_valid(player):
@@ -277,7 +337,7 @@ func _apply_beam_damage(delta: float) -> void:
 		return
 	var to_player := player.global_position - global_position
 	var dist := to_player.length()
-	var facing := Vector2.LEFT # bosses face the player-ward tunnel by convention
+	var facing := to_player.normalized()
 	var cone_half_angle := deg_to_rad(20.0)
 	if light_cone:
 		light_cone.visible = true
@@ -288,7 +348,13 @@ func _apply_beam_damage(delta: float) -> void:
 			facing.rotated(cone_half_angle) * length
 		])
 	if dist < 260.0 and abs(facing.angle_to(to_player)) < cone_half_angle:
-		player.takeDamage(10.0 * delta, "physical")
+		_angler_beam_damage_accumulator += 10.0 * delta
+		if _angler_beam_damage_accumulator >= 1.0:
+			var beam_tick: float = floor(_angler_beam_damage_accumulator)
+			player.takeDamage(maxf(1.0, beam_tick), "physical")
+			_angler_beam_damage_accumulator -= beam_tick
+	else:
+		_angler_beam_damage_accumulator = 0.0
 
 # =============================================================================
 # BLUE WHALE: not curable normally. Shockwaves toward the player, contact
@@ -366,6 +432,12 @@ func apply_cure(amount: float) -> void:
 # =============================================================================
 
 func _process_kraken(delta: float) -> void:
+	if not player or not is_instance_valid(player):
+		player = get_tree().get_first_node_in_group("player")
+		return
+	_kraken_sway_time += delta
+	# The beak remains at the trench bottom but shifts slowly across the arena.
+	global_position.x = player.global_position.x + sin(_kraken_sway_time * 0.25) * 90.0
 	if kraken_stage == 1 and current_health >= boss_data.max_health * 0.5:
 		kraken_stage = 2
 
@@ -379,6 +451,14 @@ func _process_kraken(delta: float) -> void:
 		if _kraken_suction_telegraph_timer <= 0.0:
 			_kraken_tentacle_suction()
 			_kraken_suction_telegraph_timer = 4.0
+
+func _draw_attack_line(target_position: Vector2, color: Color) -> void:
+	var line := Line2D.new()
+	line.width = 3.0
+	line.default_color = color
+	line.points = [Vector2.ZERO, to_local(target_position)]
+	add_child(line)
+	get_tree().create_timer(0.15).timeout.connect(line.queue_free)
 
 func _kraken_tentacle_poke() -> void:
 	# A massive, fast tentacle pokes up from the bottom of the screen.
@@ -424,12 +504,14 @@ func _die() -> void:
 		Effects.spawn_trash_drop(global_position, "large")
 	else:
 		GameData.add_trash("large")
-	GameData.compendium_data += 1
+	GameData.compendium_data += 2 if GameData.has_skill("comp_3") else 1
+	if GameData.has_skill("synergy_3") and Effects:
+		Effects.spawn_air_bubble(global_position, 15.0)
 	for item_path in boss_data.drop_item_paths:
 		if ResourceLoader.exists(item_path) and Effects:
 			# Physical drops now, rather than an instant inventory grant, so
 			# they scatter and settle like every other drop (see item_drop.gd).
 			Effects.spawn_item_drop(global_position, load(item_path))
 	GameData.mark_boss_defeated(boss_data.id)
-	defeated.emit(boss_data.id, boss_data.crystal_reward)
+	defeated.emit(boss_data.id)
 	queue_free()

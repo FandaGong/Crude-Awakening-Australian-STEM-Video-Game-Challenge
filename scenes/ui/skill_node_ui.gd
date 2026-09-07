@@ -7,13 +7,14 @@ signal node_selected(node_data: SkillNodeData)
 @onready var icon_rect: TextureRect = $Icon
 @onready var border: TextureRect = $Border
 @onready var keystone_glow: TextureRect = $KeystoneGlow
+@onready var unlock_label: Label = $UnlockLabel
 
 var node_data: SkillNodeData
 
 func _ready() -> void:
 	pressed.connect(_on_pressed)
 	GameData.skill_unlocked.connect(func(_id): update_state())
-	GameData.trash_tokens_changed.connect(func(_val): update_state())
+	GameData.compendium_data_changed.connect(func(_val): update_state())
 	GameData.robot_unlocked_changed.connect(func(_val): update_state())
 	
 	if GameData.skill_database.has(skill_id):
@@ -34,13 +35,23 @@ func update_state() -> void:
 	if is_unlocked:
 		modulate = Color(1.0, 1.0, 1.0, 1.0) # Full bright (Acquired)
 		if border: border.modulate = Color.GREEN
+		if unlock_label: unlock_label.text = ""
 	elif can_buy:
 		modulate = Color(0.8, 0.9, 1.0, 0.9) # Ready to purchase (Cyan tint)
 		if border: border.modulate = Color.CYAN
+		if unlock_label: unlock_label.text = "RESEARCH"
 	else:
 		modulate = Color(0.35, 0.35, 0.35, 0.6) # Locked (Darkened)
 		if border: border.modulate = Color.DIM_GRAY
+		if unlock_label: unlock_label.text = ""
 
+## Clicking the node itself is now the only way to upgrade — the details
+## panel (shown on hover) is purely informational. A click attempts to
+## unlock the skill (unlock_skill is a safe no-op if it's already unlocked,
+## locked behind a prerequisite, or unaffordable) and always still notifies
+## listeners so the hover panel stays in sync.
 func _on_pressed() -> void:
-	if node_data:
-		node_selected.emit(node_data)
+	if not node_data:
+		return
+	GameData.unlock_skill(skill_id)
+	node_selected.emit(node_data)

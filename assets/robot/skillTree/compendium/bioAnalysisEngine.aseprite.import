@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://bw6xskklkd7ty"
+path="res://.godot/imported/bioAnalysisEngine.aseprite-bea168cbb22d67d97a610e3d610a8446.res"
+
+[deps]
+
+source_file="res://assets/robot/skillTree/compendium/bioAnalysisEngine.aseprite"
+dest_files=["res://.godot/imported/bioAnalysisEngine.aseprite-bea168cbb22d67d97a610e3d610a8446.res"]
+
+[params]
+

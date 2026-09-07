@@ -7,7 +7,6 @@ script = ExtResource("1_bossdata")
 id = 5
 boss_name = "The Blue Whale"
 max_health = 700
-crystal_reward = 350
 drop_item_paths = ["res://resources/items/whale_skin_wetsuit.tres", "res://resources/items/microplastic_recycler.tres", "res://resources/items/baleen_core.tres"]
 depth_meters = 1050
 bullet_speed_mult = 1.0

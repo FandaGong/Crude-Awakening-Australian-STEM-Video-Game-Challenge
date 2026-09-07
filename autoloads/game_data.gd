@@ -4,20 +4,17 @@ extends Node
 ## Registered as an autoload singleton named "GameData".
 
 # --- Signals -------------------------------------------------------------
-signal crystals_changed(new_amount: int)
 signal boss_unlocked(boss_id: int)
 signal boss_defeated(boss_id: int)
-signal weapon_purchased(weapon_id: String)
 signal weapon_equipped(weapon_id: String)
 
 signal inventory_updated
 signal equipment_changed(slot_type: ItemData.ItemType, item: ItemData)
 
 signal compendium_data_changed(new_amount: int)
-signal trash_tokens_changed(new_amount: int)
 signal skill_unlocked(skill_id: String)
 signal robot_unlocked_changed(unlocked: bool)
-signal robot_default_weapon_equipped_changed(is_equipped: bool)
+signal hotbar_abilities_changed
 
 # --- Constants & Variables -----------------------------------------------
 const TOTAL_BOSSES := 6 # the six Historical Turning Points: Crab, Jellyfish, Shell, Anglerfish, Whale, Kraken
@@ -25,7 +22,6 @@ const SAVE_PATH := "user://crude_awakening_save.json"
 const PERSIST_SESSION := false
 
 # Progression (Otter)
-var crystals: int = 0
 var highest_unlocked_boss: int = 1 
 var defeated_bosses: Array = [] 
 var owned_weapon_ids: Array = ["starter_spear"] 
@@ -37,27 +33,29 @@ var is_robot_unlocked: bool = false:
 		is_robot_unlocked = value
 		robot_unlocked_changed.emit(value)
 
+## Compendium Data: the robot's single research/upgrade currency. Earned
+## both by fully curing mobs/bosses (see mutant_mob.gd, boss.gd) and by
+## collecting recyclable trash debris (see add_trash() below - small/medium/
+## large pieces are worth 1/3/5). Spent unlocking robot skill tree nodes.
 var compendium_data: int = 0:
 	set(value):
 		compendium_data = max(0, value)
 		compendium_data_changed.emit(compendium_data)
 
-# Recyclable debris, not crystals, funds robot upgrades. A token represents
-# one small piece; medium and large debris are worth 3 and 5 tokens.
-var trash_tokens: int = 0:
-	set(value):
-		trash_tokens = max(0, value)
-		trash_tokens_changed.emit(trash_tokens)
-
 var unlocked_skills: Dictionary = {}
 var skill_database: Dictionary = {}
 
 # Inventory & Equipment (Resources used by the UI)
-var inventory_slots: Array[SlotData] = []
+var otter_inventory_slots: Array[SlotData] = []
+var robot_inventory_slots: Array[SlotData] = []
+var inventory_slots: Array[SlotData]:
+	get: return otter_inventory_slots
 var equip_head: ItemData = null
 var equip_body: ItemData = null
 var equip_accessory: ItemData = null
 var equip_robot_module: ItemData = null
+var equipped_robot_module_ids: Array[String] = []
+var photonic_spotlight_position: Vector2 = Vector2.ZERO
 
 # --- Backwards-Compatible ID Helpers for Player & Robot Scripts ---
 # These automatically retrieve the string id (e.g. "lure_headband") from the equipped resource
@@ -73,18 +71,6 @@ var equip_accessory_id: String:
 var equip_robot_module_id: String:
 	get: return equip_robot_module.id if (equip_robot_module and "id" in equip_robot_module) else ""
 
-# --- Robot Default Weapon Tracking ---
-# The robot's default attack fires from the starting weapon that is placed
-# into its first equip slot. RobotInventoryPanel keeps this in sync with
-# whether that item still sits somewhere among the 12 equip slots.
-var robot_default_weapon_id: String = ""
-var robot_default_weapon_equipped: bool = true:
-	set(value):
-		if robot_default_weapon_equipped == value:
-			return
-		robot_default_weapon_equipped = value
-		robot_default_weapon_equipped_changed.emit(value)
-
 # --- Active Hotbar Abilities (3 slots) ---
 var active_abilities: Array[String] = ["jelly_stinger", "crab_pincer", "pearlescent_volley"]
 
@@ -93,6 +79,10 @@ var active_abilities: Array[String] = ["jelly_stinger", "crab_pincer", "pearlesc
 # unlocks it for the hotbar in addition to sitting in the inventory as a
 # keepsake - see add_item() below.
 const ABILITY_ITEM_IDS := ["jelly_stinger", "crab_pincer", "pearlescent_volley", "abyssal_flare"]
+const ROBOT_ITEM_IDS := [
+	"baleen_core", "beak_sovereign", "geothermal_core", "overcharge_prism",
+	"static_modulator", "photonic_beacon"
+]
 
 # --- Global Effect Timers ---
 var bubble_booster_timer: float = 0.0
@@ -101,10 +91,12 @@ var time_revival_pending: bool = false
 # --- Lifecycle -----------------------------------------------------------
 
 func _ready() -> void:
-	# Initialize 16 empty inventory slots
-	inventory_slots.resize(16)
+	# Initialize independent otter and robot inventories.
+	otter_inventory_slots.resize(16)
+	robot_inventory_slots.resize(16)
 	for i in range(16):
-		inventory_slots[i] = SlotData.new()
+		otter_inventory_slots[i] = SlotData.new()
+		robot_inventory_slots[i] = SlotData.new()
 	
 	_init_skill_database()
 	load_game()
@@ -116,6 +108,11 @@ func _process(delta: float) -> void:
 # --- Inventory & Equipping Logic -----------------------------------------
 
 func add_item(item: ItemData, amount: int = 1) -> bool:
+	var target_inventory := robot_inventory_slots if _is_robot_item(item) else otter_inventory_slots
+	if item and item.id == "photonic_beacon":
+		var player = get_tree().get_first_node_in_group("player")
+		if player:
+			photonic_spotlight_position = player.global_position
 	# Ability items unlock the matching mouse-aimed hotbar ability the first
 	# time they're collected (e.g. Abyssal Flare from the Abyssal Anglerfish).
 	# They still fall through and take up an inventory slot too, same as any
@@ -124,10 +121,14 @@ func add_item(item: ItemData, amount: int = 1) -> bool:
 		active_abilities.append(item.id)
 		save_game()
 
+	# Weapons never stack - each copy takes its own slot, regardless of
+	# whatever max_stack happens to be set on the resource.
+	var effective_max_stack: int = 1 if (item and item.item_type == ItemData.ItemType.WEAPON) else item.max_stack
+
 	# 1. Stack into existing slots
-	for slot in inventory_slots:
-		if slot.item_data == item and slot.quantity < item.max_stack:
-			var can_add = min(amount, item.max_stack - slot.quantity)
+	for slot in target_inventory:
+		if slot.item_data == item and slot.quantity < effective_max_stack:
+			var can_add = min(amount, effective_max_stack - slot.quantity)
 			slot.quantity += can_add
 			amount -= can_add
 			if amount == 0:
@@ -135,16 +136,43 @@ func add_item(item: ItemData, amount: int = 1) -> bool:
 				save_game()
 				return true
 
-	# 2. Put into first empty slot
-	for slot in inventory_slots:
+	# 2. Put into empty slot(s). Weapons (effective_max_stack == 1) may need
+	# more than one empty slot if amount > 1, since each copy is its own item.
+	for slot in target_inventory:
 		if slot.item_data == null:
+			var give: int = min(amount, effective_max_stack)
 			slot.item_data = item
-			slot.quantity = amount
-			inventory_updated.emit()
-			save_game()
-			return true
+			slot.quantity = give
+			amount -= give
+			if amount == 0:
+				inventory_updated.emit()
+				save_game()
+				return true
 
 	return false # Inventory is full
+
+func _is_robot_item(item: ItemData) -> bool:
+	return item != null and item.id in ROBOT_ITEM_IDS
+
+func sync_robot_equipment_from_ui() -> void:
+	var panel = get_tree().get_first_node_in_group("robot_inventory_panel")
+	if not panel:
+		return
+	var new_module: ItemData = null
+	var new_module_ids: Array[String] = []
+	for slot_node in panel.equip_slots_container.get_children():
+		var slot = slot_node as SlotUI
+		if not slot or not slot.slot_data or not slot.slot_data.item_data:
+			continue
+		var item: ItemData = slot.slot_data.item_data
+		if item.id not in ROBOT_ITEM_IDS:
+			continue
+		new_module = item
+		new_module_ids.append(item.id)
+	equip_robot_module = new_module
+	equipped_robot_module_ids = new_module_ids
+	equipment_changed.emit(ItemData.ItemType.GENERIC, null)
+	save_game()
 
 func equip_item(slot_type: ItemData.ItemType, item: ItemData) -> void:
 	# All wearable and robot upgrades are powered, identified, and installed by
@@ -183,28 +211,93 @@ func equip_gear(slot_type: String, item_id: String) -> void:
 			"accessory": equip_item(ItemData.ItemType.ACCESSORY, item)
 			"robot":
 				equip_robot_module = item
+				if not equipped_robot_module_ids.has(item.id):
+					equipped_robot_module_ids.append(item.id)
 				inventory_updated.emit()
 				save_game()
 
-# --- Currency -------------------------------------------------------------
-
-func add_crystals(amount: int) -> void:
-	if amount <= 0: return
-	crystals += amount
-	crystals_changed.emit(crystals)
+func sync_inventory_slot_equipment(_slot_index: int, allowed_type: ItemData.ItemType, item: ItemData) -> void:
+	if allowed_type == ItemData.ItemType.GENERIC:
+		return
+	match allowed_type:
+		ItemData.ItemType.HEAD:
+			equip_head = item
+		ItemData.ItemType.BODY:
+			equip_body = item
+			var player = get_tree().get_first_node_in_group("player")
+			if player and player.has_method("update_max_air_capacity"):
+				player.update_max_air_capacity()
+		ItemData.ItemType.ACCESSORY:
+			equip_accessory = item
+	equipment_changed.emit(allowed_type, item)
 	save_game()
+
+func get_cure_multiplier(target: Node) -> float:
+	var multiplier := 1.0
+	if has_skill("comp_1"):
+		multiplier += 0.15
+	if has_skill("synergy_2") and target:
+		for status_name in ["stun_timer", "slow_timer", "blind_timer"]:
+			var status_value = target.get(status_name)
+			if status_value != null and float(status_value) > 0.0:
+				multiplier += 0.25
+				break
+	return multiplier
+
+func get_module_speed_multiplier() -> float:
+	if not has_skill("comp_4"):
+		return 1.0
+	var completion_steps := int(round(float(defeated_bosses.size()) / float(TOTAL_BOSSES) * 10.0))
+	return 1.0 + completion_steps * 0.01
+
+func has_item(item_id: String) -> bool:
+	for slot in otter_inventory_slots + robot_inventory_slots:
+		if slot.item_data and slot.item_data.id == item_id and slot.quantity > 0:
+			return true
+	return false
+
+func has_robot_module(module_id: String) -> bool:
+	return equipped_robot_module_ids.has(module_id) or equip_robot_module_id == module_id
+
+func get_equipped_robot_module_items() -> Array[ItemData]:
+	var result: Array[ItemData] = []
+	for module_id in equipped_robot_module_ids:
+		var path := "res://resources/items/%s.tres" % module_id
+		if ResourceLoader.exists(path):
+			result.append(load(path))
+	if result.is_empty() and equip_robot_module:
+		result.append(equip_robot_module)
+	return result
+
+# --- Hotbar -----------------------------------------------------------
+
+## Assigns an already-unlocked ability to one of the 3 hotbar slots (0-2),
+## e.g. via dragging its item from the inventory grid onto a hotbar slot.
+## Safe no-op if the slot index or ability id is invalid.
+func set_hotbar_ability(slot_index: int, ability_id: String) -> void:
+	if slot_index < 0 or slot_index > 2:
+		return
+	var is_weapon := false
+	var item_path := "res://resources/items/%s.tres" % ability_id
+	if ResourceLoader.exists(item_path):
+		var item: ItemData = load(item_path)
+		is_weapon = item.item_type == ItemData.ItemType.WEAPON
+	if not (ability_id in ABILITY_ITEM_IDS or is_weapon):
+		return
+	if not is_weapon and not active_abilities.has(ability_id):
+		return
+	while active_abilities.size() <= slot_index:
+		active_abilities.append("")
+	active_abilities[slot_index] = ability_id
+	hotbar_abilities_changed.emit()
+	save_game()
+
+# --- Currency -------------------------------------------------------------
 
 func add_trash(size: String = "small") -> void:
 	var token_value: int = int({"small": 1, "medium": 3, "large": 5}.get(size, 1))
-	trash_tokens += token_value
+	compendium_data += token_value
 	save_game()
-
-func spend_crystals(amount: int) -> bool:
-	if amount <= 0 or crystals < amount: return false
-	crystals -= amount
-	crystals_changed.emit(crystals)
-	save_game()
-	return true
 
 # --- Boss progression -------------------------------------------------------
 
@@ -220,23 +313,19 @@ func mark_boss_defeated(boss_id: int) -> void:
 		boss_unlocked.emit(highest_unlocked_boss)
 	save_game()
 
-# --- Weapon shop ------------------------------------------------------------
+# --- Weapons ------------------------------------------------------------
+# Weapons are no longer bought from a merchant - they're found as WEAPON-type
+# ItemData drops in the world and equipped straight from the inventory (see
+# equip_item() above). owned_weapon_ids/owns_weapon are kept only so
+# equipping stays tracked/saved the same way gear does.
 
 func owns_weapon(weapon_id: String) -> bool: return owned_weapon_ids.has(weapon_id)
-
-func purchase_weapon(weapon_id: String, cost: int) -> bool:
-	if not is_robot_unlocked:
-		return false
-	if owns_weapon(weapon_id) or not spend_crystals(cost): return false
-	owned_weapon_ids.append(weapon_id)
-	weapon_purchased.emit(weapon_id)
-	save_game()
-	return true
 
 func equip_weapon(weapon_id: String) -> void:
 	if not is_robot_unlocked:
 		return
-	if not owns_weapon(weapon_id): return
+	if not owns_weapon(weapon_id):
+		owned_weapon_ids.append(weapon_id)
 	equipped_weapon_id = weapon_id
 	weapon_equipped.emit(weapon_id)
 	save_game()
@@ -298,7 +387,7 @@ func can_unlock(skill_id: String) -> bool:
 	if has_skill(skill_id):
 		return false
 	var node: SkillNodeData = skill_database[skill_id]
-	if trash_tokens < node.cost:
+	if compendium_data < node.cost:
 		return false
 	if node.required_node_id != "" and not has_skill(node.required_node_id):
 		return false
@@ -308,7 +397,7 @@ func unlock_skill(skill_id: String) -> bool:
 	if not can_unlock(skill_id):
 		return false
 	var node: SkillNodeData = skill_database[skill_id]
-	trash_tokens -= node.cost
+	compendium_data -= node.cost
 	unlocked_skills[skill_id] = true
 	skill_unlocked.emit(skill_id)
 	save_game()
@@ -320,7 +409,6 @@ func save_game() -> void:
 	if not PERSIST_SESSION:
 		return
 	var data := {
-		"crystals": crystals,
 		"highest_unlocked_boss": highest_unlocked_boss,
 		"defeated_bosses": defeated_bosses,
 		"owned_weapon_ids": owned_weapon_ids,
@@ -329,17 +417,19 @@ func save_game() -> void:
 		# Robot & Skill Tree Data
 		"is_robot_unlocked": is_robot_unlocked,
 		"compendium_data": compendium_data,
-		"trash_tokens": trash_tokens,
 		"unlocked_skills": unlocked_skills,
 		"active_abilities": active_abilities,
 		
 		# Inventory Serialization
 		"inventory": serialize_inventory(),
+		"otter_inventory": serialize_slots(otter_inventory_slots),
+		"robot_inventory": serialize_slots(robot_inventory_slots),
 		"equipment": {
 			"head": equip_head.resource_path if equip_head else "",
 			"body": equip_body.resource_path if equip_body else "",
 			"accessory": equip_accessory.resource_path if equip_accessory else "",
-			"robot_module": equip_robot_module.resource_path if equip_robot_module else ""
+			"robot_module": equip_robot_module.resource_path if equip_robot_module else "",
+			"robot_modules": equipped_robot_module_ids
 		}
 	}
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
@@ -357,7 +447,6 @@ func load_game() -> void:
 	
 	if typeof(parsed) != TYPE_DICTIONARY: return
 	
-	crystals = parsed.get("crystals", 0)
 	highest_unlocked_boss = parsed.get("highest_unlocked_boss", 1)
 	defeated_bosses = parsed.get("defeated_bosses", [])
 	owned_weapon_ids = parsed.get("owned_weapon_ids", ["starter_spear"])
@@ -366,7 +455,6 @@ func load_game() -> void:
 	# Load Robot & Skill Tree properties
 	is_robot_unlocked = parsed.get("is_robot_unlocked", false)
 	compendium_data = parsed.get("compendium_data", 0)
-	trash_tokens = parsed.get("trash_tokens", 0)
 	unlocked_skills = parsed.get("unlocked_skills", {})
 	# JSON arrays are untyped at runtime. Rebuild the typed Array[String]
 	# explicitly so older save files cannot cause a load-time type error.
@@ -393,37 +481,49 @@ func load_game() -> void:
 	var rob_path = equip_data.get("robot_module", "")
 	if rob_path != "" and ResourceLoader.exists(rob_path):
 		equip_robot_module = load(rob_path)
+	equipped_robot_module_ids.clear()
+	for module_id in equip_data.get("robot_modules", []):
+		if module_id is String:
+			equipped_robot_module_ids.append(module_id)
+	if equipped_robot_module_ids.is_empty() and equip_robot_module:
+		equipped_robot_module_ids.append(equip_robot_module.id)
 	
-	# Deserialize inventory
-	var inv_list = parsed.get("inventory", [])
-	for i in range(min(inv_list.size(), inventory_slots.size())):
-		var slot_entry = inv_list[i]
+	# Deserialize independent inventories. Older saves used one inventory and
+	# are treated as otter inventory so no collected items disappear.
+	var old_inventory = parsed.get("inventory", [])
+	_deserialize_slots(parsed.get("otter_inventory", old_inventory), otter_inventory_slots)
+	_deserialize_slots(parsed.get("robot_inventory", []), robot_inventory_slots)
+
+func _deserialize_slots(entries: Array, slots: Array[SlotData]) -> void:
+	for i in range(min(entries.size(), slots.size())):
+		var slot_entry = entries[i]
 		var item_path = slot_entry.get("id", "")
 		if item_path != "" and ResourceLoader.exists(item_path):
-			inventory_slots[i].item_data = load(item_path)
-			inventory_slots[i].quantity = slot_entry.get("qty", 1)
+			slots[i].item_data = load(item_path)
+			slots[i].quantity = slot_entry.get("qty", 1)
 		else:
-			inventory_slots[i].item_data = null
-			inventory_slots[i].quantity = 0
+			slots[i].item_data = null
+			slots[i].quantity = 0
 
-func serialize_inventory() -> Array:
+func serialize_slots(slots: Array[SlotData]) -> Array:
 	var inv_data = []
-	for slot in inventory_slots:
+	for slot in slots:
 		inv_data.append({
-			"id": slot.item_data.resource_path if slot.item_data else "", 
+			"id": slot.item_data.resource_path if slot.item_data else "",
 			"qty": slot.quantity
 		})
 	return inv_data
 
+func serialize_inventory() -> Array:
+	return serialize_slots(otter_inventory_slots)
+
 func reset_save() -> void:
-	crystals = 0
 	highest_unlocked_boss = 1
 	defeated_bosses = []
 	owned_weapon_ids = ["starter_spear"]
 	equipped_weapon_id = "starter_spear"
 	is_robot_unlocked = false
 	compendium_data = 0
-	trash_tokens = 0
 	unlocked_skills = {}
 	active_abilities = ["jelly_stinger", "crab_pincer", "pearlescent_volley"]
 	
@@ -431,8 +531,9 @@ func reset_save() -> void:
 	equip_body = null
 	equip_accessory = null
 	equip_robot_module = null
+	equipped_robot_module_ids.clear()
 	
-	for slot in inventory_slots:
+	for slot in otter_inventory_slots + robot_inventory_slots:
 		slot.item_data = null
 		slot.quantity = 0
 		

@@ -1,27 +1,21 @@
 extends CanvasLayer
 
-enum UIState { TITLE, PLAYING, PAUSED, SETTINGS, SHOP }
+enum UIState { TITLE, PLAYING, PAUSED, SETTINGS }
 
 var current_state: UIState = UIState.TITLE
 var state_before_settings: UIState = UIState.TITLE
-var state_before_shop: UIState = UIState.PLAYING
 
 @onready var title_screen: Control = $titleScreen
 @onready var settings_menu: Control = $settingsMenu
 @onready var pause_menu: Control = $pauseMenu
-@onready var shop_menu: Control = $shopMenu
 @onready var hud: Control = $HUD
 
-@onready var weapon_list_container: VBoxContainer = $shopMenu/Panel/weaponScroll/weaponListContainer
-@onready var shop_crystal_label: Label = $shopMenu/Panel/crystalLabel
-@onready var hud_crystal_label: Label = $HUD/largeTrash/crystalLabel
+@onready var hud_compendium_label: Label = $HUD/compendiumDataDisplay/compendiumLabel
 
 # --- COOLDOWN & SLOT REFERENCES (Added to fix the "not declared" error) ---
 @onready var slot1: TextureButton = $HUD/hotbarContainer/slot1
 @onready var slot2: TextureButton = $HUD/hotbarContainer/slot2
 @onready var slot3: TextureButton = $HUD/hotbarContainer/slot3
-
-const ButtonDimFxScript := preload("res://scripts/ui/button_dim_fx.gd")
 
 # References relative to this UI node
 @onready var player: CharacterBody2D = $"../World/player"
@@ -36,9 +30,8 @@ var robot_inventory_visible: bool = false
 
 func _ready() -> void:
 	add_to_group("ui_controller")
-	GameData.crystals_changed.connect(_on_crystals_changed)
-	GameData.trash_tokens_changed.connect(_on_trash_tokens_changed)
-	_update_crystal_labels(GameData.trash_tokens)
+	GameData.compendium_data_changed.connect(_on_compendium_data_changed)
+	_update_compendium_label(GameData.compendium_data)
 	_set_state(UIState.TITLE)
 	
 	# Highlight slot 1 on startup
@@ -63,17 +56,12 @@ func _ready() -> void:
 		print("3. Set a minimum size (e.g., Width: 150, Height: 50) so the container covers the buttons.")
 		print("--------------------------\n")
 
-func _on_crystals_changed(new_amount: int) -> void:
-	_update_crystal_labels(new_amount)
+func _on_compendium_data_changed(new_amount: int) -> void:
+	_update_compendium_label(new_amount)
 
-func _on_trash_tokens_changed(new_amount: int) -> void:
-	_update_crystal_labels(new_amount)
-
-func _update_crystal_labels(amount: int) -> void:
-	if hud_crystal_label:
-		hud_crystal_label.text = "Recycled Trash: %d" % amount
-	if shop_crystal_label:
-		shop_crystal_label.text = "Aquamarine Crystals: %d" % amount
+func _update_compendium_label(amount: int) -> void:
+	if hud_compendium_label:
+		hud_compendium_label.text = "Compendium Data: %d" % amount
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -120,8 +108,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			_set_state(UIState.PLAYING)
 		UIState.SETTINGS:
 			_close_settings()
-		UIState.SHOP:
-			_close_shop()
 		_:
 			return
 	get_viewport().set_input_as_handled()
@@ -185,92 +171,6 @@ func _on_close_button_pressed() -> void:
 func _close_settings() -> void:
 	settings_menu.hide()
 	_set_state(state_before_settings)
-
-# --- Shop ---
-
-func open_shop() -> void:
-	if current_state == UIState.SHOP:
-		return
-	state_before_shop = current_state
-	current_state = UIState.SHOP
-	_populate_shop()
-	shop_menu.show()
-	get_tree().paused = true
-
-func _on_shop_close_button_pressed() -> void:
-	_close_shop()
-
-func _close_shop() -> void:
-	shop_menu.hide()
-	_set_state(state_before_shop)
-
-func _populate_shop() -> void:
-	if not weapon_list_container:
-		return
-	for child in weapon_list_container.get_children():
-		child.queue_free()
-
-	var weapon_ids := ["starter_spear", "harpoon_gun", "coral_shard", "electric_eel_rod", "void_trident", "leviathan_fang"]
-	for weapon_id in weapon_ids:
-		var path := "res://resources/weapons/%s.tres" % weapon_id
-		if not ResourceLoader.exists(path):
-			continue
-		var weapon: WeaponData = load(path)
-
-		var row := HBoxContainer.new()
-		weapon_list_container.add_child(row)
-
-		var info := Label.new()
-		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		info.text = "%s — dmg %d — %s" % [weapon.weapon_name, int(weapon.damage), weapon.description]
-		row.add_child(info)
-
-		# 1. Instantiate the correct node type to match button_dim_fx.gd
-		var action_btn := TextureButton.new()
-		action_btn.set_script(ButtonDimFxScript)
-		
-		# Give the TextureButton a minimum size so the label text fits comfortably
-		action_btn.custom_minimum_size = Vector2(120, 32)
-
-		# 2. Build a child Label inside the TextureButton to display the text
-		var btn_label := Label.new()
-		btn_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		btn_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		
-		# Force the label to automatically span and cover the entire button hitbox area
-		btn_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		action_btn.add_child(btn_label)
-
-		var owned: bool = GameData.owns_weapon(weapon_id)
-		var equipped: bool = GameData.equipped_weapon_id == weapon_id
-
-		# 3. Assign text string variables to our child label node instead of the button base
-		if equipped:
-			btn_label.text = "Equipped"
-			action_btn.disabled = true
-		elif owned:
-			btn_label.text = "Equip"
-			action_btn.pressed.connect(_on_equip_weapon_pressed.bind(weapon_id))
-		else:
-			btn_label.text = "Buy (%d)" % weapon.cost
-			action_btn.disabled = GameData.crystals < weapon.cost
-			action_btn.pressed.connect(_on_buy_weapon_pressed.bind(weapon_id, weapon.cost))
-
-		row.add_child(action_btn)
-		
-			
-		
-		
-
-
-func _on_buy_weapon_pressed(weapon_id: String, cost: int) -> void:
-	if GameData.purchase_weapon(weapon_id, cost):
-		GameData.equip_weapon(weapon_id)
-		_populate_shop()
-
-func _on_equip_weapon_pressed(weapon_id: String) -> void:
-	GameData.equip_weapon(weapon_id)
-	_populate_shop()
 
 # --- Escape / pause menu ---
 

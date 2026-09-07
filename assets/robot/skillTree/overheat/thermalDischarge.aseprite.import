@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://qcx75p02rst7"
+path="res://.godot/imported/thermalDischarge.aseprite-803c3cbd0e9a7109769b6c325756d1b8.res"
+
+[deps]
+
+source_file="res://assets/robot/skillTree/overheat/thermalDischarge.aseprite"
+dest_files=["res://.godot/imported/thermalDischarge.aseprite-803c3cbd0e9a7109769b6c325756d1b8.res"]
+
+[params]
+

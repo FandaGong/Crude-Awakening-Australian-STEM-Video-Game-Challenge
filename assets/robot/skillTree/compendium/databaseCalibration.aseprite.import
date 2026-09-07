@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://vv4x5hrryth3"
+path="res://.godot/imported/databaseCalibration.aseprite-7f9580c8741695e04de6a42d9e11a64d.res"
+
+[deps]
+
+source_file="res://assets/robot/skillTree/compendium/databaseCalibration.aseprite"
+dest_files=["res://.godot/imported/databaseCalibration.aseprite-7f9580c8741695e04de6a42d9e11a64d.res"]
+
+[params]
+

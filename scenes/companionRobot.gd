@@ -34,6 +34,7 @@ var healing_injection_timer: float = 0.0
 var active_beam_target: Node2D = null
 var active_beam_heal_rate: float = 0.0 # heal per second while the beam is up
 var active_beam_time_left: float = 0.0
+var active_beam_heal_accumulator: float = 0.0
 
 @onready var light_beam: Line2D = get_node_or_null("CureBeam")
 var _dialogue_box: DialogueBox = null
@@ -89,7 +90,7 @@ func _is_speaking() -> bool:
 
 func _process_unique_gear_and_modules(delta: float) -> void:
 	# Baleen Resonance Core: Pull all nearby air bubbles toward player every 10s
-	if GameData.equip_robot_module_id == "baleen_core":
+	if GameData.has_robot_module("baleen_core"):
 		baleen_timer += delta
 		if baleen_timer >= 10.0:
 			baleen_timer = 0.0
@@ -100,7 +101,7 @@ func _process_unique_gear_and_modules(delta: float) -> void:
 					tween.tween_property(bubble, "global_position", player.global_position, 0.8)
 
 	# Geothermal Core: Drop a passive geothermal curing aura every 6s
-	if GameData.equip_robot_module_id == "geothermal_core":
+	if GameData.has_robot_module("geothermal_core"):
 		geo_core_timer += delta
 		if geo_core_timer >= 6.0:
 			geo_core_timer = 0.0
@@ -138,6 +139,10 @@ func _select_targets() -> Array[Node2D]:
 	var effective_range = cure_range
 	if GameData.equip_head_id == "pearl_crown":
 		effective_range *= 1.25
+	if GameData.has_skill("target_2"):
+		effective_range *= 1.10
+	if GameData.has_skill("comp_2"):
+		effective_range *= 1.10
 
 	var mobs = get_tree().get_nodes_in_group("corrupted_mobs")
 	# Bosses use the same healing-injection pipeline as field animals.
@@ -151,6 +156,8 @@ func _select_targets() -> Array[Node2D]:
 			valid_mobs.append(mob)
 
 	valid_mobs.sort_custom(func(a, b):
+		if GameData.has_skill("target_3"):
+			return _target_health_ratio(a) < _target_health_ratio(b)
 		if spotlight_pos:
 			return a.global_position.distance_to(spotlight_pos) < b.global_position.distance_to(spotlight_pos)
 		
@@ -161,15 +168,17 @@ func _select_targets() -> Array[Node2D]:
 
 	return valid_mobs
 
+func _target_health_ratio(target: Node) -> float:
+	var current = target.get("currentHealth")
+	var maximum = target.get("max_health")
+	if current == null:
+		current = target.get("current_health")
+	if maximum == null:
+		maximum = target.get("maxHealth")
+	return float(current) / maxf(1.0, float(maximum)) if current != null and maximum != null else 1.0
+
 # --- CURING SYSTEM ---
 func _handle_targeting_and_curing(delta: float) -> void:
-	# The default attack fires from the robot's default equipment (the
-	# weapon sitting in its 12 equip slots). Drag it out and the robot has
-	# nothing to fire with.
-	if not GameData.robot_default_weapon_equipped:
-		_clear_active_beam()
-		return
-
 	var targets = _select_targets()
 
 	# Keep any in-flight beam tracking its mob and trickling in its heal
@@ -185,11 +194,13 @@ func _handle_targeting_and_curing(delta: float) -> void:
 	
 	# Bubble Booster Charm: Popping bubble yields +30% cure speed for 5s
 	if GameData.bubble_booster_timer > 0.0:
-		speed_modifier += 0.30
+		speed_modifier += 0.30 * _module_stat_multiplier()
 		
 	# Pearl Crown: +25% Robot lock-on/assist speed
 	if GameData.equip_head_id == "pearl_crown":
-		speed_modifier += 0.25
+		speed_modifier += 0.25 * _module_stat_multiplier()
+
+	speed_modifier *= GameData.get_module_speed_multiplier()
 
 	if is_overheated:
 		speed_modifier += 0.30
@@ -198,30 +209,42 @@ func _handle_targeting_and_curing(delta: float) -> void:
 	if healing_injection_timer > 0.0:
 		return
 	healing_injection_timer = healing_injection_interval
-	var cure_rate = healing_injection_amount * speed_modifier
+	var cure_rate = healing_injection_amount * speed_modifier * _weapon_cure_multiplier()
+	if GameData.has_skill("target_4") and player and player.global_position.distance_to(targets[0].global_position) < 96.0:
+		healing_injection_timer = healing_injection_interval * 0.5
 
 	# Unique Ability: Overcharge Prism (Split Beam up to 3 targets)
-	if GameData.equip_robot_module_id == "overcharge_prism":
+	if GameData.has_robot_module("overcharge_prism"):
 		var num_targets = min(3, targets.size())
 		var split_rate = cure_rate / num_targets
 		for i in range(num_targets):
 			var mob = targets[i]
 			if mob.has_method("apply_cure"):
-				mob.apply_cure(split_rate)
+				mob.apply_cure(split_rate * GameData.get_cure_multiplier(mob))
 			_draw_assist_beam(i, mob.global_position)
+		if GameData.has_robot_module("static_modulator") and targets.size() > 1:
+			var chained_target = targets[1]
+			if chained_target.global_position.distance_to(targets[0].global_position) < 80.0:
+				if chained_target.has_method("apply_cure"):
+					chained_target.apply_cure(cure_rate * 0.5 * GameData.get_cure_multiplier(chained_target))
+				if chained_target.has_method("apply_slow"):
+					chained_target.apply_slow(0.30, 1.0)
+			_draw_chain_arc(targets[0].global_position, chained_target.global_position)
 	else:
 		var primary_target = targets[0]
 		
 		# Unique Ability: Static Frequency Modulator (Chain-Curing Arc)
-		if GameData.equip_robot_module_id == "static_modulator":
+		if GameData.has_robot_module("static_modulator"):
 			if primary_target.has_method("apply_cure"):
-				primary_target.apply_cure(cure_rate)
+				primary_target.apply_cure(cure_rate * GameData.get_cure_multiplier(primary_target))
+				if GameData.equipped_weapon_id == "electric_eel_rod" and primary_target.has_method("apply_stun"):
+					primary_target.apply_stun(0.75)
 			
 				if targets.size() > 1:
 					var secondary = targets[1]
 					if secondary.global_position.distance_to(primary_target.global_position) < 80.0:
 						if secondary.has_method("apply_cure") and secondary.has_method("apply_slow"):
-							secondary.apply_cure(cure_rate * 0.5)
+							secondary.apply_cure(cure_rate * 0.5 * GameData.get_cure_multiplier(secondary))
 						secondary.apply_slow(0.30, 1.0)
 					_draw_chain_arc(primary_target.global_position, secondary.global_position)
 		else:
@@ -241,6 +264,7 @@ func _start_beam(target: Node2D, total_heal: float) -> void:
 	active_beam_target = target
 	active_beam_time_left = healing_injection_interval
 	active_beam_heal_rate = total_heal / healing_injection_interval
+	active_beam_heal_accumulator = 0.0
 	if light_beam:
 		light_beam.visible = true
 		light_beam.points = [Vector2.ZERO, to_local(target.global_position)]
@@ -255,8 +279,11 @@ func _update_active_beam(delta: float) -> void:
 		return
 
 	var tick_time = min(delta, active_beam_time_left)
-	if active_beam_target.has_method("apply_cure"):
-		active_beam_target.apply_cure(active_beam_heal_rate * tick_time)
+	active_beam_heal_accumulator += active_beam_heal_rate * tick_time
+	if active_beam_heal_accumulator >= 1.0 and active_beam_target.has_method("apply_cure"):
+		var heal_tick: float = floor(active_beam_heal_accumulator)
+		active_beam_target.apply_cure(maxf(1.0, heal_tick))
+		active_beam_heal_accumulator -= heal_tick
 
 	if light_beam:
 		light_beam.visible = true
@@ -264,7 +291,7 @@ func _update_active_beam(delta: float) -> void:
 
 	active_beam_time_left -= delta
 	if active_beam_time_left <= 0.0:
-		if active_beam_target.get("is_cured") and GameData.equip_robot_module_id == "beak_sovereign":
+		if active_beam_target.get("is_cured") and GameData.has_robot_module("beak_sovereign"):
 			_trigger_beak_cure_burst(active_beam_target.global_position)
 		_clear_active_beam()
 
@@ -272,6 +299,7 @@ func _clear_active_beam() -> void:
 	active_beam_target = null
 	active_beam_heal_rate = 0.0
 	active_beam_time_left = 0.0
+	active_beam_heal_accumulator = 0.0
 	if light_beam:
 		light_beam.visible = false
 
@@ -338,6 +366,18 @@ func _handle_overheat(delta: float) -> void:
 		if GameData.has_skill("heat_2"):
 			cool_rate *= 1.3
 		overheat_gauge = max(0.0, overheat_gauge - (cool_rate * delta))
+
+func _module_stat_multiplier() -> float:
+	return 2.0 if is_overheated and GameData.has_skill("heat_4") else 1.0
+
+func _weapon_cure_multiplier() -> float:
+	match GameData.equipped_weapon_id:
+		"harpoon_gun": return 1.5
+		"coral_shard": return 1.25
+		"void_trident": return 2.0
+		"electric_eel_rod": return 1.15
+		"leviathan_fang": return 1.35
+		_: return 1.0
 
 # --- SURVIVAL GUARDIAN COOLDOWNS ---
 func _check_rescue_protocol(delta: float) -> void:

@@ -15,6 +15,7 @@ signal level_will_change
 const FloatingNumberScene := preload("res://effects/floating_number.tscn")
 const TrashDropScene := preload("res://pickups/trash_drop.tscn")
 const ItemDropScene := preload("res://pickups/item_drop.tscn")
+const AirBubbleScene := preload("res://pickups/air_bubble.tscn")
 
 ## Spawns a floating "+N" (green, healing/curing) or "-N" (red, damage)
 ## number at a world position.
@@ -61,6 +62,15 @@ func spawn_item_drop(origin: Vector2, item: ItemData, count: int = 1) -> void:
 		drop.global_position = origin
 		drop.setup(item)
 
+func spawn_air_bubble(origin: Vector2, air_amount: float = 100.0) -> void:
+	var scene := get_tree().current_scene
+	if not scene:
+		return
+	var bubble := AirBubbleScene.instantiate()
+	scene.add_child(bubble)
+	bubble.global_position = origin
+	bubble.air_amount = air_amount
+
 ## Called by world.gd immediately before any transition that moves the otter
 ## away from the area a drop might be sitting in.
 func notify_level_changing() -> void:
@@ -69,7 +79,7 @@ func notify_level_changing() -> void:
 ## Bounces + flashes the HUD trash counter icon. Called by each trash drop
 ## the instant it's absorbed into the counter.
 func pulse_trash_counter() -> void:
-	var icon: CanvasItem = get_tree().root.get_node_or_null("Main/UI/HUD/largeTrash/crystalIcon")
+	var icon: CanvasItem = get_tree().root.get_node_or_null("Main/UI/HUD/compendiumDataDisplay/compendiumIcon")
 	if not icon:
 		return
 

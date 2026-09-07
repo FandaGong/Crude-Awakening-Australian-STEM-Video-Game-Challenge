@@ -1,8 +1,7 @@
 [gd_scene format=3 uid="uid://l5pg1ishoyll"]
 
 [ext_resource type="Script" uid="uid://c25j8wte1uvj4" path="res://scenes/ui/skill_node_ui.gd" id="1_yx43e"]
-
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_sik6a"]
+[ext_resource type="LabelSettings" uid="uid://cfyy81mj33a5y" path="res://smallerLabels.tres" id="2_sik6a"]
 
 [node name="SkillNodeUi" type="TextureButton" unique_id=1440460607]
 custom_minimum_size = Vector2(12, 12)
@@ -19,7 +18,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = SubResource("PlaceholderTexture2D_sik6a")
 
 [node name="Border" type="TextureRect" parent="." unique_id=1638046769]
 layout_mode = 1
@@ -38,3 +36,17 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="UnlockLabel" type="Label" parent="." unique_id=1263663485]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -1.0
+offset_top = 9.0
+offset_right = 2.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+label_settings = ExtResource("2_sik6a")
+horizontal_alignment = 1

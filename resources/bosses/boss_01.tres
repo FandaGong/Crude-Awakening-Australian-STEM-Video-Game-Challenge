@@ -7,7 +7,6 @@ script = ExtResource("1_bossdata")
 id = 1
 boss_name = "The Silicon Crab"
 max_health = 180
-crystal_reward = 60
 drop_item_paths = ["res://resources/items/crustacean_carapace.tres", "res://resources/items/geothermal_core.tres"]
 depth_meters = 150
 bullet_speed_mult = 1.0

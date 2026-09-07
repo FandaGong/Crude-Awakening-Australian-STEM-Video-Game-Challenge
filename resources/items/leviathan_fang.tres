@@ -10,3 +10,4 @@ name = "Leviathan Fang"
 description = "A fang torn from something ancient and huge."
 icon = ExtResource("2_icon")
 item_type = 4
+max_stack = 1

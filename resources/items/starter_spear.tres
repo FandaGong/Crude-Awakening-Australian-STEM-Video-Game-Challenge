@@ -6,7 +6,8 @@
 [resource]
 script = ExtResource("1_item")
 id = "starter_spear"
-name = "Bone Spear"
-description = "A basic spear. Reliable, unremarkable."
+name = "Heal Laser"
+description = "The robot's default curing laser, fired through the Bone Spear emitter."
 icon = ExtResource("2_icon")
 item_type = 4
+max_stack = 1

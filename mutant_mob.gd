@@ -80,6 +80,7 @@ var _pivot_angle: float = 0.0
 var _pivot_dir: int = 1
 var _zap_timer: float = 0.0
 var _sponge_timer: float = 0.0
+var _angler_damage_accumulator: float = 0.0
 
 # --- Status effects --------------------------------------------------------
 var stun_timer: float = 0.0
@@ -243,7 +244,13 @@ func _process_anglerfish(delta: float) -> void:
 		velocity = velocity.move_toward(Vector2.ZERO, 300.0 * delta)
 
 	if dist <= angler_light_radius:
-		player.takeDamage(angler_radius_dps * delta, "physical")
+		_angler_damage_accumulator += angler_radius_dps * delta
+		if _angler_damage_accumulator >= 1.0:
+			var damage_tick: float = floor(_angler_damage_accumulator)
+			player.takeDamage(maxf(1.0, damage_tick), "physical")
+			_angler_damage_accumulator -= damage_tick
+	else:
+		_angler_damage_accumulator = 0.0
 
 # --- SPONGE: stationary, periodically lobs acidic bubbles -------------------
 func _process_sponge(delta: float) -> void:
@@ -324,10 +331,12 @@ func cureMob() -> void:
 	# A healed animal is catalogued rather than destroyed and leaves recyclable
 	# debris lodged in its corruption for the robot's upgrades. The debris is
 	# spawned as a physical drop (see pickups/trash_drop.gd) that scatters,
-	# settles, and flies itself into the HUD counter; GameData.trash_tokens
-	# is credited by the drop when it arrives, not here.
+	# settles, and flies itself into the HUD counter; GameData.compendium_data
+	# is credited by the drop when it arrives, in addition to the +1 below.
 	if GameData:
 		GameData.compendium_data += 1
+		if GameData.has_skill("synergy_3") and Effects:
+			Effects.spawn_air_bubble(global_position, 15.0)
 	if Effects:
 		Effects.spawn_trash_drop(global_position, trash_size)
 		_maybe_spawn_item_drop()

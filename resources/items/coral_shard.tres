@@ -10,3 +10,4 @@ name = "Coral Shards"
 description = "Launches jagged shards of reef coral."
 icon = ExtResource("2_icon")
 item_type = 4
+max_stack = 1

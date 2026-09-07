@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://bnwaackjcyivq"
+path="res://.godot/imported/priorityProtocols.aseprite-43e3f0ce474b1886c74d17c0f8510360.res"
+
+[deps]
+
+source_file="res://assets/robot/skillTree/targeting/priorityProtocols.aseprite"
+dest_files=["res://.godot/imported/priorityProtocols.aseprite-43e3f0ce474b1886c74d17c0f8510360.res"]
+
+[params]
+

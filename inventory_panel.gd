@@ -110,8 +110,8 @@ func _show_item_details(data: SlotData) -> void:
 func refresh_inventory() -> void:
 	var slots = grid_container.get_children()
 	for i in range(slots.size()):
-		if i < GameData.inventory_slots.size():
-			(slots[i] as SlotUI).set_slot_data(GameData.inventory_slots[i])
+		if i < GameData.otter_inventory_slots.size():
+			(slots[i] as SlotUI).set_slot_data(GameData.otter_inventory_slots[i])
 
 func _on_equipment_changed(_slot_type: ItemData.ItemType, _item: ItemData) -> void:
 	# Parameters prefixed with '_' so Godot won't throw warnings

@@ -124,7 +124,7 @@ func _begin_absorb() -> void:
 func _fly_to_counter() -> void:
 	_phase = "flying"
 
-	var hud_icon: Control = get_tree().root.get_node_or_null("Main/UI/HUD/largeTrash/crystalIcon")
+	var hud_icon: Control = get_tree().root.get_node_or_null("Main/UI/HUD/compendiumDataDisplay/compendiumIcon")
 	var hud_layer: Node = get_tree().root.get_node_or_null("Main/UI/HUD")
 	if not hud_icon or not hud_layer:
 		_finish_collect()

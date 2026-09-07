@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://xle8hj8xud85"
+path="res://.godot/imported/superChargedReactor.aseprite-b478a51bde3cbd3b0057bab7e5ee8852.res"
+
+[deps]
+
+source_file="res://assets/robot/skillTree/overheat/superChargedReactor.aseprite"
+dest_files=["res://.godot/imported/superChargedReactor.aseprite-b478a51bde3cbd3b0057bab7e5ee8852.res"]
+
+[params]
+

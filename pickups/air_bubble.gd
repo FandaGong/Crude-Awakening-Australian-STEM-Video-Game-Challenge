@@ -9,6 +9,7 @@ extends Area2D
 ## loose a physical Bubble Booster Charm alongside the air refill.
 const BUBBLE_BOOSTER_CHARM_PATH := "res://resources/items/bubble_booster_charm.tres"
 const BUBBLE_BOOSTER_DROP_CHANCE := 0.1
+@export var air_amount: float = 100.0
 
 func _ready() -> void:
 	add_to_group("air_bubbles")
@@ -17,7 +18,7 @@ func _ready() -> void:
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		if body.has_method("recoverAir"):
-			body.currentAir = body.maxAir
+			body.currentAir = min(body.maxAir, body.currentAir + air_amount)
 		if body.has_method("pop_air_bubble"):
 			body.pop_air_bubble() # triggers Bubble Booster Charm, if equipped
 		_maybe_drop_booster_charm()

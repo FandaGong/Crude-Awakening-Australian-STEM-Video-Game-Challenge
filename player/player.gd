@@ -70,6 +70,7 @@ var ability_cooldowns: Dictionary = {
 var gazer_cooldown: float = 0.0
 var carapace_cooldown: float = 0.0
 var carapace_active_timer: float = 0.0
+var physical_skill_timer: float = 0.0
 
 func _ready() -> void:
 	add_to_group("player")
@@ -237,6 +238,8 @@ func takeDamage(amount: float, damage_type: String = "physical") -> void:
 
 	# Crustacean Carapace: Passively grants +3 Armor
 	var final_damage = amount
+	if physical_skill_timer > 0.0 and damage_type == "physical" and GameData.has_skill("synergy_1"):
+		final_damage *= 0.85
 	if GameData.equip_body_id == "crustacean_carapace" and damage_type != "drown":
 		final_damage = max(1.0, final_damage - 3.0)
 		
@@ -287,6 +290,7 @@ func _tick_cooldowns(delta: float) -> void:
 	gazer_cooldown = max(0.0, gazer_cooldown - delta)
 	carapace_cooldown = max(0.0, carapace_cooldown - delta)
 	carapace_active_timer = max(0.0, carapace_active_timer - delta)
+	physical_skill_timer = max(0.0, physical_skill_timer - delta)
 
 func heal(amount: float) -> void:
 	if isDead:
@@ -355,7 +359,13 @@ func handleShootInput() -> void:
 		"jelly_stinger": 3.0,
 		"crab_pincer": 3.0,
 		"pearlescent_volley": 4.0,
-		"abyssal_flare": 8.0
+		"abyssal_flare": 8.0,
+		"starter_spear": 0.4,
+		"harpoon_gun": 0.8,
+		"coral_shard": 1.0,
+		"electric_eel_rod": 1.2,
+		"void_trident": 1.5,
+		"leviathan_fang": 1.0
 	}
 	
 	var cd = base_cooldowns.get(ability_id, 3.0)
@@ -368,7 +378,12 @@ func handleShootInput() -> void:
 	_execute_ability(ability_id)
 
 func _execute_ability(ability_id: String) -> void:
+	if GameData.has_skill("synergy_1"):
+		physical_skill_timer = 0.35
 	var aim_dir = (get_global_mouse_position() - global_position).normalized()
+	if _is_weapon_id(ability_id):
+		_execute_weapon(ability_id, aim_dir)
+		return
 
 	match ability_id:
 		"jelly_stinger":
@@ -409,6 +424,47 @@ func _execute_ability(ability_id: String) -> void:
 						mob.apply_blind(3.0)
 			_draw_temp_line(global_position, global_position + aim_dir * length, Color(1, 1, 0.7, 0.7), 0.4)
 
+func _is_weapon_id(item_id: String) -> bool:
+	var path := "res://resources/items/%s.tres" % item_id
+	if not ResourceLoader.exists(path):
+		return false
+	var item: ItemData = load(path)
+	return item.item_type == ItemData.ItemType.WEAPON
+
+func _execute_weapon(weapon_id: String, aim_dir: Vector2) -> void:
+	var mobs = get_tree().get_nodes_in_group("corrupted_mobs")
+	var attack_range := 260.0
+	var width := 24.0
+	var cure_amount := 10.0
+	match weapon_id:
+		"harpoon_gun":
+			attack_range = 380.0
+			cure_amount = 28.0
+			width = 18.0
+		"coral_shard":
+			attack_range = 240.0
+			cure_amount = 16.0
+			width = 48.0
+		"electric_eel_rod":
+			attack_range = 300.0
+			cure_amount = 20.0
+			width = 28.0
+		"void_trident":
+			attack_range = 170.0
+			cure_amount = 32.0
+			width = 80.0
+		"leviathan_fang":
+			attack_range = 210.0
+			cure_amount = 22.0
+	for mob in mobs:
+		var to_mob: Vector2 = mob.global_position - global_position
+		if to_mob.length() <= attack_range and abs(aim_dir.angle_to(to_mob)) <= atan(width / maxf(1.0, to_mob.length())):
+			if mob.has_method("apply_cure"):
+				mob.apply_cure(cure_amount * GameData.get_cure_multiplier(mob))
+			if weapon_id == "electric_eel_rod" and mob.has_method("apply_stun"):
+				mob.apply_stun(1.0)
+	_draw_temp_line(global_position, global_position + aim_dir * attack_range, Color(0.8, 0.9, 1.0, 0.8), 0.18)
+
 func _get_raycast_target_to_mouse(max_dist: float) -> Node2D:
 	var space_state = get_world_2d().direct_space_state
 	var query = PhysicsRayQueryParameters2D.create(global_position, get_global_mouse_position())
@@ -434,9 +490,16 @@ func _spawn_curing_pearl(dir: Vector2) -> void:
 	tween.tween_callback(func():
 		var mobs = get_tree().get_nodes_in_group("corrupted_mobs")
 		for mob in mobs:
-			if mob.global_position.distance_to(target_pos) < 24.0:
+			var hit_pos: Vector2 = target_pos
+			var homing_hit := false
+			if GameData.has_skill("target_2"):
+				var projected_pos := global_position + dir * global_position.distance_to(mob.global_position)
+				homing_hit = mob.global_position.distance_to(projected_pos) < 45.0
+				if homing_hit:
+					hit_pos = mob.global_position
+			if mob.global_position.distance_to(hit_pos) < 24.0 or homing_hit:
 				if mob.has_method("apply_cure"):
-					mob.apply_cure(10.0)
+					mob.apply_cure(10.0 * GameData.get_cure_multiplier(mob))
 		pearl.queue_free()
 	)
 

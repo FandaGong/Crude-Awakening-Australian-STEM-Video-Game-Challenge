@@ -6,9 +6,6 @@ extends Control
 @onready var skill_title: Label = $DetailsPanel/SkillNameLabel
 @onready var skill_desc: Label = $DetailsPanel/DescriptionLabel
 @onready var skill_cost: Label = $DetailsPanel/CostLabel
-@onready var unlock_button: TextureButton = $DetailsPanel/UnlockButton
-# 1. Fetch the child label reference inside the TextureButton
-@onready var unlock_label: Label = $DetailsPanel/UnlockButton/Label
 
 var selected_node: SkillNodeData = null
 
@@ -22,17 +19,16 @@ var _hovered: Dictionary = {}
 @export var details_panel_mouse_offset: Vector2 = Vector2(10, 10)
 
 func _ready() -> void:
-	unlock_button.pressed.connect(_on_unlock_button_pressed)
-	GameData.trash_tokens_changed.connect(_update_currency_display)
+	GameData.compendium_data_changed.connect(_update_currency_display)
 	GameData.robot_unlocked_changed.connect(_update_lock_state)
 	
 	_update_lock_state(GameData.is_robot_unlocked)
-	_update_currency_display(GameData.trash_tokens)
+	_update_currency_display(GameData.compendium_data)
 	_connect_all_nodes(self)
 
-	# The panel itself can be hovered too (e.g. to reach the Unlock button),
-	# which should keep it open rather than having it vanish out from under
-	# the cursor the moment it leaves the skill node.
+	# The panel itself can be hovered too (e.g. while reading the
+	# description), which should keep it open rather than having it vanish
+	# out from under the cursor the moment it leaves the skill node.
 	details_panel.mouse_entered.connect(_on_panel_hover_entered)
 	details_panel.mouse_exited.connect(_on_panel_hover_exited)
 	details_panel.hide()
@@ -116,18 +112,3 @@ func _refresh_details_panel() -> void:
 	skill_title.text = selected_node.title
 	skill_desc.text = selected_node.description
 	skill_cost.text = "Cost: %d Data" % selected_node.cost
-	
-	# 2. Redirect the .text assignment variables safely to the child label
-	if GameData.has_skill(selected_node.id):
-		unlock_button.disabled = true
-		if unlock_label: unlock_label.text = "UNLOCKED"
-	elif GameData.can_unlock(selected_node.id):
-		unlock_button.disabled = false
-		if unlock_label: unlock_label.text = "UNLOCK"
-	else:
-		unlock_button.disabled = true
-		if unlock_label: unlock_label.text = "LOCKED"
-
-func _on_unlock_button_pressed() -> void:
-	if selected_node and GameData.unlock_skill(selected_node.id):
-		_refresh_details_panel()

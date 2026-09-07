@@ -22,10 +22,12 @@ script = ExtResource("1_itx44")
 
 [node name="Icon" type="TextureRect" parent="." unique_id=2098982592]
 layout_mode = 2
+mouse_filter = 2
 stretch_mode = 5
 
 [node name="CountLabel" type="Label" parent="." unique_id=727744250]
 layout_mode = 2
+mouse_filter = 2
 size_flags_horizontal = 8
 size_flags_vertical = 8
 label_settings = SubResource("LabelSettings_xcqps")

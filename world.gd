@@ -27,7 +27,7 @@ var current_boss_data: BossData = null
 # --- New hand-drawn level system --------------------------------------------
 # level_nodes[0] is Level1 (era index 0 / boss_01), level_nodes[5] is Level6
 # (era index 5 / boss_06). Each level node comes from levels/level.gd and
-# exposes player_spawn / boss_spawn / trader_spawn markers you can drag
+# exposes player_spawn / boss_spawn markers you can drag
 # around in the editor.
 var level_nodes: Array = []
 var current_level_index: int = -1 # -1 = not currently inside a level
@@ -165,7 +165,7 @@ func enter_boss_arena(boss_id: int) -> void:
 	player.currentState = player.State.SWIMMING
 	current_spawn_position = player.global_position
 
-func _on_arena_boss_defeated(boss_id: int, _crystal_reward: int) -> void:
+func _on_arena_boss_defeated(boss_id: int) -> void:
 	await get_tree().create_timer(1.5).timeout
 	_clear_active_boss_arena()
 
@@ -294,7 +294,7 @@ func _spawn_level_boss(level: Node, era_index: int) -> void:
 	current_level_boss.global_position = level.boss_spawn.global_position
 	current_level_boss.defeated.connect(_on_level_boss_defeated.bind(era_index))
 
-func _on_level_boss_defeated(_boss_id: int, _crystal_reward: int, _era_index: int) -> void:
+func _on_level_boss_defeated(_boss_id: int, _era_index: int) -> void:
 	await get_tree().create_timer(1.5).timeout
 	_clear_level_boss()
 	# The otter no longer teleports home automatically - the level's own
@@ -314,8 +314,7 @@ func _clear_level_boss() -> void:
 
 # --- Shop --------------------------------------------------------------------
 
-func open_shop() -> void:
-	get_tree().call_group("ui_controller", "open_shop")
+
 
 # --- Death / respawn -----------------------------------------------------------
 

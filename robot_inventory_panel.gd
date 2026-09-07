@@ -20,10 +20,10 @@ var _hovered: Dictionary = {}
 
 func _ready() -> void:
 	hide() # Start hidden
+	add_to_group("robot_inventory_panel")
 	
 	# Connect signals
 	GameData.inventory_updated.connect(refresh_inventory)
-	GameData.inventory_updated.connect(_refresh_default_weapon_state)
 	GameData.equipment_changed.connect(_on_equipment_changed)
 
 	# Setup 12 equip slots for robot (all generic type for now)
@@ -32,18 +32,22 @@ func _ready() -> void:
 		var slot = equip_slots[i] as SlotUI
 		slot.slot_index = i + 100  # Offset to distinguish from otter equip slots
 		slot.allowed_type = ItemData.ItemType.GENERIC
+		slot.robot_owned_slot = true
+		slot.robot_equipment_slot = true
 
-	# The Otter's starting weapon shows up as a plain draggable item sitting
-	# in the first equip slot by default; the player can drag it elsewhere
-	# (or drag something else on top of it) like any other slot.
-	var starting_weapon := GameData.get_equipped_weapon_item()
-	if starting_weapon and equip_slots.size() > 0:
-		var weapon_slot_data := SlotData.new()
-		weapon_slot_data.item_data = starting_weapon
-		weapon_slot_data.quantity = 1
-		(equip_slots[0] as SlotUI).set_slot_data(weapon_slot_data)
-		GameData.robot_default_weapon_id = starting_weapon.id
-		GameData.robot_default_weapon_equipped = true
+	# Render only robot module relics. Otter head/body/accessory gear and
+	# weapons belong exclusively to the otter panel and hotbar.
+	var equipped_items: Array[ItemData] = []
+	for module in GameData.get_equipped_robot_module_items():
+		equipped_items.append(module)
+	for i in range(min(equipped_items.size(), equip_slots.size())):
+		var equipped_item := equipped_items[i]
+		if not equipped_item:
+			continue
+		var slot_data := SlotData.new()
+		slot_data.item_data = equipped_item
+		slot_data.quantity = 1
+		(equip_slots[i] as SlotUI).set_slot_data(slot_data)
 
 	# Setup 16 inventory slots for robot items
 	var inv_slots = grid_container.get_children()
@@ -51,6 +55,7 @@ func _ready() -> void:
 		var slot = inv_slots[i] as SlotUI
 		slot.slot_index = i + 16  # Offset to distinguish from otter inventory slots
 		slot.allowed_type = ItemData.ItemType.GENERIC
+		slot.robot_owned_slot = true
 
 	refresh_inventory()
 
@@ -125,8 +130,8 @@ func refresh_inventory() -> void:
 	# Refresh robot inventory slots
 	var inv_slots = grid_container.get_children()
 	for i in range(inv_slots.size()):
-		if i < GameData.inventory_slots.size():
-			(inv_slots[i] as SlotUI).set_slot_data(GameData.inventory_slots[i])
+		if i < GameData.robot_inventory_slots.size():
+			(inv_slots[i] as SlotUI).set_slot_data(GameData.robot_inventory_slots[i])
 
 func _on_equipment_changed(_slot_type: ItemData.ItemType, _item: ItemData) -> void:
 	# Parameters prefixed with '_' so Godot won't throw warnings
@@ -136,16 +141,3 @@ func _on_equipment_changed(_slot_type: ItemData.ItemType, _item: ItemData) -> vo
 # its 12 equip slots (it may have been dragged to another equip slot, into
 # the inventory grid, or swapped out entirely) and syncs the result to
 # GameData so the robot knows whether it's allowed to fire.
-func _refresh_default_weapon_state() -> void:
-	if GameData.robot_default_weapon_id == "":
-		return
-
-	var still_equipped := false
-	for slot in equip_slots_container.get_children():
-		var slot_ui := slot as SlotUI
-		if slot_ui and slot_ui.slot_data and slot_ui.slot_data.item_data:
-			if slot_ui.slot_data.item_data.id == GameData.robot_default_weapon_id:
-				still_equipped = true
-				break
-
-	GameData.robot_default_weapon_equipped = still_equipped

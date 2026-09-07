@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://bii3cjwb1a4ni"
+path="res://.godot/imported/rescueProtocol.aseprite-39f634a72db2f6c54f3eb2cf2242984d.res"
+
+[deps]
+
+source_file="res://assets/robot/skillTree/synergy/rescueProtocol.aseprite"
+dest_files=["res://.godot/imported/rescueProtocol.aseprite-39f634a72db2f6c54f3eb2cf2242984d.res"]
+
+[params]
+

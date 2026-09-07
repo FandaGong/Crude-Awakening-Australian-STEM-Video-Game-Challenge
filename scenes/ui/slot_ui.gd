@@ -7,6 +7,8 @@ signal slot_clicked(slot_ui: SlotUI)
 @onready var count_label: Label = $CountLabel if has_node("CountLabel") else get_node_or_null("Countlabel")
 
 @export var allowed_type: ItemData.ItemType = ItemData.ItemType.GENERIC
+@export var robot_owned_slot: bool = false
+@export var robot_equipment_slot: bool = false
 var slot_index: int = -1
 var slot_data: SlotData
 
@@ -58,6 +60,17 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 		var dragged_item = data.slot_data.item_data
 		if not dragged_item:
 			return false
+		if robot_owned_slot != data.robot_owned_slot:
+			if robot_owned_slot and not GameData._is_robot_item(dragged_item):
+				return false
+			if not robot_owned_slot and GameData._is_robot_item(dragged_item):
+				return false
+		if robot_owned_slot and not GameData._is_robot_item(dragged_item):
+			return false
+		if robot_equipment_slot and not GameData._is_robot_item(dragged_item):
+			return false
+		if data.robot_equipment_slot and not GameData._is_robot_item(dragged_item):
+			return false
 		if allowed_type != ItemData.ItemType.GENERIC:
 			return dragged_item.item_type == allowed_type
 		return true
@@ -79,4 +92,10 @@ func _drop_data(_at_position: Vector2, data: Variant) -> void:
 
 		set_slot_data(slot_data)
 		data.set_slot_data(data.slot_data)
+		if robot_owned_slot or data.robot_owned_slot:
+			GameData.sync_robot_equipment_from_ui()
+		else:
+			GameData.sync_inventory_slot_equipment(slot_index, allowed_type, slot_data.item_data)
+			GameData.sync_inventory_slot_equipment(data.slot_index, data.allowed_type, data.slot_data.item_data)
 		GameData.inventory_updated.emit()
+		GameData.save_game()

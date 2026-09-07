@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://5ykr3c3velwx"
+path="res://.godot/imported/jellyStinger.aseprite-1294c8a14474071672efbe621326d878.res"
+
+[deps]
+
+source_file="res://assets/items/jellyStinger.aseprite"
+dest_files=["res://.godot/imported/jellyStinger.aseprite-1294c8a14474071672efbe621326d878.res"]
+
+[params]
+

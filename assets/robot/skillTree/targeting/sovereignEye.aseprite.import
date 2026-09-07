@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://4er8asqeukw3"
+path="res://.godot/imported/sovereignEye.aseprite-c352bb2b2e50fb3ecaaa2796d5184ca2.res"
+
+[deps]
+
+source_file="res://assets/robot/skillTree/targeting/sovereignEye.aseprite"
+dest_files=["res://.godot/imported/sovereignEye.aseprite-c352bb2b2e50fb3ecaaa2796d5184ca2.res"]
+
+[params]
+

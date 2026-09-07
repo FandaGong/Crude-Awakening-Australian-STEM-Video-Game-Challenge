@@ -2,18 +2,15 @@ extends Node2D
 
 ## One hand-drawn Historical Turning Point level.
 ##
-## Drag PlayerSpawn, BossSpawn, TraderSpawn, and MobSpawnCenter (all Marker2D nodes) around
+## Drag PlayerSpawn, BossSpawn, and MobSpawnCenter (all Marker2D nodes) around
 ## in the editor to place them wherever you like on top of whatever terrain
 ## you paint into the Ground tile map layer.
 ##
-## The trader stands here permanently from the moment the level loads - it's
-## instanced once, at TraderSpawn's position, in _ready() below. The boss is
-## instanced separately by world.gd only after this level's preloaded field
-## mobs have all been cured.
+## The boss is instanced separately by world.gd only after this level's
+## preloaded field mobs have all been cured.
 
 signal mobs_cleared
 
-const MerchantScene := preload("res://npc/merchant.tscn")
 const MutantMobScene := preload("res://mutantMob.tscn")
 const AirBubbleScene := preload("res://pickups/air_bubble.tscn")
 
@@ -25,9 +22,13 @@ const AirBubbleScene := preload("res://pickups/air_bubble.tscn")
 
 @onready var player_spawn: Marker2D = $PlayerSpawn
 @onready var boss_spawn: Marker2D = $BossSpawn
-@onready var trader_spawn: Marker2D = $TraderSpawn
 @onready var mob_spawn_center: Marker2D = $MobSpawnCenter
 @onready var water_collision: CollisionShape2D = $waterArea/CollisionShape2D
+@onready var ground: TileMapLayer = get_node_or_null("Ground")
+
+## Random spawn positions get re-rolled up to this many times if they land
+## on a solid (wall/terrain) tile before giving up and using the last roll.
+const MAX_SPAWN_ATTEMPTS := 20
 
 var _remaining_mobs := 0
 
@@ -37,11 +38,6 @@ func set_mobs_active(active: bool) -> void:
 			mob.set("encounter_active", active)
 
 func _ready() -> void:
-	if trader_spawn:
-		var merchant := MerchantScene.instantiate()
-		add_child(merchant)
-		merchant.global_position = trader_spawn.global_position
-		merchant.interacted.connect(_on_merchant_interacted)
 	_spawn_preloaded_mobs()
 
 func _spawn_preloaded_mobs() -> void:
@@ -65,9 +61,29 @@ func _spawn_level_mob(type: MutantMob.MobType) -> void:
 
 func _random_spawn_position() -> Vector2:
 	var half_size := mob_spawn_size * 0.5
-	return mob_spawn_center.global_position + Vector2(
-		randf_range(-half_size.x, half_size.x), randf_range(-half_size.y, half_size.y)
-	)
+	var candidate := mob_spawn_center.global_position
+	for attempt in range(MAX_SPAWN_ATTEMPTS):
+		candidate = mob_spawn_center.global_position + Vector2(
+			randf_range(-half_size.x, half_size.x), randf_range(-half_size.y, half_size.y)
+		)
+		if not _is_inside_wall(candidate):
+			return candidate
+	# Couldn't find a clear spot after MAX_SPAWN_ATTEMPTS tries (very cramped
+	# level) - fall back to the last roll rather than spawning at dead center
+	# every time.
+	return candidate
+
+## True if the given global position lands on a Ground tile that has
+## collision (i.e. a wall/solid terrain tile, as opposed to open water,
+## which has no tile there at all).
+func _is_inside_wall(global_pos: Vector2) -> bool:
+	if not ground:
+		return false
+	var cell := ground.local_to_map(ground.to_local(global_pos))
+	var tile_data := ground.get_cell_tile_data(cell)
+	if not tile_data:
+		return false
+	return tile_data.get_collision_polygons_count(0) > 0
 
 func _on_mob_cured(_mob: MutantMob) -> void:
 	_remaining_mobs = max(0, _remaining_mobs - 1)
@@ -79,8 +95,3 @@ func _on_mob_cured(_mob: MutantMob) -> void:
 ## one-shot mobs_cleared signal has already fired and won't fire again.
 func mobs_already_cleared() -> bool:
 	return _remaining_mobs <= 0
-
-func _on_merchant_interacted() -> void:
-	var world := get_tree().get_first_node_in_group("world")
-	if world and world.has_method("open_shop"):
-		world.open_shop()

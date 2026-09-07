@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://bxalol107o5xc"
+path="res://.godot/imported/predictiveLockOn.aseprite-aad258ac04cafd0f7cd3b0da4156cdf7.res"
+
+[deps]
+
+source_file="res://assets/robot/skillTree/targeting/predictiveLockOn.aseprite"
+dest_files=["res://.godot/imported/predictiveLockOn.aseprite-aad258ac04cafd0f7cd3b0da4156cdf7.res"]
+
+[params]
+

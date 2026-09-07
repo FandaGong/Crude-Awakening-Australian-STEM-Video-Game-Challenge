@@ -49,6 +49,7 @@
 [ext_resource type="Texture2D" uid="uid://bhvojqnn5uai8" path="res://assets/UI/player/inventory.png" id="28_inventory"]
 [ext_resource type="LabelSettings" uid="uid://cfyy81mj33a5y" path="res://smallerLabels.tres" id="28_nsnm2"]
 [ext_resource type="Texture2D" uid="uid://cuexmkr5gqy8u" path="res://assets/sprites/ground (grass and dirt)/tileCornerGrassRight.png" id="29_7mj2a"]
+[ext_resource type="Script" uid="uid://csm7qckemdcis" path="res://scripts/ui/hotbar_slot.gd" id="29_hotbarslot"]
 [ext_resource type="StyleBox" uid="uid://fa6gmixjrcdx" path="res://solidPatchBox.tres" id="29_thyvg"]
 [ext_resource type="Texture2D" uid="uid://cvyi87huxskij" path="res://assets/sprites/ground (grass and dirt)/tileTopGrass.png" id="30_fshgd"]
 [ext_resource type="Texture2D" uid="uid://ccjvkw2gw3qq2" path="res://assets/sprites/ground (grass and dirt)/tileSandTop.png" id="35_7mj2a"]
@@ -677,7 +678,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="largeTrash" type="Panel" parent="UI/HUD" unique_id=727946038]
+[node name="compendiumDataDisplay" type="Panel" parent="UI/HUD" unique_id=727946038]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -689,7 +690,7 @@ offset_bottom = 32.0
 grow_horizontal = 0
 theme_override_styles/panel = SubResource("StyleBoxEmpty_6uidu")
 
-[node name="crystalIcon" type="TextureRect" parent="UI/HUD/largeTrash" unique_id=1143108022]
+[node name="compendiumIcon" type="TextureRect" parent="UI/HUD/compendiumDataDisplay" unique_id=1143108022]
 layout_mode = 0
 offset_left = 17.0
 offset_top = -4.0
@@ -698,7 +699,7 @@ offset_bottom = 28.0
 scale = Vector2(0.5, 0.5)
 texture = ExtResource("9_2v765")
 
-[node name="crystalLabel" type="Label" parent="UI/HUD/largeTrash" unique_id=907320463]
+[node name="compendiumLabel" type="Label" parent="UI/HUD/compendiumDataDisplay" unique_id=907320463]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -709,7 +710,6 @@ offset_right = -22.0
 offset_bottom = -26.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "0"
 label_settings = ExtResource("8_hqns4")
 horizontal_alignment = 2
 vertical_alignment = 1
@@ -798,7 +798,17 @@ layout_mode = 2
 texture_normal = ExtResource("26_hotselected")
 ignore_texture_size = true
 stretch_mode = 0
-script = ExtResource("9_btnfx")
+script = ExtResource("29_hotbarslot")
+
+[node name="Icon" type="TextureRect" parent="UI/HUD/hotbarContainer/slot1" unique_id=1248344336]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stretch_mode = 5
 
 [node name="itemLabel" type="Label" parent="UI/HUD/hotbarContainer/slot1" unique_id=2146829019]
 layout_mode = 1
@@ -819,7 +829,18 @@ layout_mode = 2
 texture_normal = ExtResource("27_hotunselected")
 ignore_texture_size = true
 stretch_mode = 0
-script = ExtResource("9_btnfx")
+script = ExtResource("29_hotbarslot")
+slot_index = 1
+
+[node name="Icon" type="TextureRect" parent="UI/HUD/hotbarContainer/slot2" unique_id=854646615]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stretch_mode = 5
 
 [node name="itemLabel" type="Label" parent="UI/HUD/hotbarContainer/slot2" unique_id=-2147138276]
 layout_mode = 1
@@ -840,7 +861,18 @@ layout_mode = 2
 texture_normal = ExtResource("27_hotunselected")
 ignore_texture_size = true
 stretch_mode = 0
-script = ExtResource("9_btnfx")
+script = ExtResource("29_hotbarslot")
+slot_index = 2
+
+[node name="Icon" type="TextureRect" parent="UI/HUD/hotbarContainer/slot3" unique_id=823856454]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stretch_mode = 5
 
 [node name="itemLabel" type="Label" parent="UI/HUD/hotbarContainer/slot3" unique_id=-2146138275]
 layout_mode = 1
@@ -871,6 +903,7 @@ stretch_mode = 0
 script = ExtResource("9_btnfx")
 
 [node name="inventoryPanel" type="Control" parent="UI/HUD" unique_id=1755249018]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -887,6 +920,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 color = Color(0, 0, 0, 0.43137255)
 
 [node name="inventoryPanelBg" type="TextureRect" parent="UI/HUD/inventoryPanel" unique_id=1001661230]
@@ -1023,6 +1057,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 color = Color(0, 0, 0, 0.43137255)
 
 [node name="inventoryPanelBg" type="TextureRect" parent="UI/HUD/robotInventoryPanel" unique_id=396319859]
@@ -1145,9 +1180,9 @@ layout_mode = 2
 [node name="SkillTreeUi" parent="UI/HUD/robotInventoryPanel/inventoryPanelBg" unique_id=1285967863 instance=ExtResource("27_6uidu")]
 layout_mode = 0
 offset_left = 137.0
-offset_top = 62.0
+offset_top = 59.0
 offset_right = 137.0
-offset_bottom = 62.0
+offset_bottom = 59.0
 
 [node name="Label" type="Label" parent="UI/HUD/robotInventoryPanel/inventoryPanelBg" unique_id=899089843]
 layout_mode = 0
@@ -1377,68 +1412,6 @@ offset_top = 22.0
 offset_right = 393.0
 offset_bottom = 54.0
 texture_normal = ExtResource("21_7plk7")
-script = ExtResource("9_btnfx")
-
-[node name="shopMenu" type="Control" parent="UI" unique_id=399556253]
-process_mode = 3
-visible = false
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Panel" type="Panel" parent="UI/shopMenu" unique_id=221481532]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -240.0
-offset_top = -260.0
-offset_right = 240.0
-offset_bottom = 260.0
-grow_horizontal = 2
-grow_vertical = 2
-theme = ExtResource("8_q5dlx")
-
-[node name="titleLabel" type="Label" parent="UI/shopMenu/Panel" unique_id=130745779]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 12.0
-offset_right = 440.0
-offset_bottom = 44.0
-text = "Merchant"
-horizontal_alignment = 1
-
-[node name="crystalLabel" type="Label" parent="UI/shopMenu/Panel" unique_id=1679472729]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 40.0
-offset_right = 440.0
-offset_bottom = 62.0
-text = "Aquamarine Crystals: 0"
-horizontal_alignment = 1
-
-[node name="weaponScroll" type="ScrollContainer" parent="UI/shopMenu/Panel" unique_id=27350031]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 68.0
-offset_right = 464.0
-offset_bottom = 480.0
-
-[node name="weaponListContainer" type="VBoxContainer" parent="UI/shopMenu/Panel/weaponScroll" unique_id=437365808]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="shopCloseButton" type="TextureButton" parent="UI/shopMenu/Panel" unique_id=1323999256]
-layout_mode = 0
-offset_left = 440.0
-offset_top = 12.0
-offset_right = 485.0
-offset_bottom = 56.0
 script = ExtResource("9_btnfx")
 
 [node name="pauseMenu" type="Control" parent="UI" unique_id=1991277421]
@@ -1857,7 +1830,6 @@ player = NodePath("../player")
 [connection signal="pressed" from="UI/HUD/inventoryButton" to="UI/HUD/inventoryPanel" method="_on_inventory_button_pressed"]
 [connection signal="pressed" from="UI/HUD/hudPauseButton" to="UI" method="_on_hud_pause_button_pressed"]
 [connection signal="pressed" from="UI/settingsMenu/Panel/closeSettingsButton" to="UI" method="_on_close_settings_button_pressed"]
-[connection signal="pressed" from="UI/shopMenu/Panel/shopCloseButton" to="UI" method="_on_shop_close_button_pressed"]
 [connection signal="pressed" from="UI/pauseMenu/Panel/resumeButton" to="UI" method="_on_resume_button_pressed"]
 [connection signal="pressed" from="UI/pauseMenu/Panel/pauseSettingsButton" to="UI" method="_on_settings_button_pressed"]
 [connection signal="pressed" from="UI/pauseMenu/Panel/pauseQuitButton" to="UI" method="_on_pause_quit_button_pressed"]

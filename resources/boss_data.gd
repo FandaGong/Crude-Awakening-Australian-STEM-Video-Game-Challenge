@@ -4,7 +4,6 @@ class_name BossData
 @export var id: int = 1
 @export var boss_name: String = "Unnamed Horror"
 @export var max_health: float = 150.0
-@export var crystal_reward: int = 50
 @export var drop_item_paths: Array[String] = []
 @export var depth_meters: int = 100
 @export var bullet_speed_mult: float = 1.0

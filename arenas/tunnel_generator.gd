@@ -2,11 +2,10 @@ extends Node2D
 
 ## Builds the single dive tunnel the player swims down to reach every boss.
 ## It reads all of the BossData resources and places a "gate" at each boss's
-## depth, plus a merchant roughly halfway between consecutive gates. This is
-## built at runtime so adding another boss is just adding another .tres file
-## and bumping GameData.TOTAL_BOSSES — no hand-edited level geometry needed.
+## depth. This is built at runtime so adding another boss is just adding
+## another .tres file and bumping GameData.TOTAL_BOSSES — no hand-edited
+## level geometry needed.
 
-const MerchantScene := preload("res://npc/merchant.tscn")
 const PIXELS_PER_METER := 2.0
 const TUNNEL_WIDTH := 220.0
 const BOTTOM_PADDING := 500.0
@@ -22,7 +21,6 @@ func _ready() -> void:
 		return
 	_build_shaft_visual(boss_list)
 	_spawn_boss_gates(boss_list)
-	_spawn_merchants(boss_list)
 	_spawn_field_mobs(boss_list)
 
 func _load_all_boss_data() -> Array:
@@ -120,26 +118,6 @@ func _on_gate_body_entered(body: Node2D, boss_id: int) -> void:
 		return
 	if world.has_method("enter_boss_arena"):
 		world.enter_boss_arena(boss_id)
-
-func _spawn_merchants(boss_list: Array) -> void:
-	# One merchant just before the very first gate, then one between each pair
-	var first_y := _depth_to_y(boss_list[0].depth_meters)
-	_place_merchant(first_y * 0.5)
-
-	for i in range(boss_list.size() - 1):
-		var y_start := _depth_to_y(boss_list[i].depth_meters)
-		var y_end := _depth_to_y(boss_list[i + 1].depth_meters)
-		_place_merchant((y_start + y_end) / 2.0)
-
-func _place_merchant(y: float) -> void:
-	var merchant := MerchantScene.instantiate()
-	add_child(merchant)
-	merchant.position = Vector2(0, y)
-	merchant.interacted.connect(_on_merchant_interacted)
-
-func _on_merchant_interacted() -> void:
-	if world.has_method("open_shop"):
-		world.open_shop()
 
 # =============================================================================
 # FIELD MOBS - randomly pregenerated once when the tunnel is built (not

@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://dqb22iy6ohioq"
+path="res://.godot/imported/rapidVenting.aseprite-0bb2b275b2611d891e232b074a78b7d9.res"
+
+[deps]
+
+source_file="res://assets/robot/skillTree/overheat/rapidVenting.aseprite"
+dest_files=["res://.godot/imported/rapidVenting.aseprite-0bb2b275b2611d891e232b074a78b7d9.res"]
+
+[params]
+

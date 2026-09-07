@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://b7f2q22q7nbjg"
+path="res://.godot/imported/guardianRelay.aseprite-b48f735f74e694a283c4f64ea87aec1f.res"
+
+[deps]
+
+source_file="res://assets/robot/skillTree/synergy/guardianRelay.aseprite"
+dest_files=["res://.godot/imported/guardianRelay.aseprite-b48f735f74e694a283c4f64ea87aec1f.res"]
+
+[params]
+

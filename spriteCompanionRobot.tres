@@ -1,6 +1,6 @@
 [gd_resource type="SpriteFrames" format=3 uid="uid://dvk6a7yhwbxi"]
 
-[ext_resource type="Texture2D" uid="uid://co4r03wvq22cf" path="res://assets/player/robotIdel.png" id="1_q66y1"]
+[ext_resource type="Texture2D" uid="uid://co4r03wvq22cf" path="res://assets/robot/robotIdel.png" id="1_q66y1"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_4bhp1"]
 atlas = ExtResource("1_q66y1")

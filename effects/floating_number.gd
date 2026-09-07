@@ -12,13 +12,17 @@ func setup(amount: float, is_heal: bool) -> void:
 
 	var settings := LabelSettings.new()
 	settings.font = font
-	settings.font_size = 14
+	var magnitude := maxf(1.0, absf(amount))
+	settings.font_size = clampi(14 + int(round(log(magnitude + 1.0) * 4.0)), 14, 28)
 	settings.outline_size = 3
 	settings.outline_color = Color(0, 0, 0, 0.9)
-	settings.font_color = Color(0.35, 1.0, 0.45) if is_heal else Color(1.0, 0.35, 0.3)
+	var intensity := clampf(log(magnitude + 1.0) / log(101.0), 0.0, 1.0)
+	var low_color := Color(0.35, 0.8, 0.45) if is_heal else Color(1.0, 0.35, 0.3)
+	var high_color := Color(0.7, 1.0, 0.95) if is_heal else Color(1.0, 0.9, 0.2)
+	settings.font_color = low_color.lerp(high_color, intensity)
 
 	label.label_settings = settings
-	label.text = ("+" if is_heal else "-") + str(int(round(amount)))
+	label.text = ("+" if is_heal else "-") + (str(int(round(amount))) if magnitude >= 1.0 else "1")
 
 	# Small random horizontal scatter so stacked hits don't fully overlap.
 	position.x += randf_range(-8.0, 8.0)

@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://jlefpdskm51j"
+path="res://.godot/imported/dataHarvesting.aseprite-511c1bc0338b553ba7b9e214ec3180f8.res"
+
+[deps]
+
+source_file="res://assets/robot/skillTree/compendium/dataHarvesting.aseprite"
+dest_files=["res://.godot/imported/dataHarvesting.aseprite-511c1bc0338b553ba7b9e214ec3180f8.res"]
+
+[params]
+

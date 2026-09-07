@@ -10,3 +10,4 @@ name = "Harpoon Gun"
 description = "Fires a heavy piercing harpoon bolt."
 icon = ExtResource("2_icon")
 item_type = 4
+max_stack = 1

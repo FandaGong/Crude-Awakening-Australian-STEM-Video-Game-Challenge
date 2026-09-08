@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://m4fhqwpbx5xb"]
 
-[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_item"]
+[ext_resource type="Texture2D" uid="uid://ccl2xb3gpkofw" path="res://assets/items/pearlescentVolley.png" id="1_2gmot"]
+[ext_resource type="Script" uid="uid://gveo8rvjidg" path="res://scripts/items/item_data.gd" id="1_item"]
 
 [resource]
 script = ExtResource("1_item")
 id = "pearlescent_volley"
 name = "Pearlescent Volley"
 description = "Fires 3 pearls in a cone toward your cursor, each delivering an instant +10% cure burst to mobs hit."
-item_type = 0
+icon = ExtResource("1_2gmot")

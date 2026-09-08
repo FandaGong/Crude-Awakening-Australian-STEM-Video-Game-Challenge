@@ -95,3 +95,11 @@ func _on_mob_cured(_mob: MutantMob) -> void:
 ## one-shot mobs_cleared signal has already fired and won't fire again.
 func mobs_already_cleared() -> bool:
 	return _remaining_mobs <= 0
+
+func reset_encounter() -> void:
+	for child in get_children():
+		if child is MutantMob:
+			child.free()
+	_remaining_mobs = mob_count + sponges_per_level
+	_spawn_preloaded_mobs()
+	set_mobs_active(false)

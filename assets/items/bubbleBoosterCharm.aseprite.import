@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://dyudbj6wd68f4"
+path="res://.godot/imported/bubbleBoosterCharm.aseprite-376d585414ffaafb67d1296f3949a54c.res"
+
+[deps]
+
+source_file="res://assets/items/bubbleBoosterCharm.aseprite"
+dest_files=["res://.godot/imported/bubbleBoosterCharm.aseprite-376d585414ffaafb67d1296f3949a54c.res"]
+
+[params]
+

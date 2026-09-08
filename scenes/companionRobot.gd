@@ -46,7 +46,8 @@ func _ready() -> void:
 	healing_injection_timer = healing_injection_interval
 
 func _physics_process(delta: float) -> void:
-	if not player or not player.hasRobotCompanion:
+	if not player or player.isDead or not player.hasRobotCompanion:
+		_clear_active_beam()
 		hide()
 		if light_beam:
 			light_beam.visible = false

@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://c74p4paqtnynn"]
 
-[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_item"]
+[ext_resource type="Script" uid="uid://gveo8rvjidg" path="res://scripts/items/item_data.gd" id="1_item"]
+[ext_resource type="Texture2D" uid="uid://c5db87pjii7vt" path="res://assets/items/beakOfTheAbyssalSovereign.png" id="1_mtiqy"]
 
 [resource]
 script = ExtResource("1_item")
 id = "beak_sovereign"
 name = "Beak of the Abyssal Sovereign"
 description = "Compendium Singularity: fully-cured mobs burst, giving nearby mobs +20% cure."
-item_type = 0
+icon = ExtResource("1_mtiqy")

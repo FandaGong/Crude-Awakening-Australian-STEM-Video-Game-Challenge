@@ -1,10 +1,12 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://b3dt2ilgoa6fr"]
 
-[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_item"]
+[ext_resource type="Script" uid="uid://gveo8rvjidg" path="res://scripts/items/item_data.gd" id="1_item"]
+[ext_resource type="Texture2D" uid="uid://c7hn3w28vn1ql" path="res://assets/items/gazerHelmet.png" id="1_sjvaj"]
 
 [resource]
 script = ExtResource("1_item")
 id = "gazer_helmet"
 name = "Gazer Helmet"
 description = "Taking body damage flashes a stun shockwave to nearby mobs (10s cooldown)."
+icon = ExtResource("1_sjvaj")
 item_type = 1

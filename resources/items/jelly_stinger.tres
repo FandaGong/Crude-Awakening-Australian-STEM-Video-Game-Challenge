@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://dk13axlskfwfu"]
 
-[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_item"]
+[ext_resource type="Script" uid="uid://gveo8rvjidg" path="res://scripts/items/item_data.gd" id="1_item"]
+[ext_resource type="Texture2D" uid="uid://531cer17k6u2" path="res://assets/items/jellyStinger.png" id="1_k67kq"]
 
 [resource]
 script = ExtResource("1_item")
 id = "jelly_stinger"
 name = "Jelly Stinger"
 description = "Fires a fast lightning tether toward your cursor. Stuns the hit mob for 1.5s so the Robot can lock on."
-item_type = 0
+icon = ExtResource("1_k67kq")

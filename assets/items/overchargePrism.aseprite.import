@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://cow0qgul15hx3"
+path="res://.godot/imported/overchargePrism.aseprite-5a18e935ce4dd12ce448cae281b68a08.res"
+
+[deps]
+
+source_file="res://assets/items/overchargePrism.aseprite"
+dest_files=["res://.godot/imported/overchargePrism.aseprite-5a18e935ce4dd12ce448cae281b68a08.res"]
+
+[params]
+

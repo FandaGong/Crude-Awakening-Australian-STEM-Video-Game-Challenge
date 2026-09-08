@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://dnvt7arpy6ujm"
+path="res://.godot/imported/microplasticRecycler.aseprite-8ff7632f9588c2f9b2aa5f6d2665804f.res"
+
+[deps]
+
+source_file="res://assets/items/microplasticRecycler.aseprite"
+dest_files=["res://.godot/imported/microplasticRecycler.aseprite-8ff7632f9588c2f9b2aa5f6d2665804f.res"]
+
+[params]
+

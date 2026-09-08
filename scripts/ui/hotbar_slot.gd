@@ -53,9 +53,13 @@ func _drop_data(_at_position: Vector2, data: Variant) -> void:
 ## Active abilities and otter weapons can be assigned here. Robot gear stays
 ## in the robot inventory and cannot occupy an otter hotbar slot.
 func _dragged_ability_item(data: Variant) -> ItemData:
-	if not (data is SlotUI):
+	var slot_data: SlotData = null
+	if data is SlotUI:
+		slot_data = data.slot_data
+	elif data is Dictionary:
+		slot_data = data.get("slot_data") as SlotData
+	else:
 		return null
-	var slot_data: SlotData = data.slot_data
 	if not slot_data or not slot_data.item_data:
 		return null
 	var item: ItemData = slot_data.item_data

@@ -1,10 +1,12 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://dsfle00rmor4q"]
 
-[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_item"]
+[ext_resource type="Script" uid="uid://gveo8rvjidg" path="res://scripts/items/item_data.gd" id="1_item"]
+[ext_resource type="Texture2D" uid="uid://dupkurpjr8byr" path="res://assets/items/bioElectricVest.png" id="1_nk60n"]
 
 [resource]
 script = ExtResource("1_item")
 id = "bio_electric_vest"
 name = "Bio-Electric Vest"
 description = "A static aura pushes back and stuns any mob that touches the Otter."
+icon = ExtResource("1_nk60n")
 item_type = 2

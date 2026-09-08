@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://4x83tsmhnnrd"
+path="res://.godot/imported/gazerHelmet.aseprite-885cec2b031981bd9ea09ef387fa298b.res"
+
+[deps]
+
+source_file="res://assets/items/gazerHelmet.aseprite"
+dest_files=["res://.godot/imported/gazerHelmet.aseprite-885cec2b031981bd9ea09ef387fa298b.res"]
+
+[params]
+

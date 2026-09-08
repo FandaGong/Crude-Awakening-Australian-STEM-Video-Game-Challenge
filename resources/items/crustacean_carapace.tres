@@ -1,10 +1,12 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://ckaiokiwfmurs"]
 
-[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_item"]
+[ext_resource type="Texture2D" uid="uid://c7a0qgm7cgs3w" path="res://assets/items/crustaceanCarapace.png" id="1_guc44"]
+[ext_resource type="Script" uid="uid://gveo8rvjidg" path="res://scripts/items/item_data.gd" id="1_item"]
 
 [resource]
 script = ExtResource("1_item")
 id = "crustacean_carapace"
 name = "Crustacean Carapace"
 description = "+3 Armor. Below 30% health, halves incoming damage for 10s (15s cooldown)."
+icon = ExtResource("1_guc44")
 item_type = 2

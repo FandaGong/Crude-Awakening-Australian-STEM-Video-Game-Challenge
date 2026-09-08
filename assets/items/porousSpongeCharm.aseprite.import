@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://n2be5i7ifxj7"
+path="res://.godot/imported/porousSpongeCharm.aseprite-da61f374879243c9f00f2fce17d49de1.res"
+
+[deps]
+
+source_file="res://assets/items/porousSpongeCharm.aseprite"
+dest_files=["res://.godot/imported/porousSpongeCharm.aseprite-da61f374879243c9f00f2fce17d49de1.res"]
+
+[params]
+

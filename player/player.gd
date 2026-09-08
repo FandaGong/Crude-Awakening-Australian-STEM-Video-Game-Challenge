@@ -18,6 +18,9 @@ var currentAir: float = maxAir
 
 var isDead: bool = false
 var respawn_immunity: float = 0.0
+const REWIND_HISTORY_SECONDS := 3.0
+var _rewind_history: Array[Dictionary] = []
+var _rewind_sample_timer: float = 0.0
 
 # --- INVENTORY & HOTBAR ---
 var inventory: Array[String] = ["Potion", "Fish", "Shell"] # Temporary test list
@@ -97,16 +100,14 @@ func _bind_water_area(water: Area2D) -> void:
 		water.body_exited.connect(_on_water_area_body_exited)
 
 func _physics_process(delta: float) -> void:
+	if isDead:
+		velocity = Vector2.ZERO
+		return
 	respawn_immunity = maxf(0.0, respawn_immunity - delta)
 	if respawn_immunity > 0.0 and sprite:
 		sprite.visible = int(respawn_immunity * 12.0) % 2 == 0
 	elif sprite:
 		sprite.visible = true
-	if isDead:
-		velocity.x = move_toward(velocity.x, 0, walkSpeed * delta)
-		move_and_slide()
-		return
-
 	# Don't process gameplay on titlescreen
 	var ui = get_tree().root.get_node_or_null("Main/UI")
 	if ui and ui.current_state == ui.UIState.TITLE:
@@ -129,6 +130,34 @@ func _physics_process(delta: float) -> void:
 	updateAnimation()
 	move_and_slide()
 	queue_redraw()
+	_record_rewind_state(delta)
+
+func _record_rewind_state(delta: float) -> void:
+	_rewind_sample_timer -= delta
+	if _rewind_sample_timer > 0.0:
+		return
+	_rewind_sample_timer = 0.1
+	_rewind_history.append({
+		"position": global_position,
+		"velocity": velocity,
+		"state": currentState,
+		"health": currentHealth,
+		"air": currentAir
+	})
+	while _rewind_history.size() > int(REWIND_HISTORY_SECONDS / 0.1):
+		_rewind_history.pop_front()
+
+func rewind_to_recent_state(seconds: float = 1.5) -> void:
+	if _rewind_history.is_empty():
+		return
+	var index := maxi(0, _rewind_history.size() - 1 - int(seconds / 0.1))
+	var state: Dictionary = _rewind_history[index]
+	global_position = state["position"]
+	velocity = Vector2.ZERO
+	currentState = state["state"]
+	currentHealth = minf(maxHealth, maxf(1.0, state["health"]))
+	currentAir = clampf(state["air"], 0.0, maxAir)
+	_rewind_history.clear()
 
 func _updateJumpTimers(delta: float) -> void:
 	if currentState == State.LAND and is_on_floor():
@@ -303,6 +332,9 @@ func die() -> void:
 	if isDead:
 		return
 	isDead = true
+	velocity = Vector2.ZERO
+	if sprite:
+		sprite.visible = false
 	currentHealth = 0.0
 	died.emit()
 
@@ -318,11 +350,16 @@ func respawn(atPosition: Vector2) -> void:
 	sprite.flip_h = false
 	currentSwimAngle = 0.0
 	respawn_immunity = 2.5
+	visible = true
+	if sprite:
+		sprite.visible = true
 	respawned.emit()
 
 # --- HOTBAR & ABILITIES ---
 
 func handleHotbarInput() -> void:
+	if isDead:
+		return
 	if Input.is_action_just_pressed("hotbar_1") and inventory.size() > 0:
 		activeSlotIndex = 0
 		_on_hotbar_selected(1)
@@ -339,6 +376,8 @@ func _on_hotbar_selected(slot: int) -> void:
 		ui._update_hotbar_selection(slot)
 
 func handleShootInput() -> void:
+	if isDead:
+		return
 	# Mouse-aimed abilities are robot-converted upgrades. The otter has no
 	# access to them until the scientist assigns the companion.
 	if not GameData.is_robot_unlocked:

@@ -13,9 +13,9 @@ var state_before_settings: UIState = UIState.TITLE
 @onready var hud_compendium_label: Label = $HUD/compendiumDataDisplay/compendiumLabel
 
 # --- COOLDOWN & SLOT REFERENCES (Added to fix the "not declared" error) ---
-@onready var slot1: TextureButton = $HUD/hotbarContainer/slot1
-@onready var slot2: TextureButton = $HUD/hotbarContainer/slot2
-@onready var slot3: TextureButton = $HUD/hotbarContainer/slot3
+@onready var slot1: TextureButton = $HUD/hotbarContainer/TextureButton
+@onready var slot2: TextureButton = $HUD/hotbarContainer/TextureButton2
+@onready var slot3: TextureButton = $HUD/hotbarContainer/TextureButton3
 
 # References relative to this UI node
 @onready var player: CharacterBody2D = $"../World/player"
@@ -25,13 +25,16 @@ var state_before_settings: UIState = UIState.TITLE
 @onready var inventory_panel: Control = $HUD/inventoryPanel
 var inventory_visible: bool = false
 
+@onready var robot_inventory_button: TextureButton = $HUD/robotInventoryButton
 @onready var robot_inventory_panel: Control = $HUD/robotInventoryPanel
 var robot_inventory_visible: bool = false
 
 func _ready() -> void:
 	add_to_group("ui_controller")
 	GameData.compendium_data_changed.connect(_on_compendium_data_changed)
+	GameData.robot_unlocked_changed.connect(_on_robot_unlocked_changed)
 	_update_compendium_label(GameData.compendium_data)
+	_update_robot_inventory_button(GameData.is_robot_unlocked)
 	_set_state(UIState.TITLE)
 	
 	# Highlight slot 1 on startup
@@ -42,6 +45,8 @@ func _ready() -> void:
 	if slot1: slot1.pressed.connect(_on_slot1_pressed)
 	if slot2: slot2.pressed.connect(_on_slot2_pressed)
 	if slot3: slot3.pressed.connect(_on_slot3_pressed)
+	if robot_inventory_button:
+		robot_inventory_button.pressed.connect(_on_robot_inventory_button_pressed)
 	
 	# --- AUTOMATIC CONTAINER SIZE DIAGNOSTIC ---
 	# If your container has collapsed to (0, 0), this will print a warning in your console.
@@ -206,6 +211,20 @@ func _toggle_inventory() -> void:
 func _on_inventory_button_pressed() -> void:
 	_toggle_inventory()
 
+func _on_robot_inventory_button_pressed() -> void:
+	_toggle_robot_inventory()
+
+func _on_robot_unlocked_changed(unlocked: bool) -> void:
+	_update_robot_inventory_button(unlocked)
+
+func _update_robot_inventory_button(unlocked: bool) -> void:
+	if robot_inventory_button:
+		robot_inventory_button.visible = unlocked
+	if not unlocked and robot_inventory_visible:
+		robot_inventory_visible = false
+		if robot_inventory_panel:
+			robot_inventory_panel.hide()
+
 
 func _toggle_robot_inventory() -> void:
 	if current_state != UIState.PLAYING:
@@ -253,7 +272,16 @@ func _update_hotbar_selection(slot: int) -> void:
 
 func _on_hud_pause_button_pressed() -> void:
 	if current_state == UIState.PLAYING:
+		_close_open_inventories()
 		_set_state(UIState.PAUSED)
+
+func _close_open_inventories() -> void:
+	inventory_visible = false
+	robot_inventory_visible = false
+	if inventory_panel:
+		inventory_panel.hide()
+	if robot_inventory_panel:
+		robot_inventory_panel.hide()
 
 # --- MOUSE CLICK SIGNALS FOR HOTBAR SLOTS ---
 

@@ -160,6 +160,7 @@ func _play_black_hole_departure(player_node: Node2D) -> void:
 	if player_node:
 		targets.append(player_node)
 		saved_transforms.append([player_node.scale, player_node.rotation])
+		player_node.visible = false
 
 	await hole.grow()
 	await hole.consume(targets)

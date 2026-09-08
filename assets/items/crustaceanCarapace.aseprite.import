@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://dd4ae24nabx84"
+path="res://.godot/imported/crustaceanCarapace.aseprite-240e4a54bc67bcd78e878eb29d5e20f2.res"
+
+[deps]
+
+source_file="res://assets/items/crustaceanCarapace.aseprite"
+dest_files=["res://.godot/imported/crustaceanCarapace.aseprite-240e4a54bc67bcd78e878eb29d5e20f2.res"]
+
+[params]
+

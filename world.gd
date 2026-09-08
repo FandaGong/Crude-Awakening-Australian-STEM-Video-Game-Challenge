@@ -39,6 +39,10 @@ var current_level_boss_data: BossData = null
 # marker - the same coordinates the otter arrives at - and stays inert
 # until its level's boss is cured.
 var current_level_time_machine: Area2D = null
+const TIMELINE_SAMPLE_INTERVAL := 0.1
+const TIMELINE_SECONDS := 3.0
+var _timeline_timer: float = 0.0
+var _timeline_history: Array[Dictionary] = []
 
 func _ready() -> void:
 	add_to_group("world")
@@ -48,6 +52,51 @@ func _ready() -> void:
 		for i in range(1, LEVEL_COUNT + 1):
 			level_nodes.append(levels_root.get_node_or_null("Level%d" % i))
 	teleport_player_to_pond()
+
+func _process(delta: float) -> void:
+	if player and not player.isDead:
+		_timeline_timer -= delta
+		if _timeline_timer <= 0.0:
+			_timeline_timer = TIMELINE_SAMPLE_INTERVAL
+			_record_timeline_state()
+
+func _record_timeline_state() -> void:
+	var actors: Array[Dictionary] = []
+	for node in get_tree().get_nodes_in_group("corrupted_mobs") + get_tree().get_nodes_in_group("boss"):
+		if not is_instance_valid(node):
+			continue
+		var actor: Dictionary = {"node": node, "position": node.global_position}
+		if "velocity" in node:
+			actor["velocity"] = node.velocity
+		if "currentHealth" in node:
+			actor["health"] = node.currentHealth
+		if "current_health" in node:
+			actor["health"] = node.current_health
+		actors.append(actor)
+	_timeline_history.append({"player": player.global_position, "actors": actors})
+	while _timeline_history.size() > int(TIMELINE_SECONDS / TIMELINE_SAMPLE_INTERVAL):
+		_timeline_history.pop_front()
+
+func rewind_timeline(seconds: float = 1.5) -> void:
+	if _timeline_history.is_empty():
+		return
+	var index := maxi(0, _timeline_history.size() - 1 - int(seconds / TIMELINE_SAMPLE_INTERVAL))
+	var snapshot: Dictionary = _timeline_history[index]
+	if player and player.has_method("rewind_to_recent_state"):
+		player.rewind_to_recent_state(seconds)
+	for actor_data in snapshot["actors"]:
+		var actor = actor_data["node"]
+		if not is_instance_valid(actor) or actor.is_queued_for_deletion():
+			continue
+		actor.global_position = actor_data["position"]
+		if actor_data.has("velocity") and "velocity" in actor:
+			actor.velocity = actor_data["velocity"]
+		if actor_data.has("health"):
+			if "currentHealth" in actor:
+				actor.currentHealth = actor_data["health"]
+			elif "current_health" in actor:
+				actor.current_health = actor_data["health"]
+	_timeline_history.clear()
 
 # --- Overworld areas --------------------------------------------------------
 
@@ -60,6 +109,7 @@ func teleport_player_to_pond() -> void:
 	current_spawn_position = pond_spawn.global_position
 	player.global_position = current_spawn_position
 	player.currentState = player.State.LAND
+	player.visible = true
 
 ## Sends the player back to the scientist's lab hub (the 2126 wasteland
 ## around pondScene) without re-running the opening pond sequence. Called
@@ -122,11 +172,8 @@ func return_to_time_machine() -> void:
 	_clear_level_time_machine()
 	current_level_index = -1
 	var spawn: Vector2 = lab_return_spawn.global_position if lab_return_spawn else pond_spawn.global_position
-	if time_machine:
-		spawn = time_machine.global_position + Vector2(18.0, 55.0)
 	current_spawn_position = spawn
-	player.global_position = current_spawn_position
-	player.currentState = player.State.LAND
+	await _play_lab_arrival_effect(spawn)
 
 func transitionToEnding() -> void:
 	Effects.notify_level_changing()
@@ -134,6 +181,7 @@ func transitionToEnding() -> void:
 	current_spawn_position = ending_spawn.global_position
 	player.global_position = current_spawn_position
 	player.currentState = player.State.LAND
+	player.visible = true
 
 func enter_dive_tunnel() -> void:
 	Effects.notify_level_changing()
@@ -141,6 +189,7 @@ func enter_dive_tunnel() -> void:
 	current_spawn_position = dive_tunnel.global_position
 	player.global_position = current_spawn_position
 	player.currentState = player.State.SWIMMING
+	player.visible = true
 
 # --- Boss arenas -------------------------------------------------------------
 
@@ -163,6 +212,7 @@ func enter_boss_arena(boss_id: int) -> void:
 
 	player.global_position = current_boss_arena.global_position + current_boss_arena.player_spawn.position
 	player.currentState = player.State.SWIMMING
+	player.visible = true
 	current_spawn_position = player.global_position
 
 func _on_arena_boss_defeated(boss_id: int) -> void:
@@ -220,6 +270,7 @@ func enter_level(era_index: int) -> void:
 	current_spawn_position = level.player_spawn.global_position
 	player.global_position = current_spawn_position
 	player.currentState = player.State.SWIMMING
+	player.visible = true
 
 	_spawn_level_time_machine(level, era_index)
 
@@ -319,15 +370,25 @@ func _clear_level_boss() -> void:
 # --- Death / respawn -----------------------------------------------------------
 
 func _on_player_died() -> void:
+	player.set_physics_process(false)
+	player.visible = false
 	var dialogue_box := get_tree().get_first_node_in_group("dialogue_box") as DialogueBox
 	if dialogue_box:
 		dialogue_box.show_lines(PackedStringArray(["Robot: Well, that was unfortunate. We can only go back in time and try again."]))
 		await dialogue_box.finished
 	_play_rewind_screen()
 	await get_tree().create_timer(1.1).timeout
+	var level_to_reset := current_level_index
+	if level_to_reset >= 0 and level_to_reset < level_nodes.size():
+		var level: Node = level_nodes[level_to_reset]
+		if level and level.has_method("reset_encounter"):
+			level.reset_encounter()
+	_clear_level_boss()
+	_timeline_history.clear()
 	GameData.time_revival_pending = true
-	return_to_time_machine()
+	await return_to_time_machine()
 	player.respawn(current_spawn_position)
+	player.set_physics_process(true)
 
 func _play_rewind_screen() -> void:
 	var layer := CanvasLayer.new()

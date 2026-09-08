@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://bpe5b8iwk3xb3"
+path="res://.godot/imported/abyssalFlare.aseprite-704df62dbe778eb0c47ec2c3a3e156f8.res"
+
+[deps]
+
+source_file="res://assets/items/abyssalFlare.aseprite"
+dest_files=["res://.godot/imported/abyssalFlare.aseprite-704df62dbe778eb0c47ec2c3a3e156f8.res"]
+
+[params]
+

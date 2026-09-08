@@ -1,10 +1,12 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://dshncn8i7yn4h"]
 
-[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_item"]
+[ext_resource type="Script" uid="uid://gveo8rvjidg" path="res://scripts/items/item_data.gd" id="1_item"]
+[ext_resource type="Texture2D" uid="uid://b27ud83o0fedd" path="res://assets/items/pearlCrown.png" id="1_mkxdi"]
 
 [resource]
 script = ExtResource("1_item")
 id = "pearl_crown"
 name = "Pearl Crown"
 description = "Increases the Robot's auto-firing range and lock-on speed by 25%."
+icon = ExtResource("1_mkxdi")
 item_type = 1

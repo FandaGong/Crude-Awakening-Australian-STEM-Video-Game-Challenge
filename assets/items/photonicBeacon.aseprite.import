@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://c4dwm0wqx2n2g"
+path="res://.godot/imported/photonicBeacon.aseprite-289d13a3044c626527e7123ff952e718.res"
+
+[deps]
+
+source_file="res://assets/items/photonicBeacon.aseprite"
+dest_files=["res://.godot/imported/photonicBeacon.aseprite-289d13a3044c626527e7123ff952e718.res"]
+
+[params]
+

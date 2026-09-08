@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://bqthlrgg7apkk"]
 
-[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_item"]
+[ext_resource type="Texture2D" uid="uid://6myje4cl550e" path="res://assets/items/abyssalFlare.png" id="1_i80we"]
+[ext_resource type="Script" uid="uid://gveo8rvjidg" path="res://scripts/items/item_data.gd" id="1_item"]
 
 [resource]
 script = ExtResource("1_item")
 id = "abyssal_flare"
 name = "Abyssal Flare"
 description = "Projects an intense beam toward your cursor. Blinds mobs caught in it, sending them fleeing for 3s."
-item_type = 0
+icon = ExtResource("1_i80we")

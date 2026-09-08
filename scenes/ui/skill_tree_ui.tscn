@@ -291,8 +291,8 @@ skill_id = "heat_4"
 layout_mode = 0
 offset_left = 111.0
 offset_top = -1.0
-offset_right = 223.0
-offset_bottom = 54.0
+offset_right = 252.0
+offset_bottom = 67.0
 theme = SubResource("Theme_uqk8q")
 theme_override_styles/panel = SubResource("StyleBoxTexture_6uidu")
 

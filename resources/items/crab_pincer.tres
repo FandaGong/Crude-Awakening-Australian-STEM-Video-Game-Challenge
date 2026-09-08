@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://85i40so5y8q4"]
 
-[ext_resource type="Script" path="res://scripts/items/item_data.gd" id="1_item"]
+[ext_resource type="Script" uid="uid://gveo8rvjidg" path="res://scripts/items/item_data.gd" id="1_item"]
+[ext_resource type="Texture2D" uid="uid://dkwohucr04ona" path="res://assets/items/crabPincer.png" id="1_o2n6x"]
 
 [resource]
 script = ExtResource("1_item")
 id = "crab_pincer"
 name = "Crab Pincer"
 description = "Snaps heavy claws in a wide arc toward your cursor. Knocks mobs back 2.5 tiles and slows them 60% for 2s."
-item_type = 0
+icon = ExtResource("1_o2n6x")

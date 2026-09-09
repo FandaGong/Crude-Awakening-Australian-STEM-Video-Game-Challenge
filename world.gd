@@ -5,6 +5,7 @@ const TimeTravelOverlayScene := preload("res://ui/time_travel_overlay.tscn")
 const BossScene := preload("res://bosses/boss.tscn")
 const TimeMachineScene := preload("res://npc/time_machine.tscn")
 const BlackHoleEffectScene := preload("res://effects/black_hole.tscn")
+const GrayscaleOverlayScene := preload("res://effects/grayscale_overlay.tscn")
 const ARENA_OFFSET := Vector2(6000, 0)
 const LEVEL_COUNT := 6
 
@@ -43,14 +44,21 @@ const TIMELINE_SAMPLE_INTERVAL := 0.1
 const TIMELINE_SECONDS := 3.0
 var _timeline_timer: float = 0.0
 var _timeline_history: Array[Dictionary] = []
+var _grayscale_overlay: CanvasLayer
+var _grayscale_material: ShaderMaterial
 
 func _ready() -> void:
 	add_to_group("world")
+	_grayscale_overlay = GrayscaleOverlayScene.instantiate()
+	add_child(_grayscale_overlay)
+	_grayscale_material = _grayscale_overlay.get_node("BackBufferCopy/ColorRect").material as ShaderMaterial
+	_set_grayscale_for_level(-1)
 	if player.has_signal("died"):
 		player.died.connect(_on_player_died)
 	if levels_root:
 		for i in range(1, LEVEL_COUNT + 1):
 			level_nodes.append(levels_root.get_node_or_null("Level%d" % i))
+	_set_level_atmosphere(-1)
 	teleport_player_to_pond()
 
 func _process(delta: float) -> void:
@@ -102,6 +110,7 @@ func rewind_timeline(seconds: float = 1.5) -> void:
 
 func teleport_player_to_pond() -> void:
 	Effects.notify_level_changing()
+	_set_level_atmosphere(-1)
 	_clear_active_boss_arena()
 	_clear_level_boss()
 	_clear_level_time_machine()
@@ -123,6 +132,7 @@ func teleport_player_to_pond() -> void:
 ## black hole opens up on it, the otter hops out, and the hole shrinks away.
 func return_to_lab() -> void:
 	Effects.notify_level_changing()
+	_set_level_atmosphere(-1)
 	_clear_active_boss_arena()
 	_clear_level_boss()
 	_clear_level_time_machine()
@@ -167,6 +177,7 @@ func _play_lab_arrival_effect(spawn_pos: Vector2) -> void:
 ## rather than just reappearing somewhere in the lab.
 func return_to_time_machine() -> void:
 	Effects.notify_level_changing()
+	_set_level_atmosphere(-1)
 	_clear_active_boss_arena()
 	_clear_level_boss()
 	_clear_level_time_machine()
@@ -175,8 +186,27 @@ func return_to_time_machine() -> void:
 	current_spawn_position = spawn
 	await _play_lab_arrival_effect(spawn)
 
+## The robot's first instruction is spatial as well as verbal: it heads for
+## the lab time machine and leaves a visible arrow trail for the otter.
+func guide_player_to_time_machine() -> void:
+	if not time_machine or GameData.has_seen_time_machine_guidance:
+		return
+	var robot := get_node_or_null("CompanionRobot")
+	if robot and robot.has_method("guide_player_to"):
+		GameData.has_seen_time_machine_guidance = true
+		robot.guide_player_to(time_machine.global_position)
+
+## After the first death, lead the otter from the return machine back to the
+## scientist. Later deaths deliberately use only the rewind effect.
+func guide_player_to_scientist() -> void:
+	var scientist := pond_scene.get_node_or_null("Scientist") as Node2D if pond_scene else null
+	var robot := get_node_or_null("CompanionRobot")
+	if scientist and robot and robot.has_method("guide_player_to"):
+		robot.guide_player_to(scientist.global_position)
+
 func transitionToEnding() -> void:
 	Effects.notify_level_changing()
+	_set_level_atmosphere(-1)
 	_clear_active_boss_arena()
 	current_spawn_position = ending_spawn.global_position
 	player.global_position = current_spawn_position
@@ -185,6 +215,7 @@ func transitionToEnding() -> void:
 
 func enter_dive_tunnel() -> void:
 	Effects.notify_level_changing()
+	_set_level_atmosphere(-1)
 	_clear_active_boss_arena()
 	current_spawn_position = dive_tunnel.global_position
 	player.global_position = current_spawn_position
@@ -266,6 +297,8 @@ func enter_level(era_index: int) -> void:
 	_clear_active_boss_arena()
 	_clear_level_boss()
 	current_level_index = era_index
+	_set_level_atmosphere(era_index)
+	_set_grayscale_for_level(era_index)
 
 	current_spawn_position = level.player_spawn.global_position
 	player.global_position = current_spawn_position
@@ -279,6 +312,27 @@ func enter_level(era_index: int) -> void:
 		level.connect("mobs_cleared", clear_callback)
 	level.set_mobs_active(false)
 	_show_level_briefing(era_index)
+
+## Only the atmosphere belonging to the active historical level is allowed to
+## render. The level scenes remain loaded for their mobs and terrain, but
+## their parallax background layers cannot bleed into another level or the
+## laboratory hub.
+func _set_level_atmosphere(active_index: int) -> void:
+	for i in range(level_nodes.size()):
+		var level: Node = level_nodes[i]
+		if not level:
+			continue
+		var atmosphere := level.get_node_or_null("atmosphere") as CanvasItem
+		if atmosphere:
+			atmosphere.visible = i == active_index
+
+func _set_grayscale_for_level(era_index: int) -> void:
+	if not _grayscale_material:
+		return
+	var grayscale_amount := 0.0
+	if era_index >= 0 and LEVEL_COUNT > 1:
+		grayscale_amount = 1.0 - float(era_index) / float(LEVEL_COUNT - 1)
+	_grayscale_material.set_shader_parameter("grayscale_amount", grayscale_amount)
 
 ## Drops this level's return-trip time machine right on top of the otter's
 ## spawn point - the same coordinates every time this level is entered -
@@ -314,6 +368,7 @@ func _show_level_briefing(era_index: int) -> void:
 	var level: Node = level_nodes[era_index]
 	var on_briefing_done := func() -> void:
 		level.set_mobs_active(true)
+		_start_first_level_guidance(level, era_index)
 		# Re-entering a level whose field mobs were already cured before the
 		# otter died to its boss: mobs_cleared already fired once and won't
 		# fire again, so spawn the boss directly instead of waiting forever.
@@ -321,12 +376,32 @@ func _show_level_briefing(era_index: int) -> void:
 			_spawn_level_boss(level, era_index)
 	dialogue_box.finished.connect(on_briefing_done, CONNECT_ONE_SHOT)
 
+## The robot teaches the full encounter loop once, in the first era.  It
+## leads to the field-mob area after the briefing, then world progression
+## advances that same arrow trail to the boss and finally to the return
+## machine.  The flag is set when this sequence begins so a death/re-entry
+## cannot restart the tutorial partway through.
+func _start_first_level_guidance(level: Node, era_index: int) -> void:
+	if era_index != 0 or GameData.has_seen_first_level_guidance:
+		return
+	if not level or not level.mob_spawn_center:
+		return
+	GameData.has_seen_first_level_guidance = true
+	_guide_player_to(level.mob_spawn_center.global_position)
+
+func _guide_player_to(destination: Vector2) -> void:
+	var robot := get_node_or_null("CompanionRobot")
+	if robot and robot.has_method("guide_player_to"):
+		robot.guide_player_to(destination)
+
 func _on_level_mobs_cleared(era_index: int) -> void:
 	if era_index != current_level_index:
 		return
 	var level: Node = level_nodes[era_index]
 	if level:
 		_spawn_level_boss(level, era_index)
+		if era_index == 0 and GameData.has_seen_first_level_guidance and level.boss_spawn:
+			_guide_player_to(level.boss_spawn.global_position)
 
 func _spawn_level_boss(level: Node, era_index: int) -> void:
 	if current_level_boss and is_instance_valid(current_level_boss):
@@ -356,6 +431,8 @@ func _on_level_boss_defeated(_boss_id: int, _era_index: int) -> void:
 	# next era, or - after the sixth boss - out into the restored ending.
 	if current_level_time_machine and is_instance_valid(current_level_time_machine):
 		current_level_time_machine.enable_return()
+		if _era_index == 0 and GameData.has_seen_first_level_guidance:
+			_guide_player_to(current_level_time_machine.global_position)
 
 func _clear_level_boss() -> void:
 	if current_level_boss and is_instance_valid(current_level_boss):
@@ -373,8 +450,10 @@ func _on_player_died() -> void:
 	player.set_physics_process(false)
 	player.visible = false
 	var dialogue_box := get_tree().get_first_node_in_group("dialogue_box") as DialogueBox
-	if dialogue_box:
-		dialogue_box.show_lines(PackedStringArray(["Robot: Well, that was unfortunate. We can only go back in time and try again."]))
+	var show_death_guidance := not GameData.has_seen_death_guidance
+	if dialogue_box and show_death_guidance:
+		GameData.has_seen_death_guidance = true
+		dialogue_box.show_lines(PackedStringArray(["Robot: Temporal recovery initiated. Follow me to the scientist for recalibration."]))
 		await dialogue_box.finished
 	_play_rewind_screen()
 	await get_tree().create_timer(1.1).timeout
@@ -385,10 +464,11 @@ func _on_player_died() -> void:
 			level.reset_encounter()
 	_clear_level_boss()
 	_timeline_history.clear()
-	GameData.time_revival_pending = true
 	await return_to_time_machine()
 	player.respawn(current_spawn_position)
 	player.set_physics_process(true)
+	if show_death_guidance:
+		guide_player_to_scientist()
 
 func _play_rewind_screen() -> void:
 	var layer := CanvasLayer.new()

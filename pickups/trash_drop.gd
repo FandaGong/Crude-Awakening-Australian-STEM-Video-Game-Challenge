@@ -2,7 +2,8 @@ extends Node2D
 class_name TrashDrop
 
 ## Auto-collecting trash drop, spawned when a mob is fully cured (see
-## mutant_mob.gd's cureMob() and boss.gd's _die(), via Effects.spawn_trash_drop()).
+## Legacy trash-pickup behaviour. Mobs and bosses now credit Compendium Data
+## directly, so new instances of this scene are no longer created.
 ##
 ## Lifecycle: scatters a short distance away from the mob -> settles (drifts
 ## slowly down if it's in water, or drops straight down onto the ground if
@@ -154,6 +155,4 @@ func _fly_to_counter() -> void:
 func _finish_collect() -> void:
 	if GameData:
 		GameData.add_trash(trash_size)
-	if Effects:
-		Effects.pulse_trash_counter()
 	queue_free()

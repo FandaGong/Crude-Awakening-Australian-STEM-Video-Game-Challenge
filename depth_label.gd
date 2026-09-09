@@ -4,10 +4,12 @@ extends Label
 @export var waterSurfaceY: float = 2100.0 # Adjust this to match the Y coordinate of your water line
 
 func _process(_delta: float) -> void:
-	if player:
-		# Only calculate depth if the player is below the water surface level
-		if player.global_position.y > waterSurfaceY:
-			var calculatedDepth = (player.global_position.y - waterSurfaceY) / 10.0
-			text = "Depth: " + str(int(calculatedDepth)) + " (m)"
-		else:
-			text = "Depth: 0 (m)"
+	var world := get_tree().get_first_node_in_group("world")
+	if world and world.current_level_index >= 0:
+		var level = world.level_nodes[world.current_level_index]
+		var remaining_mobs: int = level.get_remaining_mobs() if level else 0
+		var boss_id: int = world.current_level_index + 1
+		var remaining_bosses := 0 if GameData.is_boss_defeated(boss_id) else 1
+		text = "Mobs: %d  Bosses: %d" % [remaining_mobs, remaining_bosses]
+		return
+	text = "Mobs: 0  Bosses: 0"

@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://dfajv8c58bibm"
+path="res://.godot/imported/surfaceWater.aseprite-d0cf098827d334c318e2201a9b4c73f0.res"
+
+[deps]
+
+source_file="res://assets/backgrounds/oceanBG/waterBG/surfaceWater.aseprite"
+dest_files=["res://.godot/imported/surfaceWater.aseprite-d0cf098827d334c318e2201a9b4c73f0.res"]
+
+[params]
+

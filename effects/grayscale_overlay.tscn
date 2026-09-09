@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://emktyyr7hnlo"]
+
+[ext_resource type="Shader" uid="uid://bglwmjgqsgohg" path="res://effects/grayscale_overlay.gdshader" id="1_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_w1fr5"]
+shader = ExtResource("1_shader")
+
+[node name="GrayscaleOverlay" type="CanvasLayer" unique_id=1398896710]
+layer = 0
+
+[node name="BackBufferCopy" type="BackBufferCopy" parent="." unique_id=2058899621]
+visible = false
+position = Vector2(242.00002, 138.50002)
+scale = Vector2(2.4400003, 1.3750002)
+copy_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="BackBufferCopy" unique_id=1590010116]
+visible = false
+material = SubResource("ShaderMaterial_w1fr5")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -102.45901
+offset_top = -105.81818
+offset_right = -97.91662
+offset_bottom = -98.496216
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

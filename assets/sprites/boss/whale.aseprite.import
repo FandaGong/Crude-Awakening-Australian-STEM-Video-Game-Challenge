@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://cedlbyiqajh7e"
+path="res://.godot/imported/whale.aseprite-b63c1ef57f6a69f17532873d1fe84f31.res"
+
+[deps]
+
+source_file="res://assets/sprites/boss/whale.aseprite"
+dest_files=["res://.godot/imported/whale.aseprite-b63c1ef57f6a69f17532873d1fe84f31.res"]
+
+[params]
+

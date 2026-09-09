@@ -29,42 +29,62 @@ func _refresh_icon() -> void:
 		icon_rect.hide()
 
 func _get_assigned_item() -> ItemData:
-	if slot_index < 0 or slot_index >= GameData.active_abilities.size():
-		return null
-	var ability_id: String = GameData.active_abilities[slot_index]
-	if ability_id == "":
-		return null
-	var path := "res://resources/items/%s.tres" % ability_id
-	if ResourceLoader.exists(path):
-		return load(path)
-	return null
+	return GameData.get_hotbar_item(slot_index)
 
-# --- Drag & drop: accept ability items dragged from an inventory slot ---
+# --- Drag & drop: hotbar slots are movable inventory locations ---
+
+func _get_drag_data(_at_position: Vector2) -> Variant:
+	var item := _get_assigned_item()
+	if not item:
+		return null
+	var preview := TextureRect.new()
+	preview.texture = item.icon
+	preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	preview.custom_minimum_size = size
+	set_drag_preview(preview)
+	return {"source_hotbar_index": slot_index, "slot_data": null}
 
 func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
-	var item := _dragged_ability_item(data)
-	return item != null
+	var source_hotbar_index := _source_hotbar_index(data)
+	if source_hotbar_index >= 0:
+		return source_hotbar_index != slot_index
+	return _dragged_inventory_slot(data) != null
 
 func _drop_data(_at_position: Vector2, data: Variant) -> void:
-	var item := _dragged_ability_item(data)
-	if item:
-		GameData.set_hotbar_ability(slot_index, item.id)
+	var source_hotbar_index := _source_hotbar_index(data)
+	if source_hotbar_index >= 0:
+		GameData.swap_hotbar_slots(source_hotbar_index, slot_index)
+		return
+	var source_slot := _dragged_inventory_slot(data)
+	if source_slot:
+		GameData.move_inventory_to_hotbar(slot_index, source_slot.slot_data)
 
 ## Active abilities and otter weapons can be assigned here. Robot gear stays
 ## in the robot inventory and cannot occupy an otter hotbar slot.
 func _dragged_ability_item(data: Variant) -> ItemData:
-	var slot_data: SlotData = null
-	if data is SlotUI:
-		slot_data = data.slot_data
-	elif data is Dictionary:
-		slot_data = data.get("slot_data") as SlotData
-	else:
+	var source_hotbar_index := _source_hotbar_index(data)
+	if source_hotbar_index >= 0:
+		return GameData.get_hotbar_item(source_hotbar_index)
+	var source_slot := _dragged_inventory_slot(data)
+	if not source_slot:
 		return null
+	var slot_data: SlotData = source_slot.slot_data
 	if not slot_data or not slot_data.item_data:
 		return null
 	var item: ItemData = slot_data.item_data
-	if item.item_type == ItemData.ItemType.WEAPON:
-		return item
-	if item.id in GameData.ABILITY_ITEM_IDS and GameData.active_abilities.has(item.id):
-		return item
+	return item if GameData.is_hotbar_compatible(item) else null
+
+func _dragged_inventory_slot(data: Variant) -> SlotUI:
+	if data is SlotUI:
+		return data if data.hotbar_slot_index < 0 else null
+	if data is Dictionary:
+		var source := data.get("source_slot") as SlotUI
+		return source if source and source.hotbar_slot_index < 0 else null
 	return null
+
+func _source_hotbar_index(data: Variant) -> int:
+	if data is Dictionary:
+		return int(data.get("source_hotbar_index", -1))
+	if data is SlotUI:
+		return data.hotbar_slot_index
+	return -1

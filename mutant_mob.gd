@@ -3,14 +3,12 @@ class_name MutantMob
 
 signal cured(mob: MutantMob)
 
-## Generic field mob. Which of the four creature types (or the stationary
-## sponge) this instance behaves as is picked with `mob_type`; the boss
+## Generic field mob. Which of the four creature types this instance behaves
+## as is picked with `mob_type`; the boss
 ## versions of these same creatures live in bosses/boss.gd instead, since
 ## they need the health-bar / bullet-hell scaffolding that only bosses use.
 
-enum MobType { SHELL, JELLYFISH, CRAB, ANGLERFISH, SPONGE }
-
-const EnemyBullet := preload("res://bullets/enemy_bullet.tscn")
+enum MobType { SHELL, JELLYFISH, CRAB, ANGLERFISH }
 
 @export var mob_type: MobType = MobType.SHELL
 @export var baseHealth: float = 30.0
@@ -19,13 +17,12 @@ const EnemyBullet := preload("res://bullets/enemy_bullet.tscn")
 
 # Field mobs (as opposed to their boss versions in bosses/boss.gd) have a
 # chance to drop the matching material item from the design doc when cured:
-# Jellyfish -> Jelly Stinger, Crab -> Crab Pincer, Sponge -> Porous Sponge
-# Charm ("Environment Drop: Sponges"). Shell and Anglerfish field mobs have
+# Jellyfish -> Jelly Stinger, Crab -> Crab Pincer. Shell and Anglerfish field
+# mobs have
 # no matching mob drop - those items are boss-only (see boss.gd).
 const MOB_DROP_ITEM_PATHS := {
 	MobType.JELLYFISH: "res://resources/items/jelly_stinger.tres",
 	MobType.CRAB: "res://resources/items/crab_pincer.tres",
-	MobType.SPONGE: "res://resources/items/porous_sponge_charm.tres",
 }
 const MOB_DROP_CHANCE := 0.35
 
@@ -57,11 +54,6 @@ const MOB_DROP_CHANCE := 0.35
 @export var angler_light_radius: float = 110.0
 @export var angler_stalk_distance: float = 90.0
 
-@export_group("Sponge")
-@export var sponge_bubble_interval: float = 2.5
-@export var sponge_bubble_damage: float = 1.0
-@export var sponge_bubble_speed: float = 90.0
-
 # --- Shared runtime state -------------------------------------------------
 var currentHealth: float
 var max_health: float
@@ -79,8 +71,14 @@ var _state_timer: float = 0.0
 var _pivot_angle: float = 0.0
 var _pivot_dir: int = 1
 var _zap_timer: float = 0.0
-var _sponge_timer: float = 0.0
 var _angler_damage_accumulator: float = 0.0
+
+const MOB_SPRITE_SHEETS := {
+	MobType.SHELL: "res://assets/sprites/mobs/shell.png",
+	MobType.JELLYFISH: "res://assets/sprites/mobs/jellyFish.png",
+	MobType.CRAB: "res://assets/sprites/mobs/crab.png",
+	MobType.ANGLERFISH: "res://assets/sprites/mobs/anglerFish.png",
+}
 
 # --- Status effects --------------------------------------------------------
 var stun_timer: float = 0.0
@@ -91,6 +89,7 @@ var blind_timer: float = 0.0
 func _ready() -> void:
 	add_to_group("corrupted_mobs")
 	player = get_tree().get_first_node_in_group("player")
+	_configure_mob_sprite()
 
 	var depthScale = global_position.y / 1000.0
 	max_health = baseHealth + (depthScale * 10.0)
@@ -109,13 +108,34 @@ func _ready() -> void:
 			_enter_state("pivot")
 		MobType.ANGLERFISH:
 			body_damage = angler_body_damage
-		MobType.SPONGE:
-			body_damage = 0.0
-			baseSpeed = 0.0
-
 	var hitbox := get_node_or_null("HitBox")
 	if hitbox:
 		hitbox.body_entered.connect(_on_hitbox_body_entered)
+
+func _configure_mob_sprite() -> void:
+	var sprite := get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	var sheet_path: String = MOB_SPRITE_SHEETS.get(mob_type, "")
+	if not sprite or sheet_path == "" or not ResourceLoader.exists(sheet_path):
+		return
+	var sheet := load(sheet_path) as Texture2D
+	if not sheet:
+		return
+	# Each exported sheet is a row of square frames. Using the sheet height
+	# avoids slicing the 128px anglerfish frames into two flashing halves.
+	var frame_size := sheet.get_height()
+	var frame_count := maxi(1, int(sheet.get_width() / frame_size))
+	var frames := SpriteFrames.new()
+	frames.remove_animation("default")
+	frames.add_animation("default")
+	frames.set_animation_speed("default", 8.0)
+	for frame_index in range(frame_count):
+		var atlas := AtlasTexture.new()
+		atlas.atlas = sheet
+		atlas.region = Rect2(frame_index * frame_size, 0, frame_size, frame_size)
+		frames.add_frame("default", atlas)
+	sprite.sprite_frames = frames
+	sprite.animation = &"default"
+	sprite.play()
 
 func _physics_process(delta: float) -> void:
 	if isCured or not encounter_active:
@@ -137,7 +157,6 @@ func _physics_process(delta: float) -> void:
 		MobType.JELLYFISH: _process_jellyfish(delta)
 		MobType.CRAB: _process_crab(delta)
 		MobType.ANGLERFISH: _process_anglerfish(delta)
-		MobType.SPONGE: _process_sponge(delta)
 
 	move_and_slide()
 	_apply_contact_damage()
@@ -252,26 +271,6 @@ func _process_anglerfish(delta: float) -> void:
 	else:
 		_angler_damage_accumulator = 0.0
 
-# --- SPONGE: stationary, periodically lobs acidic bubbles -------------------
-func _process_sponge(delta: float) -> void:
-	velocity = Vector2.ZERO
-	_sponge_timer -= delta
-	if _sponge_timer <= 0.0:
-		_sponge_timer = sponge_bubble_interval
-		_spawn_acid_bubble()
-
-func _spawn_acid_bubble() -> void:
-	if not player:
-		return
-	var b := EnemyBullet.instantiate()
-	get_tree().current_scene.add_child(b)
-	b.global_position = global_position
-	b.velocity = (player.global_position - global_position).normalized() * sponge_bubble_speed
-	b.color = Color(0.55, 0.9, 0.3, 0.9)
-	b.damage = sponge_bubble_damage
-	if "damage_type" in b:
-		b.damage_type = "acid"
-
 # --- Contact / body damage --------------------------------------------------
 func _apply_contact_damage() -> void:
 	if body_damage <= 0.0 or body_hit_cooldown > 0.0:
@@ -328,17 +327,13 @@ func apply_knockback(impulse: Vector2) -> void:
 
 func cureMob() -> void:
 	isCured = true
-	# A healed animal is catalogued rather than destroyed and leaves recyclable
-	# debris lodged in its corruption for the robot's upgrades. The debris is
-	# spawned as a physical drop (see pickups/trash_drop.gd) that scatters,
-	# settles, and flies itself into the HUD counter; GameData.compendium_data
-	# is credited by the drop when it arrives, in addition to the +1 below.
+	# Credit the catalogue entry and former debris reward immediately, rather
+	# than leaving a physical pickup behind after the mob disappears.
 	if GameData:
-		GameData.compendium_data += 1
+		GameData.award_compendium_data(1 + GameData.compendium_value_for_trash(trash_size))
 		if GameData.has_skill("synergy_3") and Effects:
 			Effects.spawn_air_bubble(global_position, 15.0)
 	if Effects:
-		Effects.spawn_trash_drop(global_position, trash_size)
 		_maybe_spawn_item_drop()
 	cured.emit(self)
 	queue_free()

@@ -34,9 +34,9 @@ var is_robot_unlocked: bool = false:
 		robot_unlocked_changed.emit(value)
 
 ## Compendium Data: the robot's single research/upgrade currency. Earned
-## both by fully curing mobs/bosses (see mutant_mob.gd, boss.gd) and by
-## collecting recyclable trash debris (see add_trash() below - small/medium/
-## large pieces are worth 1/3/5). Spent unlocking robot skill tree nodes.
+## immediately by fully curing mobs/bosses; the former recyclable-debris
+## reward values remain 1/3/5 for small/medium/large encounters. Spent
+## unlocking robot skill tree nodes.
 var compendium_data: int = 0:
 	set(value):
 		compendium_data = max(0, value)
@@ -72,7 +72,7 @@ var equip_robot_module_id: String:
 	get: return equip_robot_module.id if (equip_robot_module and "id" in equip_robot_module) else ""
 
 # --- Active Hotbar Abilities (3 slots) ---
-var active_abilities: Array[String] = ["jelly_stinger", "crab_pincer", "pearlescent_volley"]
+var active_abilities: Array[String] = ["", "", ""]
 
 # Item ids that represent a mouse-aimed hotbar ability rather than a
 # stackable/equippable item. Collecting one of these (see item_drop.gd)
@@ -87,6 +87,16 @@ const ROBOT_ITEM_IDS := [
 # --- Global Effect Timers ---
 var bubble_booster_timer: float = 0.0
 var time_revival_pending: bool = false
+
+# These guidance beats are deliberately session-only while PERSIST_SESSION is
+# disabled. They keep the first-use teaching moments clear without turning
+# every rewind into another conversation.
+var has_seen_time_machine_guidance: bool = false
+var has_seen_death_guidance: bool = false
+# The first Historical Turning Point is a complete guided loop: field mobs,
+# boss, then the return time machine. Later eras leave exploration to the
+# player, so the arrows do not become permanent visual noise.
+var has_seen_first_level_guidance: bool = false
 
 # --- Lifecycle -----------------------------------------------------------
 
@@ -113,14 +123,6 @@ func add_item(item: ItemData, amount: int = 1) -> bool:
 		var player = get_tree().get_first_node_in_group("player")
 		if player:
 			photonic_spotlight_position = player.global_position
-	# Ability items unlock the matching mouse-aimed hotbar ability the first
-	# time they're collected (e.g. Abyssal Flare from the Abyssal Anglerfish).
-	# They still fall through and take up an inventory slot too, same as any
-	# other collected item.
-	if item and "id" in item and item.id in ABILITY_ITEM_IDS and not active_abilities.has(item.id):
-		active_abilities.append(item.id)
-		save_game()
-
 	# Weapons never stack - each copy takes its own slot, regardless of
 	# whatever max_stack happens to be set on the resource.
 	var effective_max_stack: int = 1 if (item and item.item_type == ItemData.ItemType.WEAPON) else item.max_stack
@@ -254,6 +256,8 @@ func has_item(item_id: String) -> bool:
 	for slot in otter_inventory_slots + robot_inventory_slots:
 		if slot.item_data and slot.item_data.id == item_id and slot.quantity > 0:
 			return true
+	if active_abilities.has(item_id):
+		return true
 	return false
 
 func has_robot_module(module_id: String) -> bool:
@@ -277,14 +281,18 @@ func get_equipped_robot_module_items() -> Array[ItemData]:
 func set_hotbar_ability(slot_index: int, ability_id: String) -> void:
 	if slot_index < 0 or slot_index > 2:
 		return
-	var is_weapon := false
-	var item_path := "res://resources/items/%s.tres" % ability_id
-	if ResourceLoader.exists(item_path):
-		var item: ItemData = load(item_path)
-		is_weapon = item.item_type == ItemData.ItemType.WEAPON
-	if not (ability_id in ABILITY_ITEM_IDS or is_weapon):
+	if ability_id == "":
+		while active_abilities.size() <= slot_index:
+			active_abilities.append("")
+		active_abilities[slot_index] = ""
+		hotbar_abilities_changed.emit()
+		save_game()
 		return
-	if not is_weapon and not active_abilities.has(ability_id):
+	var item_path := "res://resources/items/%s.tres" % ability_id
+	if not ResourceLoader.exists(item_path):
+		return
+	var item: ItemData = load(item_path)
+	if not is_hotbar_compatible(item):
 		return
 	while active_abilities.size() <= slot_index:
 		active_abilities.append("")
@@ -292,11 +300,101 @@ func set_hotbar_ability(slot_index: int, ability_id: String) -> void:
 	hotbar_abilities_changed.emit()
 	save_game()
 
+func is_hotbar_compatible(item: ItemData) -> bool:
+	return item != null and (item.item_type == ItemData.ItemType.WEAPON or item.id in ABILITY_ITEM_IDS)
+
+func get_hotbar_item(slot_index: int) -> ItemData:
+	if slot_index < 0 or slot_index >= active_abilities.size() or active_abilities[slot_index] == "":
+		return null
+	var path := "res://resources/items/%s.tres" % active_abilities[slot_index]
+	return load(path) if ResourceLoader.exists(path) else null
+
+func swap_hotbar_slots(first: int, second: int) -> void:
+	if first < 0 or first > 2 or second < 0 or second > 2 or first == second:
+		return
+	while active_abilities.size() < 3:
+		active_abilities.append("")
+	var temp := active_abilities[first]
+	active_abilities[first] = active_abilities[second]
+	active_abilities[second] = temp
+	hotbar_abilities_changed.emit()
+	save_game()
+
+## Moves one item from an otter inventory slot into a hotbar slot. If the
+## destination is occupied, its old item is swapped back into the source
+## inventory slot instead of being duplicated.
+func move_inventory_to_hotbar(hotbar_index: int, source_slot: SlotData) -> bool:
+	if hotbar_index < 0 or hotbar_index > 2 or not otter_inventory_slots.has(source_slot):
+		return false
+	if not source_slot or not source_slot.item_data or source_slot.quantity <= 0:
+		return false
+	var incoming: ItemData = source_slot.item_data
+	if not is_hotbar_compatible(incoming):
+		return false
+	var previous := get_hotbar_item(hotbar_index)
+	if previous and previous.id == incoming.id:
+		return true
+	if previous and not add_item(previous, 1):
+		return false
+	source_slot.quantity -= 1
+	if source_slot.quantity <= 0:
+		source_slot.item_data = null
+		source_slot.quantity = 0
+	set_hotbar_ability(hotbar_index, incoming.id)
+	inventory_updated.emit()
+	return true
+
+## Moves a hotbar item back into an otter inventory slot, swapping with a
+## compatible item already in that slot when needed.
+func move_hotbar_to_inventory(hotbar_index: int, target_slot: SlotData) -> bool:
+	if hotbar_index < 0 or hotbar_index > 2 or not otter_inventory_slots.has(target_slot):
+		return false
+	var incoming := get_hotbar_item(hotbar_index)
+	if not incoming:
+		return false
+	if target_slot.item_data:
+		if not is_hotbar_compatible(target_slot.item_data):
+			return false
+		if target_slot.item_data.id == incoming.id:
+			if target_slot.quantity >= incoming.max_stack:
+				return false
+			target_slot.quantity += 1
+			set_hotbar_ability(hotbar_index, "")
+		else:
+			var old_id := target_slot.item_data.id
+			target_slot.item_data = incoming
+			target_slot.quantity = 1
+			set_hotbar_ability(hotbar_index, old_id)
+	else:
+		target_slot.item_data = incoming
+		target_slot.quantity = 1
+		set_hotbar_ability(hotbar_index, "")
+	inventory_updated.emit()
+	return true
+
+func discard_inventory_slot(slot: SlotData) -> void:
+	if not slot or not (otter_inventory_slots.has(slot) or robot_inventory_slots.has(slot)):
+		return
+	slot.item_data = null
+	slot.quantity = 0
+	inventory_updated.emit()
+	save_game()
+
 # --- Currency -------------------------------------------------------------
 
 func add_trash(size: String = "small") -> void:
-	var token_value: int = int({"small": 1, "medium": 3, "large": 5}.get(size, 1))
-	compendium_data += token_value
+	award_compendium_data(compendium_value_for_trash(size))
+
+func compendium_value_for_trash(size: String = "small") -> int:
+	return int({"small": 1, "medium": 3, "large": 5}.get(size, 1))
+
+## Credits Compendium Data immediately and plays the HUD reward animation.
+func award_compendium_data(amount: int) -> void:
+	if amount <= 0:
+		return
+	compendium_data += amount
+	if Effects:
+		Effects.pulse_compendium_counter()
 	save_game()
 
 # --- Boss progression -------------------------------------------------------
@@ -459,7 +557,7 @@ func load_game() -> void:
 	# JSON arrays are untyped at runtime. Rebuild the typed Array[String]
 	# explicitly so older save files cannot cause a load-time type error.
 	active_abilities.clear()
-	var saved_abilities: Array = parsed.get("active_abilities", ["jelly_stinger", "crab_pincer", "pearlescent_volley"])
+	var saved_abilities: Array = parsed.get("active_abilities", ["", "", ""])
 	for ability in saved_abilities:
 		if ability is String:
 			active_abilities.append(ability)
@@ -493,6 +591,12 @@ func load_game() -> void:
 	var old_inventory = parsed.get("inventory", [])
 	_deserialize_slots(parsed.get("otter_inventory", old_inventory), otter_inventory_slots)
 	_deserialize_slots(parsed.get("robot_inventory", []), robot_inventory_slots)
+	_sanitize_hotbar()
+
+func _sanitize_hotbar() -> void:
+	for i in range(active_abilities.size()):
+		if active_abilities[i] == "" or not has_item(active_abilities[i]):
+			active_abilities[i] = ""
 
 func _deserialize_slots(entries: Array, slots: Array[SlotData]) -> void:
 	for i in range(min(entries.size(), slots.size())):
@@ -520,12 +624,15 @@ func serialize_inventory() -> Array:
 func reset_save() -> void:
 	highest_unlocked_boss = 1
 	defeated_bosses = []
+	has_seen_time_machine_guidance = false
+	has_seen_death_guidance = false
+	has_seen_first_level_guidance = false
 	owned_weapon_ids = ["starter_spear"]
 	equipped_weapon_id = "starter_spear"
 	is_robot_unlocked = false
 	compendium_data = 0
 	unlocked_skills = {}
-	active_abilities = ["jelly_stinger", "crab_pincer", "pearlescent_volley"]
+	active_abilities = ["", "", ""]
 	
 	equip_head = null
 	equip_body = null

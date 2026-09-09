@@ -11,6 +11,9 @@ var state_before_settings: UIState = UIState.TITLE
 @onready var hud: Control = $HUD
 
 @onready var hud_compendium_label: Label = $HUD/compendiumDataDisplay/compendiumLabel
+@onready var hud_details_panel: Panel = $HUD/DetailsPanel
+@onready var hud_item_name_label: Label = $HUD/DetailsPanel/SkillNameLabel
+@onready var hud_item_desc_label: Label = $HUD/DetailsPanel/DescriptionLabel
 
 # --- COOLDOWN & SLOT REFERENCES (Added to fix the "not declared" error) ---
 @onready var slot1: TextureButton = $HUD/hotbarContainer/TextureButton
@@ -45,6 +48,12 @@ func _ready() -> void:
 	if slot1: slot1.pressed.connect(_on_slot1_pressed)
 	if slot2: slot2.pressed.connect(_on_slot2_pressed)
 	if slot3: slot3.pressed.connect(_on_slot3_pressed)
+	for hotbar_slot in [slot1, slot2, slot3]:
+		if hotbar_slot:
+			hotbar_slot.mouse_entered.connect(_on_hotbar_hover_entered.bind(hotbar_slot))
+			hotbar_slot.mouse_exited.connect(_on_hotbar_hover_exited)
+	if hud_details_panel:
+		hud_details_panel.hide()
 	if robot_inventory_button:
 		robot_inventory_button.pressed.connect(_on_robot_inventory_button_pressed)
 	
@@ -294,3 +303,21 @@ func _on_slot2_pressed() -> void:
 
 func _on_slot3_pressed() -> void:
 	_select_hotbar_slot(3)
+
+func _on_hotbar_hover_entered(hotbar_slot: TextureButton) -> void:
+	var index := [slot1, slot2, slot3].find(hotbar_slot)
+	if index < 0 or index >= GameData.active_abilities.size():
+		return
+	var item_id: String = GameData.active_abilities[index]
+	var item_path := "res://resources/items/%s.tres" % item_id
+	if item_id == "" or not ResourceLoader.exists(item_path):
+		return
+	var item: ItemData = load(item_path)
+	hud_item_name_label.text = item.name
+	hud_item_desc_label.text = item.description
+	hud_details_panel.global_position = get_viewport().get_mouse_position() + Vector2(10, 10)
+	hud_details_panel.show()
+
+func _on_hotbar_hover_exited() -> void:
+	if hud_details_panel:
+		hud_details_panel.hide()

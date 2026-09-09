@@ -1,8 +1,8 @@
 extends Node
 
 ## Small, stateless helper for shared visual feedback that several scripts
-## need (player, mobs, bosses): floating damage/heal numbers, spawning a
-## mob's trash drop(s)/item drop(s), and pulsing the HUD trash counter.
+## need (player, mobs, bosses): floating damage/heal numbers, spawning item
+## drops, and pulsing the HUD Compendium Data counter.
 ## Autoloaded as `Effects` (see project.godot). Nothing here holds gameplay
 ## state beyond the `level_will_change` broadcast below.
 
@@ -13,7 +13,6 @@ extends Node
 signal level_will_change
 
 const FloatingNumberScene := preload("res://effects/floating_number.tscn")
-const TrashDropScene := preload("res://pickups/trash_drop.tscn")
 const ItemDropScene := preload("res://pickups/item_drop.tscn")
 const AirBubbleScene := preload("res://pickups/air_bubble.tscn")
 
@@ -29,19 +28,6 @@ func show_number(world_pos: Vector2, amount: float, is_heal: bool) -> void:
 	scene.add_child(n)
 	n.global_position = world_pos
 	n.setup(amount, is_heal)
-
-## Spawns `count` trash pickups of `trash_size` at `origin` (typically a
-## just-cured mob). Each drop scatters outward, settles, then flies into
-## the HUD trash counter on its own and pulses it on arrival.
-func spawn_trash_drop(origin: Vector2, trash_size: String, count: int = 1) -> void:
-	var scene := get_tree().current_scene
-	if not scene:
-		return
-	for i in range(max(1, count)):
-		var drop := TrashDropScene.instantiate()
-		drop.trash_size = trash_size
-		scene.add_child(drop)
-		drop.global_position = origin
 
 ## Spawns a physical, collectible drop for a real ItemData (gear, robot
 ## module, charm, ability, etc.) at `origin` - typically a just-cured mob or
@@ -76,9 +62,8 @@ func spawn_air_bubble(origin: Vector2, air_amount: float = 100.0) -> void:
 func notify_level_changing() -> void:
 	level_will_change.emit()
 
-## Bounces + flashes the HUD trash counter icon. Called by each trash drop
-## the instant it's absorbed into the counter.
-func pulse_trash_counter() -> void:
+## Bounces + flashes the HUD Compendium Data icon when a reward is credited.
+func pulse_compendium_counter() -> void:
 	var icon: CanvasItem = get_tree().root.get_node_or_null("Main/UI/HUD/compendiumDataDisplay/compendiumIcon")
 	if not icon:
 		return

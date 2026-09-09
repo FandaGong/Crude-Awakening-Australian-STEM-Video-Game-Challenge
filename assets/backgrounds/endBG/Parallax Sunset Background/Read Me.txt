@@ -1,0 +1,17 @@
+Recommended layer order (04 being in front of everything and 01 being behind):
+
+01_Sky
+02_Skysunset
+03_Water
+04_Palms
+
+There's two images of the sky, the other one has the sun in it and the other doens't. You can choose which image you want to use. 
+
+You can also use the Combined Background-image as a background if you want to, it is seamless but you can't get the Parallax effect with it.
+
+
+You can use this background as a part of your games or other projects as long as you remember to credit. Your project can be personal or a commercial one. You don't have rights to distribute this background to other sites. 
+
+Thanks for choosing this background!
+Customer Support e-mail: digitalmoonsstudio@gmail.com
+Discord: @rrous#3448

@@ -23,6 +23,7 @@ var spiral_angle: float = 0.0
 var is_defeated: bool = false
 
 @onready var visual: Polygon2D = $Visual
+@onready var boss_sprite: Sprite2D = $BossSprite
 @onready var health_bar: ColorRect = $HealthBar
 
 var _health_bar_full_width: float = 0.0
@@ -67,6 +68,11 @@ func _ready() -> void:
 		_health_bar_full_width = health_bar.size.x
 	if boss_data:
 		current_health = 0.0 # bosses are healed from 0% to 100%, never killed
+		_configure_boss_sprite()
+		# The scene resource stores a full-width bar for editor visibility. Set
+		# its runtime state immediately so the encounter never flashes 100% and
+		# then drops to zero on the first frame.
+		_on_health_changed(current_health, boss_data.max_health)
 		if visual:
 			visual.color = boss_data.color
 		if boss_data.boss_type == "kraken" and visual:
@@ -83,6 +89,45 @@ func _ready() -> void:
 	if boss_data and boss_data.boss_type == "whale" and blowhole:
 		blowhole.body_entered.connect(_on_blowhole_entered)
 
+func _configure_boss_sprite() -> void:
+	if not boss_sprite or not boss_data:
+		return
+	var sprite_paths := {
+		# Every field-boss uses the same creature art as its mob counterpart,
+		# enlarged in place. Whale and Kraken remain boss-only and use their
+		# dedicated boss artwork when the Aseprite importer provides a texture.
+		"crab": "res://assets/sprites/mobs/crab.png",
+		"jellyfish": "res://assets/sprites/mobs/jellyFish.png",
+		"shell": "res://assets/sprites/mobs/shell.png",
+		"anglerfish": "res://assets/sprites/mobs/anglerFish.png",
+		"whale": "res://assets/sprites/boss/whale.aseprite",
+		"kraken": "res://assets/sprites/boss/kraken.aseprite",
+	}
+	var path: String = sprite_paths.get(boss_data.boss_type, "")
+	if path == "" or not ResourceLoader.exists(path):
+		return
+	var texture := load(path) as Texture2D
+	if not texture:
+		# Aseprite sources are kept as PackedDataContainer imports until the
+		# editor's Aseprite importer generates a texture; retain the fallback
+		# polygon if that source is not available as a runtime texture.
+		return
+	# Mob files are horizontal sprite sheets. Most use 64x64 frames, while the
+	# anglerfish art uses 128x128 frames. Show the first complete frame so the
+	# sprite never flashes through a split frame.
+	if path.ends_with(".png") and texture.get_height() > 0:
+		var atlas := AtlasTexture.new()
+		atlas.atlas = texture
+		var frame_size := texture.get_height()
+		atlas.region = Rect2(0, 0, frame_size, frame_size)
+		boss_sprite.texture = atlas
+	else:
+		boss_sprite.texture = texture
+	boss_sprite.scale = Vector2(2.5, 2.5)
+	boss_sprite.visible = true
+	if visual:
+		visual.visible = false
+
 func _on_health_changed(current: float, max_hp: float) -> void:
 	if health_bar and max_hp > 0.0:
 		health_bar.size.x = _health_bar_full_width * clampf(current / max_hp, 0.0, 1.0)
@@ -92,6 +137,7 @@ func _physics_process(delta: float) -> void:
 		return
 
 	body_contact_cooldown = max(0.0, body_contact_cooldown - delta)
+	_constrain_from_walls()
 
 	match boss_data.boss_type:
 		"shell": _process_shell(delta)
@@ -105,6 +151,73 @@ func _physics_process(delta: float) -> void:
 			if attack_timer <= 0.0:
 				_generic_attack_pattern()
 				attack_timer = _current_pattern_interval()
+
+## Bosses are Areas, so their scripted movement does not go through
+## move_and_collide(). Keep every movement pattern inside the level's solid
+## Ground tiles, and inside the reusable arena's circular play space.
+func _move_boss_by(offset: Vector2) -> void:
+	_move_boss_to(global_position + offset)
+
+func _move_boss_to(destination: Vector2) -> void:
+	var safe_destination := _safe_swept_destination(global_position, destination)
+	if safe_destination == destination or safe_destination != global_position:
+		global_position = safe_destination
+		return
+	# Sliding along a wall is preferable to stopping completely, especially
+	# for the crab charge and orbiting bosses.
+	var horizontal := Vector2(destination.x, global_position.y)
+	safe_destination = _safe_swept_destination(global_position, horizontal)
+	if safe_destination != global_position:
+		global_position = safe_destination
+		return
+	var vertical := Vector2(global_position.x, destination.y)
+	safe_destination = _safe_swept_destination(global_position, vertical)
+	if safe_destination != global_position:
+		global_position = safe_destination
+
+## Check intermediate positions as well as the endpoint. Boss charges can
+## cover hundreds of pixels per second, which otherwise lets an Area2D skip
+## over a thin wall between physics frames.
+func _safe_swept_destination(from: Vector2, to: Vector2) -> Vector2:
+	var distance := from.distance_to(to)
+	if distance <= 0.01:
+		return from if _position_is_blocked(to) else to
+	var steps := maxi(1, int(ceil(distance / 16.0)))
+	var last_safe := from
+	for step in range(1, steps + 1):
+		var candidate := from.lerp(to, float(step) / float(steps))
+		if _position_is_blocked(candidate):
+			break
+		last_safe = candidate
+	return last_safe
+
+func _constrain_from_walls() -> void:
+	_move_boss_to(global_position)
+
+func _position_is_blocked(candidate: Vector2) -> bool:
+	var level := get_parent()
+	var ground := level.get_node_or_null("Ground") as TileMapLayer if level else null
+	if ground:
+		# Test the boss centre plus its collision radius in eight directions so
+		# the visual body cannot clip through a solid tile at the edge.
+		var samples := [Vector2.ZERO]
+		for i in range(8):
+			samples.append(Vector2.from_angle(TAU * float(i) / 8.0) * 44.0)
+		for sample in samples:
+			var cell := ground.local_to_map(ground.to_local(candidate + sample))
+			var tile_data := ground.get_cell_tile_data(cell)
+			if tile_data and tile_data.get_collision_polygons_count(0) > 0:
+				return true
+		return false
+
+	# BossArena has no collision tiles, so use the same radius as its cavern
+	# backdrop with room for the boss hit shape.
+	var arena := get_parent()
+	if arena and not ground:
+		var local_pos: Vector2 = arena.to_local(candidate)
+		if local_pos.length() > 360.0:
+			return true
+	return false
 
 func _current_pattern_interval() -> float:
 	var health_pct := 1.0 - current_health / boss_data.max_health
@@ -181,7 +294,7 @@ func _process_shell(delta: float) -> void:
 				_shell_state_timer = 0.85
 		"charge":
 			var charge_dir := (player.global_position - global_position).normalized()
-			global_position += charge_dir * 250.0 * delta
+			_move_boss_by(charge_dir * 250.0 * delta)
 			if _shell_state_timer <= 0.0:
 				_shell_state = "volley"
 				_shell_state_timer = 0.5
@@ -233,7 +346,7 @@ func _process_jellyfish(delta: float) -> void:
 		return
 	_jelly_angle += delta * 0.7
 	var desired_position := player.global_position + Vector2.from_angle(_jelly_angle) * 128.0
-	global_position = global_position.move_toward(desired_position, 150.0 * delta)
+	_move_boss_to(global_position.move_toward(desired_position, 150.0 * delta))
 	attack_timer -= delta
 	if attack_timer <= 0.0 and global_position.distance_to(player.global_position) <= 160.0:
 		player.takeDamage(5.0, "physical")
@@ -283,7 +396,7 @@ func _process_crab(delta: float) -> void:
 				_crab_state_timer = 0.9 # longer charge than the field crab
 		"charge":
 			var dir := (player.global_position - global_position).normalized()
-			global_position += dir * 340.0 * delta # faster charge than the field crab
+			_move_boss_by(dir * 340.0 * delta) # faster charge than the field crab
 			if _crab_state_timer <= 0.0:
 				_crab_state = "wait"
 				_crab_state_timer = 1.2
@@ -307,7 +420,7 @@ func _process_anglerfish(delta: float) -> void:
 		return
 	_angler_orbit_angle += delta * 0.35
 	var desired_position := player.global_position + Vector2.from_angle(_angler_orbit_angle) * 100.0
-	global_position = global_position.move_toward(desired_position, 90.0 * delta)
+	_move_boss_to(global_position.move_toward(desired_position, 90.0 * delta))
 	attack_timer -= delta
 	if not _beam_active and attack_timer <= 0.0:
 		_beam_active = true
@@ -372,8 +485,8 @@ func _process_whale(delta: float) -> void:
 	var desired_radius := 260.0
 	var tangent := to_player.normalized().rotated(PI / 2.0)
 	if to_player.length() > desired_radius:
-		global_position += to_player.normalized() * 40.0 * delta
-	global_position += tangent * 30.0 * delta
+		_move_boss_by(to_player.normalized() * 40.0 * delta)
+	_move_boss_by(tangent * 30.0 * delta)
 
 	attack_timer -= delta
 	if attack_timer <= 0.0:
@@ -410,16 +523,18 @@ func _run_blowhole_sequence(body: Node2D) -> void:
 	_die()
 
 func takeDamage(amount: float) -> void:
-	if is_defeated or not boss_data:
+	if is_defeated or not boss_data or amount <= 0.0 or not is_finite(amount):
 		return
 	# Blue Whale ignores the normal curing beam/abilities entirely.
 	if not boss_data.curable_by_normal_means and not whale_cured_by_event:
 		return
-	current_health = minf(boss_data.max_health, current_health + amount)
-	if Effects and amount > 0.0:
+	var max_health := maxf(1.0, boss_data.max_health)
+	current_health = clampf(current_health + amount, 0.0, max_health)
+	if Effects:
 		Effects.show_number(global_position, amount, true)
-	health_changed.emit(current_health, boss_data.max_health)
-	if current_health >= boss_data.max_health:
+	health_changed.emit(current_health, max_health)
+	if current_health >= max_health - 0.001:
+		current_health = max_health
 		_die()
 
 func apply_cure(amount: float) -> void:
@@ -437,7 +552,7 @@ func _process_kraken(delta: float) -> void:
 		return
 	_kraken_sway_time += delta
 	# The beak remains at the trench bottom but shifts slowly across the arena.
-	global_position.x = player.global_position.x + sin(_kraken_sway_time * 0.25) * 90.0
+	_move_boss_to(Vector2(player.global_position.x + sin(_kraken_sway_time * 0.25) * 90.0, global_position.y))
 	if kraken_stage == 1 and current_health >= boss_data.max_health * 0.5:
 		kraken_stage = 2
 
@@ -500,11 +615,10 @@ func _kraken_tentacle_suction() -> void:
 
 func _die() -> void:
 	is_defeated = true
-	if Effects:
-		Effects.spawn_trash_drop(global_position, "large")
-	else:
-		GameData.add_trash("large")
-	GameData.compendium_data += 2 if GameData.has_skill("comp_3") else 1
+	# Credit the catalogue and large-debris values at once instead of spawning
+	# a physical trash pickup that can be missed during the transition.
+	var boss_catalogue_reward := 2 if GameData.has_skill("comp_3") else 1
+	GameData.award_compendium_data(boss_catalogue_reward + GameData.compendium_value_for_trash("large"))
 	if GameData.has_skill("synergy_3") and Effects:
 		Effects.spawn_air_bubble(global_position, 15.0)
 	for item_path in boss_data.drop_item_paths:

@@ -11,9 +11,35 @@ const BUBBLE_BOOSTER_CHARM_PATH := "res://resources/items/bubble_booster_charm.t
 const BUBBLE_BOOSTER_DROP_CHANCE := 0.1
 @export var air_amount: float = 100.0
 
+const BUBBLE_SHEET_PATH := "res://assets/sprites/mobs/bubble.png"
+
+@onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
+
 func _ready() -> void:
 	add_to_group("air_bubbles")
 	body_entered.connect(_on_body_entered)
+	_configure_animation()
+
+func _configure_animation() -> void:
+	if not sprite or not ResourceLoader.exists(BUBBLE_SHEET_PATH):
+		return
+	var sheet := load(BUBBLE_SHEET_PATH) as Texture2D
+	if not sheet or sheet.get_height() <= 0:
+		return
+	var frame_size := sheet.get_height()
+	var frame_count := maxi(1, int(sheet.get_width() / frame_size))
+	var frames := SpriteFrames.new()
+	frames.remove_animation("default")
+	frames.add_animation("default")
+	frames.set_animation_speed("default", 10.0)
+	for frame_index in range(frame_count):
+		var atlas := AtlasTexture.new()
+		atlas.atlas = sheet
+		atlas.region = Rect2(frame_index * frame_size, 0, frame_size, frame_size)
+		frames.add_frame("default", atlas)
+	sprite.sprite_frames = frames
+	sprite.animation = &"default"
+	sprite.play()
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):

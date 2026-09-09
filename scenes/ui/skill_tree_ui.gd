@@ -96,7 +96,7 @@ func _update_lock_state(unlocked: bool) -> void:
 	lock_overlay.visible = not unlocked
 
 func _update_currency_display(amount: int) -> void:
-	data_label.text = "Recycled Trash: %d" % amount
+	data_label.text = "Compendium Data: %d" % amount
 	_refresh_details_panel()
 
 func _on_node_selected(data: SkillNodeData) -> void:

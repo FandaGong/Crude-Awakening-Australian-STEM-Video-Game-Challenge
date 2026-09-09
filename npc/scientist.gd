@@ -16,6 +16,9 @@ const DIALOGUE := [
 	"You're standing in 2126. Ninety-nine percent of life is gone. Smoke has swallowed the sky, and the poisoned ponds are all that remain.",
 	"A century of corporate extraction, unchecked machines, and delayed action led here. I built this robot to trace the moments when the timeline broke.",
 	"It will guide you through six critical turning points, from the e-waste flood to the Industrial AI takeover.",
+	"The creatures and bosses you meet are corrupted, not ordinary enemies. The robot heals them from 0% to 100% instead of damaging them.",
+	"When a mob or boss reaches 100% health, it is fully restored and the timeline is repaired. That recovery awards Compendium Data immediately.",
+	"Watch the boss bar: it begins empty and fills as the robot cures the boss. Keep the beam on it until the bar is completely full.",
 	"Take the robot. Use the time machine to return to a greener world and prevent this future from ever happening.",
 ]
 
@@ -35,11 +38,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not player_in_range or not event.is_action_pressed("interact"):
 		return
 	if GameData.is_robot_unlocked:
-		if GameData.time_revival_pending and not _talking:
-			_talking = true
-			GameData.time_revival_pending = false
-			dialogue_box.show_lines(PackedStringArray(["You came earlier than you would have without dying, as expected. Time travel is a remarkable safety net. Come on, give it another try."]))
-			get_viewport().set_input_as_handled()
 		return
 	if not _talking:
 		_talking = true
@@ -55,12 +53,20 @@ func _on_dialogue_finished() -> void:
 	_talking = false
 	if not GameData.is_robot_unlocked:
 		StoryManager.robot_was_given()
+		var world := get_tree().get_first_node_in_group("world")
+		var robot_dialogue := get_tree().get_first_node_in_group("dialogue_box") as DialogueBox
+		if robot_dialogue:
+			robot_dialogue.show_lines(PackedStringArray(["Robot: Follow me. The time machine is this way."]))
+			if world and world.has_method("guide_player_to_time_machine"):
+				robot_dialogue.finished.connect(world.guide_player_to_time_machine, CONNECT_ONE_SHOT)
+		elif world and world.has_method("guide_player_to_time_machine"):
+			world.guide_player_to_time_machine()
 	dialogue_finished.emit()
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		player_in_range = true
-		if prompt and (not GameData.is_robot_unlocked or GameData.time_revival_pending):
+		if prompt and not GameData.is_robot_unlocked:
 			prompt.visible = true
 
 func _on_body_exited(body: Node2D) -> void:

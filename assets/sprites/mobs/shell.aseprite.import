@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://bpcl06vlyxarl"
+path="res://.godot/imported/shell.aseprite-8f110ec5a8a2b57128328a2235f1583b.res"
+
+[deps]
+
+source_file="res://assets/sprites/mobs/shell.aseprite"
+dest_files=["res://.godot/imported/shell.aseprite-8f110ec5a8a2b57128328a2235f1583b.res"]
+
+[params]
+

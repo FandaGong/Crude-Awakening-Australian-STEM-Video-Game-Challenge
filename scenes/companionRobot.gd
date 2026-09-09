@@ -6,6 +6,12 @@ extends Node2D
 @export var hoverSpeed: float = 3.5
 @export var hoverAmplitude: float = 12.0
 
+# --- GUIDANCE CONTROLS ---
+@export var guide_speed: float = 185.0
+@export var guide_lead_distance: float = 92.0
+@export var guide_wait_distance: float = 155.0
+@export var guide_arrival_distance: float = 72.0
+
 # --- CURING MODULE CONTROLS ---
 @export var cure_range: float = 250.0
 @export var base_cure_speed: float = 20.0
@@ -38,6 +44,8 @@ var active_beam_heal_accumulator: float = 0.0
 
 @onready var light_beam: Line2D = get_node_or_null("CureBeam")
 var _dialogue_box: DialogueBox = null
+var _guide_target: Vector2 = Vector2.ZERO
+var _is_guiding: bool = false
 
 func _ready() -> void:
 	if light_beam:
@@ -57,13 +65,16 @@ func _physics_process(delta: float) -> void:
 	timePassed += delta
 	
 	# --- 1. MOVEMENT & WAVE LOGIC ---
-	var horizontalOffset = 35.0
-	if player.sprite and player.sprite.flip_h:
-		horizontalOffset = -35.0 
-		
-	var targetPosition = player.global_position + Vector2(horizontalOffset, -35.0)
-	global_position = global_position.lerp(targetPosition, followSpeed * delta)
-	global_position.y += sin(timePassed * hoverSpeed) * hoverAmplitude * delta
+	if _is_guiding:
+		_process_guidance(delta)
+	else:
+		var horizontalOffset = 35.0
+		if player.sprite and player.sprite.flip_h:
+			horizontalOffset = -35.0
+
+		var targetPosition = player.global_position + Vector2(horizontalOffset, -35.0)
+		global_position = global_position.lerp(targetPosition, followSpeed * delta)
+		global_position.y += sin(timePassed * hoverSpeed) * hoverAmplitude * delta
 
 	# --- 2. UNIQUE PASSIVE MODULE LOOPS ---
 	_process_unique_gear_and_modules(delta)
@@ -83,6 +94,56 @@ func _physics_process(delta: float) -> void:
 
 	# --- 5. RESCUE PROTOCOLS ---
 	_check_rescue_protocol(delta)
+
+## Sends the robot ahead of the otter toward a fixed story destination. The
+## robot only advances while the otter remains close, so it naturally stops
+## and waits instead of leaving the player behind.
+func guide_player_to(destination: Vector2) -> void:
+	if not player:
+		return
+	_guide_target = destination
+	_is_guiding = true
+	# A level rewind can leave the companion at the old level's coordinates.
+	# Re-anchor it beside the returning otter before it begins leading.
+	global_position = player.global_position + Vector2(0.0, -35.0)
+	queue_redraw()
+
+func _process_guidance(delta: float) -> void:
+	var player_to_goal := _guide_target - player.global_position
+	if player_to_goal.length() <= guide_arrival_distance:
+		_is_guiding = false
+		queue_redraw()
+		return
+
+	var direction := player_to_goal.normalized()
+	var lead_position := player.global_position + direction * minf(guide_lead_distance, player_to_goal.length())
+	# Once the robot has established a lead, it waits there until the otter
+	# closes the gap. This makes the arrows an invitation to follow, not a
+	# moving target the player can lose.
+	if global_position.distance_to(player.global_position) <= guide_wait_distance:
+		global_position = global_position.move_toward(lead_position, guide_speed * delta)
+	queue_redraw()
+
+func _draw() -> void:
+	if not _is_guiding:
+		return
+	var route := to_local(_guide_target)
+	var distance := route.length()
+	if distance < 8.0:
+		return
+	var direction := route.normalized()
+	var perpendicular := Vector2(-direction.y, direction.x)
+	var arrow_color := Color(0.48, 1.0, 0.82, 0.9)
+	var spacing := 34.0
+	var arrow_count := mini(8, int(distance / spacing))
+	for i in range(1, arrow_count + 1):
+		var tip := direction * float(i) * spacing
+		var base := tip - direction * 10.0
+		draw_colored_polygon(PackedVector2Array([
+			tip,
+			base + perpendicular * 6.0,
+			base - perpendicular * 6.0,
+		]), arrow_color)
 
 func _is_speaking() -> bool:
 	if not _dialogue_box or not is_instance_valid(_dialogue_box):
@@ -214,44 +275,34 @@ func _handle_targeting_and_curing(delta: float) -> void:
 	if GameData.has_skill("target_4") and player and player.global_position.distance_to(targets[0].global_position) < 96.0:
 		healing_injection_timer = healing_injection_interval * 0.5
 
-	# Unique Ability: Overcharge Prism (Split Beam up to 3 targets)
+	# The primary laser is always started first. Module effects are additive,
+	# so Overcharge and Static Modulator can never replace or cancel the beam.
+	var primary_target = targets[0]
+	_start_beam(primary_target, cure_rate)
+
+	# Overcharge Prism adds up to two short-lived split beams alongside the
+	# primary laser. The primary target remains owned by the sustained beam.
 	if GameData.has_robot_module("overcharge_prism"):
 		var num_targets = min(3, targets.size())
-		var split_rate = cure_rate / num_targets
-		for i in range(num_targets):
-			var mob = targets[i]
-			if mob.has_method("apply_cure"):
-				mob.apply_cure(split_rate * GameData.get_cure_multiplier(mob))
-			_draw_assist_beam(i, mob.global_position)
-		if GameData.has_robot_module("static_modulator") and targets.size() > 1:
-			var chained_target = targets[1]
-			if chained_target.global_position.distance_to(targets[0].global_position) < 80.0:
-				if chained_target.has_method("apply_cure"):
-					chained_target.apply_cure(cure_rate * 0.5 * GameData.get_cure_multiplier(chained_target))
-				if chained_target.has_method("apply_slow"):
-					chained_target.apply_slow(0.30, 1.0)
-			_draw_chain_arc(targets[0].global_position, chained_target.global_position)
-	else:
-		var primary_target = targets[0]
-		
-		# Unique Ability: Static Frequency Modulator (Chain-Curing Arc)
-		if GameData.has_robot_module("static_modulator"):
-			if primary_target.has_method("apply_cure"):
-				primary_target.apply_cure(cure_rate * GameData.get_cure_multiplier(primary_target))
-				if GameData.equipped_weapon_id == "electric_eel_rod" and primary_target.has_method("apply_stun"):
-					primary_target.apply_stun(0.75)
-			
-				if targets.size() > 1:
-					var secondary = targets[1]
-					if secondary.global_position.distance_to(primary_target.global_position) < 80.0:
-						if secondary.has_method("apply_cure") and secondary.has_method("apply_slow"):
-							secondary.apply_cure(cure_rate * 0.5 * GameData.get_cure_multiplier(secondary))
-						secondary.apply_slow(0.30, 1.0)
-					_draw_chain_arc(primary_target.global_position, secondary.global_position)
-		else:
-			# Default beam: lock onto the mob and spread the heal over the
-			# lifetime of the line instead of dumping it all at once.
-			_start_beam(primary_target, cure_rate)
+		var split_rate = cure_rate / float(num_targets)
+		for i in range(1, num_targets):
+			var split_target = targets[i]
+			if split_target.has_method("apply_cure"):
+				split_target.apply_cure(split_rate * GameData.get_cure_multiplier(split_target))
+			_draw_assist_beam(i, split_target.global_position)
+
+	# Static Modulator adds its chain effect while the primary laser continues
+	# to run. This also preserves weapon-specific stun behaviour.
+	if GameData.has_robot_module("static_modulator"):
+		if GameData.equipped_weapon_id == "electric_eel_rod" and primary_target.has_method("apply_stun"):
+			primary_target.apply_stun(0.75)
+		if targets.size() > 1:
+			var secondary = targets[1]
+			if secondary.global_position.distance_to(primary_target.global_position) < 80.0:
+				if secondary.has_method("apply_cure") and secondary.has_method("apply_slow"):
+					secondary.apply_cure(cure_rate * 0.5 * GameData.get_cure_multiplier(secondary))
+				secondary.apply_slow(0.30, 1.0)
+			_draw_chain_arc(primary_target.global_position, secondary.global_position)
 
 	if GameData.has_skill("heat_1") and not is_overheated:
 		overheat_gauge += 15.0 * delta

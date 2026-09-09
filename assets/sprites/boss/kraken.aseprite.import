@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://dsqtmkank1far"
+path="res://.godot/imported/kraken.aseprite-141d4ba0e0d50ebc1477065a98144a17.res"
+
+[deps]
+
+source_file="res://assets/sprites/boss/kraken.aseprite"
+dest_files=["res://.godot/imported/kraken.aseprite-141d4ba0e0d50ebc1477065a98144a17.res"]
+
+[params]
+

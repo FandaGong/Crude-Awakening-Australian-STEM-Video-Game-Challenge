@@ -67,18 +67,32 @@ func _on_gui_input(event: InputEvent) -> void:
 
 # --- DRAG AND DROP ---
 func _get_drag_data(_at_position: Vector2) -> Variant:
-	if not slot_data or not slot_data.item_data:
+	var dragged_item: ItemData = slot_data.item_data if slot_data else null
+	var dragged_hotbar_index := hotbar_slot_index
+	if hotbar_slot_index >= 0:
+		dragged_item = GameData.get_hotbar_item(hotbar_slot_index)
+	if not dragged_item:
 		return null
 	var preview = TextureRect.new()
-	preview.texture = slot_data.item_data.icon
+	preview.texture = dragged_item.icon
 	preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	preview.custom_minimum_size = size
 	set_drag_preview(preview)
-	return {"source_slot": self, "slot_data": slot_data}
+	return {"source_slot": self, "slot_data": slot_data, "source_hotbar_index": dragged_hotbar_index}
+
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_DRAG_END or hotbar_slot_index >= 0 or robot_equipment_slot:
+		return
+	# Dragging an inventory item outside every valid slot discards it, matching
+	# the familiar Minecraft inventory gesture.
+	if not get_viewport().gui_is_drag_successful() and slot_data and slot_data.item_data:
+		GameData.discard_inventory_slot(slot_data)
 
 func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 	if hotbar_slot_index >= 0:
-		return _get_hotbar_item(data) != null
+		return _get_hotbar_item(data) != null or _get_source_hotbar_index(data) >= 0
+	if _get_source_hotbar_index(data) >= 0:
+		return not robot_owned_slot and not robot_equipment_slot and allowed_type == ItemData.ItemType.GENERIC
 	var source_slot := _get_source_slot(data)
 	if source_slot:
 		var dragged_item = source_slot.slot_data.item_data
@@ -102,9 +116,19 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 
 func _drop_data(_at_position: Vector2, data: Variant) -> void:
 	if hotbar_slot_index >= 0:
-		var hotbar_item := _get_hotbar_item(data)
-		if hotbar_item:
-			GameData.set_hotbar_ability(hotbar_slot_index, hotbar_item.id)
+		var source_hotbar_index := _get_source_hotbar_index(data)
+		if source_hotbar_index >= 0:
+			GameData.swap_hotbar_slots(source_hotbar_index, hotbar_slot_index)
+			return
+		var source_slot := _get_source_slot(data)
+		if source_slot:
+			GameData.move_inventory_to_hotbar(hotbar_slot_index, source_slot.slot_data)
+		return
+	var source_hotbar_index := _get_source_hotbar_index(data)
+	if source_hotbar_index >= 0:
+		if GameData.move_hotbar_to_inventory(source_hotbar_index, slot_data):
+			set_slot_data(slot_data)
+			GameData.save_game()
 		return
 	var source_slot := _get_source_slot(data)
 	if source_slot and source_slot != self:
@@ -132,14 +156,13 @@ func _drop_data(_at_position: Vector2, data: Variant) -> void:
 
 func _get_hotbar_item(data: Variant) -> ItemData:
 	var source_slot := _get_source_slot(data)
+	var source_hotbar_index := _get_source_hotbar_index(data)
+	if source_hotbar_index >= 0:
+		return GameData.get_hotbar_item(source_hotbar_index)
 	if not source_slot or not source_slot.slot_data or not source_slot.slot_data.item_data:
 		return null
 	var item: ItemData = source_slot.slot_data.item_data
-	if item.item_type == ItemData.ItemType.WEAPON:
-		return item
-	if item.id in GameData.ABILITY_ITEM_IDS and GameData.active_abilities.has(item.id):
-		return item
-	return null
+	return item if GameData.is_hotbar_compatible(item) else null
 
 func _get_source_slot(data: Variant) -> SlotUI:
 	if data is SlotUI:
@@ -147,3 +170,10 @@ func _get_source_slot(data: Variant) -> SlotUI:
 	if data is Dictionary:
 		return data.get("source_slot") as SlotUI
 	return null
+
+func _get_source_hotbar_index(data: Variant) -> int:
+	if data is Dictionary:
+		return int(data.get("source_hotbar_index", -1))
+	if data is SlotUI:
+		return data.hotbar_slot_index
+	return -1

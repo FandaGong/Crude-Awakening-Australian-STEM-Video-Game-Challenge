@@ -15,10 +15,12 @@ const MutantMobScene := preload("res://mutantMob.tscn")
 const AirBubbleScene := preload("res://pickups/air_bubble.tscn")
 
 @export_range(1, 30, 1) var mob_count := 8
-@export_range(0, 10, 1) var sponges_per_level := 2
-@export_range(0, 10, 1) var bubbles_per_level := 3
+@export_range(1, 20, 1) var bubbles_per_level := 6
 @export var mob_spawn_size := Vector2(1100, 460)
 @export var mob_type: MutantMob.MobType = MutantMob.MobType.SHELL
+## Levels 5 and 6 contain Whale/Kraken bosses, not matching field mobs. Their
+## regular encounters use a shuffled mix of the four earlier creature types.
+@export var randomize_field_mobs := false
 
 @onready var player_spawn: Marker2D = $PlayerSpawn
 @onready var boss_spawn: Marker2D = $BossSpawn
@@ -41,15 +43,27 @@ func _ready() -> void:
 	_spawn_preloaded_mobs()
 
 func _spawn_preloaded_mobs() -> void:
-	_remaining_mobs = mob_count + sponges_per_level
-	for i in range(mob_count):
-		_spawn_level_mob(mob_type)
-	for i in range(sponges_per_level):
-		_spawn_level_mob(MutantMob.MobType.SPONGE)
+	_remaining_mobs = mob_count
+	if randomize_field_mobs:
+		# Whale and Kraken are boss-only. Replace both the level's normal
+		# creature batch with earlier named creatures.
+		for i in range(_remaining_mobs):
+			_spawn_level_mob(_random_previous_mob_type())
+	else:
+		for i in range(mob_count):
+			_spawn_level_mob(mob_type)
 	for i in range(bubbles_per_level):
 		var bubble := AirBubbleScene.instantiate()
 		add_child(bubble)
 		bubble.global_position = _random_spawn_position()
+
+func _random_previous_mob_type() -> MutantMob.MobType:
+	return [
+		MutantMob.MobType.SHELL,
+		MutantMob.MobType.JELLYFISH,
+		MutantMob.MobType.CRAB,
+		MutantMob.MobType.ANGLERFISH,
+	][randi_range(0, 3)]
 
 func _spawn_level_mob(type: MutantMob.MobType) -> void:
 	var mob := MutantMobScene.instantiate()
@@ -96,10 +110,13 @@ func _on_mob_cured(_mob: MutantMob) -> void:
 func mobs_already_cleared() -> bool:
 	return _remaining_mobs <= 0
 
+func get_remaining_mobs() -> int:
+	return _remaining_mobs
+
 func reset_encounter() -> void:
 	for child in get_children():
 		if child is MutantMob:
 			child.free()
-	_remaining_mobs = mob_count + sponges_per_level
+	_remaining_mobs = mob_count
 	_spawn_preloaded_mobs()
 	set_mobs_active(false)

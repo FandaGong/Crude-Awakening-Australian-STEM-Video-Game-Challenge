@@ -49,6 +49,8 @@ var hasRobotCompanion: bool:
 @export var undulationStrength = 0.05  # Subtle spine flex while paddling
 var currentSwimAngle: float = 0.0
 var swimTime: float = 0.0
+var bubble_trail_timer := 0.0
+var movement_sound_timer := 0.0
 
 # --- JUMP FEEL ---
 @export var coyoteTime = 0.12
@@ -123,6 +125,7 @@ func _physics_process(delta: float) -> void:
 		State.SWIMMING:
 			handleSwimmingMovement(delta)
 			depleteAir(delta)
+	_update_movement_sound(delta)
 
 	handleHotbarInput()
 	handleShootInput()
@@ -215,6 +218,10 @@ func handleSwimmingMovement(delta: float) -> void:
 		# Subtle spine undulation while actively swimming
 		var spineWiggle = sin(swimTime) * undulationStrength
 		sprite.rotation = currentSwimAngle + spineWiggle
+		bubble_trail_timer -= delta
+		if bubble_trail_timer <= 0.0:
+			bubble_trail_timer = 0.14
+			Effects.spawn_bubble_trail(global_position - Vector2.from_angle(currentSwimAngle) * 16.0)
 	else:
 		# Idle glide / sink with water drag
 		var sinkVelocity = Vector2(0.0, 45.0)
@@ -229,6 +236,38 @@ func handleSwimmingMovement(delta: float) -> void:
 	var targetScaleY = -baseScale if abs(currentSwimAngle) > (PI / 2.0) else baseScale
 	sprite.scale.y = move_toward(sprite.scale.y, targetScaleY, rollSpeed * baseScale * delta)
 	sprite.scale.x = baseScale
+
+func _play_swimming_sound(delta: float) -> void:
+	movement_sound_timer -= delta
+	if movement_sound_timer <= 0.0:
+		movement_sound_timer = 0.55
+		AudioManager.play_sfx("swimming")
+
+func _play_land_movement_sound(delta: float) -> void:
+	movement_sound_timer -= delta
+	if movement_sound_timer <= 0.0:
+		movement_sound_timer = 0.55
+		AudioManager.play_sfx("land_movement")
+
+## Movement clips are deliberately stopped rather than allowed to run out,
+## so jumping, falling, or crossing the waterline is silent immediately.
+func _update_movement_sound(delta: float) -> void:
+	var swimming_and_moving: bool = currentState == State.SWIMMING \
+		and Input.get_vector("move_left", "move_right", "move_up", "move_down").length_squared() > 0.01
+	var grounded_and_moving: bool = currentState == State.LAND \
+		and is_on_floor() and velocity.y >= 0.0 \
+		and absf(Input.get_axis("move_left", "move_right")) > 0.01
+
+	if swimming_and_moving:
+		AudioManager.stop_sfx("land_movement")
+		_play_swimming_sound(delta)
+	elif grounded_and_moving:
+		AudioManager.stop_sfx("swimming")
+		_play_land_movement_sound(delta)
+	else:
+		AudioManager.stop_sfx("swimming")
+		AudioManager.stop_sfx("land_movement")
+		movement_sound_timer = 0.0
 
 # --- STAT FUNCTIONS ---
 
@@ -277,6 +316,7 @@ func takeDamage(amount: float, damage_type: String = "physical") -> void:
 		final_damage *= 0.5
 
 	currentHealth = max(0.0, currentHealth - final_damage)
+	AudioManager.play_sfx("otter_hit")
 	if Effects and final_damage > 0.0:
 		Effects.show_number(global_position, final_damage, false)
 	
@@ -637,6 +677,8 @@ func updateAnimation() -> void:
 
 func _on_water_area_body_entered(body: Node2D) -> void:
 	if body == self:
+		AudioManager.stop_sfx("land_movement")
+		AudioManager.play_sfx("splash")
 		currentState = State.SWIMMING
 		velocity.y = clamp(velocity.y, -swimSpeed, swimSpeed)
 		currentSwimAngle = PI if sprite.flip_h else 0.0
@@ -644,6 +686,8 @@ func _on_water_area_body_entered(body: Node2D) -> void:
 
 func _on_water_area_body_exited(body: Node2D) -> void:
 	if body == self:
+		AudioManager.stop_sfx("swimming")
+		movement_sound_timer = 0.0
 		if GameData.equip_body_id == "whale_skin_wetsuit":
 			velocity = Vector2.ZERO
 		currentState = State.LAND

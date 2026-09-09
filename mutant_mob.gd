@@ -11,8 +11,9 @@ signal cured(mob: MutantMob)
 enum MobType { SHELL, JELLYFISH, CRAB, ANGLERFISH }
 
 @export var mob_type: MobType = MobType.SHELL
-@export var baseHealth: float = 30.0
+@export var baseHealth: float = 18.0
 @export var baseSpeed: float = 50.0
+@export var face_turn_speed: float = 5.0
 @export_enum("small", "medium", "large") var trash_size := "small"
 
 # Field mobs (as opposed to their boss versions in bosses/boss.gd) have a
@@ -124,25 +125,53 @@ func _configure_mob_sprite() -> void:
 	# avoids slicing the 128px anglerfish frames into two flashing halves.
 	var frame_size := sheet.get_height()
 	var frame_count := maxi(1, int(sheet.get_width() / frame_size))
+	var largest_frame := _find_largest_sprite_frame(sheet, frame_size, frame_count)
 	var frames := SpriteFrames.new()
 	frames.remove_animation("default")
 	frames.add_animation("default")
-	frames.set_animation_speed("default", 8.0)
-	for frame_index in range(frame_count):
-		var atlas := AtlasTexture.new()
-		atlas.atlas = sheet
-		atlas.region = Rect2(frame_index * frame_size, 0, frame_size, frame_size)
-		frames.add_frame("default", atlas)
+	var atlas := AtlasTexture.new()
+	atlas.atlas = sheet
+	atlas.region = Rect2(largest_frame * frame_size, 0, frame_size, frame_size)
+	frames.add_frame("default", atlas)
 	sprite.sprite_frames = frames
+	sprite.scale = Vector2(1.65, 1.65)
 	sprite.animation = &"default"
-	sprite.play()
+	sprite.frame = 0
+	sprite.pause()
+
+func _find_largest_sprite_frame(sheet: Texture2D, frame_size: int, frame_count: int) -> int:
+	var image := sheet.get_image()
+	if not image:
+		return 0
+	var largest_frame := 0
+	var largest_area := -1
+	for frame_index in range(frame_count):
+		var left := frame_size
+		var right := -1
+		var top := frame_size
+		var bottom := -1
+		for y in range(frame_size):
+			for x in range(frame_size):
+				if image.get_pixel(frame_index * frame_size + x, y).a > 0.05:
+					left = mini(left, x)
+					right = maxi(right, x)
+					top = mini(top, y)
+					bottom = maxi(bottom, y)
+		var area := 0 if right < left else (right - left + 1) * (bottom - top + 1)
+		if area > largest_area:
+			largest_area = area
+			largest_frame = frame_index
+	return largest_frame
 
 func _physics_process(delta: float) -> void:
-	if isCured or not encounter_active:
+	if isCured:
 		return
 
 	if not player or not is_instance_valid(player):
 		player = get_tree().get_first_node_in_group("player")
+	_face_player(delta)
+	if not encounter_active:
+		return
 
 	_tick_status_effects(delta)
 	body_hit_cooldown = max(0.0, body_hit_cooldown - delta)
@@ -160,6 +189,18 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	_apply_contact_damage()
+
+func _face_player(delta: float) -> void:
+	if not player:
+		return
+	var sprite := get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if sprite:
+		# Turn progressively toward the player through the standard 0–360°
+		# range instead of snapping the art to a new facing direction.
+		var target_angle := (player.global_position - global_position).angle()
+		sprite.rotation = wrapf(lerp_angle(sprite.rotation, target_angle, minf(1.0, face_turn_speed * delta)), 0.0, TAU)
+		sprite.flip_v = false
+		sprite.flip_h = false
 
 func _tick_status_effects(delta: float) -> void:
 	stun_timer = max(0.0, stun_timer - delta)

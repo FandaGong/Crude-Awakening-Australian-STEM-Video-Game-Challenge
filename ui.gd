@@ -9,6 +9,14 @@ var state_before_settings: UIState = UIState.TITLE
 @onready var settings_menu: Control = $settingsMenu
 @onready var pause_menu: Control = $pauseMenu
 @onready var hud: Control = $HUD
+@onready var settings_panel: Panel = $settingsMenu/Panel
+@onready var music_toggle: CheckButton = $settingsMenu/Panel/bgmButton
+@onready var sfx_toggle: CheckButton = $settingsMenu/Panel/soundEffectsButton
+@onready var effects_toggle: CheckButton = $settingsMenu/Panel/particlesButton
+@onready var close_settings_button: TextureButton = $settingsMenu/Panel/closeSettingsButton
+@onready var master_volume_slider: HSlider = $settingsMenu/Panel/masterVolumeSlider
+@onready var music_volume_slider: HSlider = $settingsMenu/Panel/musicVolumeSlider
+@onready var sfx_volume_slider: HSlider = $settingsMenu/Panel/sfxVolumeSlider
 
 @onready var hud_compendium_label: Label = $HUD/compendiumDataDisplay/compendiumLabel
 @onready var hud_details_panel: Panel = $HUD/DetailsPanel
@@ -39,6 +47,8 @@ func _ready() -> void:
 	_update_compendium_label(GameData.compendium_data)
 	_update_robot_inventory_button(GameData.is_robot_unlocked)
 	_set_state(UIState.TITLE)
+	_setup_settings_controls()
+	_build_settings_tabs()
 	
 	# Highlight slot 1 on startup
 	_update_hotbar_selection(1)
@@ -56,19 +66,122 @@ func _ready() -> void:
 		hud_details_panel.hide()
 	if robot_inventory_button:
 		robot_inventory_button.pressed.connect(_on_robot_inventory_button_pressed)
+	_connect_button_sounds()
 	
-	# --- AUTOMATIC CONTAINER SIZE DIAGNOSTIC ---
-	# If your container has collapsed to (0, 0), this will print a warning in your console.
-	var hotbarContainer = $HUD/hotbarContainer
-	if hotbarContainer and hotbarContainer.size == Vector2.ZERO:
-		print("\n--- DIAGNOSTIC WARNING ---")
-		print("Your 'hotbarContainer' size has collapsed to (0, 0) at runtime!")
-		print("In Godot, a parent container with a size of (0, 0) cannot route mouse clicks to its children.")
-		print("To fix this:")
-		print("1. Select 'hotbarContainer' in the editor.")
-		print("2. Go to the Inspector -> Control -> Layout -> Transform -> Size.")
-		print("3. Set a minimum size (e.g., Width: 150, Height: 50) so the container covers the buttons.")
-		print("--------------------------\n")
+
+func _setup_settings_controls() -> void:
+	_configure_toggle(music_toggle, "Music", AudioManager.music_enabled, _on_music_toggled)
+	_configure_toggle(sfx_toggle, "Sound effects", AudioManager.sfx_enabled, _on_sfx_toggled)
+	_configure_toggle(effects_toggle, "Bubble trails", Effects.effects_enabled, _on_effects_toggled)
+	$settingsMenu/Panel/reduceMotionButton.hide()
+	$settingsMenu/Panel/colorblindButton.hide()
+	close_settings_button.tooltip_text = "Return to the previous menu"
+	_configure_volume_slider(master_volume_slider, AudioManager.master_volume, _on_master_volume_changed)
+	_configure_volume_slider(music_volume_slider, AudioManager.music_volume, _on_music_volume_changed)
+	_configure_volume_slider(sfx_volume_slider, AudioManager.sfx_volume, _on_sfx_volume_changed)
+
+func _build_settings_tabs() -> void:
+	var tabs := Control.new()
+	tabs.name = "SettingsTabs"
+	tabs.position = Vector2(20.0, 56.0)
+	tabs.size = Vector2(340.0, 224.0)
+	settings_panel.add_child(tabs)
+
+	var audio := Control.new()
+	audio.name = "Audio"
+	audio.position = Vector2(0.0, 30.0)
+	var graphics := Control.new()
+	graphics.name = "Graphics"
+	graphics.position = Vector2(0.0, 30.0)
+	tabs.add_child(graphics)
+	tabs.add_child(audio)
+
+	var graphics_button := _make_tab_button("Graphics", Vector2(42.0, 0.0))
+	var audio_button := _make_tab_button("Audio", Vector2(198.0, 0.0))
+	var underline := ColorRect.new()
+	underline.color = Color.WHITE
+	underline.position = Vector2(graphics_button.position.x, 24.0)
+	underline.size = Vector2(graphics_button.size.x, 2.0)
+	tabs.add_child(graphics_button)
+	tabs.add_child(audio_button)
+	tabs.add_child(underline)
+	graphics_button.pressed.connect(_select_settings_tab.bind(graphics, audio, underline, graphics_button))
+	audio_button.pressed.connect(_select_settings_tab.bind(audio, graphics, underline, audio_button))
+	_select_settings_tab(graphics, audio, underline, graphics_button)
+
+	$settingsMenu/Panel/soundLabel.hide()
+	$settingsMenu/Panel/graphicsLabel.hide()
+	_move_to_tab(music_toggle, audio, Vector2(20.0, 20.0))
+	_move_to_tab(sfx_toggle, audio, Vector2(20.0, 48.0))
+	_move_to_tab(master_volume_slider, audio, Vector2(130.0, 92.0))
+	_move_to_tab(music_volume_slider, audio, Vector2(130.0, 126.0))
+	_move_to_tab(sfx_volume_slider, audio, Vector2(130.0, 160.0))
+	_move_to_tab($settingsMenu/Panel/masterVolumeLabel, audio, Vector2(20.0, 92.0))
+	_move_to_tab($settingsMenu/Panel/musicVolumeLabel, audio, Vector2(20.0, 126.0))
+	_move_to_tab($settingsMenu/Panel/sfxVolumeLabel, audio, Vector2(20.0, 160.0))
+	_move_to_tab(effects_toggle, graphics, Vector2(20.0, 20.0))
+
+func _make_tab_button(label: String, tab_position: Vector2) -> Button:
+	var button := Button.new()
+	button.text = label
+	button.flat = true
+	button.position = tab_position
+	button.size = Vector2(100.0, 24.0)
+	button.add_theme_font_size_override("font_size", 8)
+	return button
+
+func _select_settings_tab(active_page: Control, inactive_page: Control, underline: ColorRect, button: Button) -> void:
+	active_page.show()
+	inactive_page.hide()
+	underline.position.x = button.position.x
+	underline.size.x = button.size.x
+
+func _move_to_tab(control: Control, tab: Control, tab_position: Vector2) -> void:
+	control.reparent(tab)
+	control.position = tab_position
+
+func _configure_toggle(toggle: CheckButton, label: String, enabled: bool, callback: Callable) -> void:
+	toggle.text = label
+	toggle.add_theme_font_size_override("font_size", 8)
+	toggle.button_pressed = enabled
+	toggle.toggled.connect(callback)
+	for child in toggle.get_children():
+		if child is Control:
+			child.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			child.hide()
+
+func _configure_volume_slider(slider: HSlider, value: float, callback: Callable) -> void:
+	slider.value = value
+	slider.value_changed.connect(callback)
+
+func _connect_button_sounds() -> void:
+	for node in find_children("*", "BaseButton", true, false):
+		var button := node as BaseButton
+		if not button:
+			continue
+		if not button.pressed.is_connected(_play_button_sound):
+			button.pressed.connect(_play_button_sound)
+
+func _play_button_sound() -> void:
+	AudioManager.play_sfx("button_click")
+
+func _on_music_toggled(enabled: bool) -> void:
+	AudioManager.set_music_enabled(enabled)
+
+func _on_sfx_toggled(enabled: bool) -> void:
+	AudioManager.set_sfx_enabled(enabled)
+
+func _on_effects_toggled(enabled: bool) -> void:
+	Effects.set_effects_enabled(enabled)
+
+func _on_master_volume_changed(value: float) -> void:
+	AudioManager.set_master_volume(value)
+
+func _on_music_volume_changed(value: float) -> void:
+	AudioManager.set_music_volume(value)
+
+func _on_sfx_volume_changed(value: float) -> void:
+	AudioManager.set_sfx_volume(value)
 
 func _on_compendium_data_changed(new_amount: int) -> void:
 	_update_compendium_label(new_amount)
@@ -147,6 +260,9 @@ func _set_state(new_state: UIState) -> void:
 			hud.show()
 			pause_menu.show()
 			get_tree().paused = true
+		UIState.SETTINGS:
+			settings_menu.show()
+			get_tree().paused = true
 
 func _enable_player() -> void:
 	if not player:
@@ -175,9 +291,7 @@ func _on_quit_button_pressed() -> void:
 
 func _on_settings_button_pressed() -> void:
 	state_before_settings = current_state
-	current_state = UIState.SETTINGS
-	settings_menu.show()
-	get_tree().paused = true
+	_set_state(UIState.SETTINGS)
 
 func _on_close_button_pressed() -> void:
 	_close_settings()
@@ -189,13 +303,10 @@ func _close_settings() -> void:
 # --- Escape / pause menu ---
 
 func _on_resume_button_pressed() -> void:
-	_close_settings()
 	_set_state(UIState.PLAYING)
 	
 func _on_close_settings_button_pressed() -> void:
-	print("BUTTON PRESSED")
 	_close_settings()
-	_set_state(UIState.PLAYING)
 
 func _on_pause_main_menu_button_pressed() -> void:
 	_set_state(UIState.TITLE)

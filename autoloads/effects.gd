@@ -15,6 +15,9 @@ signal level_will_change
 const FloatingNumberScene := preload("res://effects/floating_number.tscn")
 const ItemDropScene := preload("res://pickups/item_drop.tscn")
 const AirBubbleScene := preload("res://pickups/air_bubble.tscn")
+const BubbleTrailScene := preload("res://effects/bubble_trail.tscn")
+
+var effects_enabled := true
 
 ## Spawns a floating "+N" (green, healing/curing) or "-N" (red, damage)
 ## number at a world position.
@@ -56,6 +59,20 @@ func spawn_air_bubble(origin: Vector2, air_amount: float = 100.0) -> void:
 	scene.add_child(bubble)
 	bubble.global_position = origin
 	bubble.air_amount = air_amount
+
+func spawn_bubble_trail(origin: Vector2) -> void:
+	if not effects_enabled:
+		return
+	var scene := get_tree().current_scene
+	if not scene:
+		return
+	var trail := BubbleTrailScene.instantiate()
+	scene.add_child(trail)
+	trail.global_position = origin
+	trail.setup()
+
+func set_effects_enabled(enabled: bool) -> void:
+	effects_enabled = enabled
 
 ## Called by world.gd immediately before any transition that moves the otter
 ## away from the area a drop might be sitting in.

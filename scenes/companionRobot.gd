@@ -2,9 +2,10 @@ extends Node2D
 
 # --- MOVEMENT CONTROLS ---
 @export var player: CharacterBody2D
-@export var followSpeed: float = 6.0
+@export var followDistance: float = 64.0
+@export var headOffset: float = 12.0
 @export var hoverSpeed: float = 3.5
-@export var hoverAmplitude: float = 12.0
+@export var hoverAmplitude: float = 4.0
 
 # --- GUIDANCE CONTROLS ---
 @export var guide_speed: float = 185.0
@@ -46,12 +47,15 @@ var active_beam_heal_accumulator: float = 0.0
 var _dialogue_box: DialogueBox = null
 var _guide_target: Vector2 = Vector2.ZERO
 var _is_guiding: bool = false
+var _bubble_trail_timer := 0.0
+var _last_trail_position := Vector2.ZERO
 
 func _ready() -> void:
 	if light_beam:
 		light_beam.default_color = Color(0.3, 1.0, 0.5, 0.9)
 		light_beam.width = 3.0
 	healing_injection_timer = healing_injection_interval
+	_last_trail_position = global_position
 
 func _physics_process(delta: float) -> void:
 	if not player or player.isDead or not player.hasRobotCompanion:
@@ -63,18 +67,15 @@ func _physics_process(delta: float) -> void:
 		
 	show()
 	timePassed += delta
+	_spawn_bubble_trail(delta)
 	
-	# --- 1. MOVEMENT & WAVE LOGIC ---
+	# --- 1. MOVEMENT ---
+	# This is intentionally a direct placement, not a smoothed follow: the
+	# companion must retain its formation position through dashes, teleports,
+	# and story guidance instead of ever falling behind.
+	_follow_player()
 	if _is_guiding:
-		_process_guidance(delta)
-	else:
-		var horizontalOffset = 35.0
-		if player.sprite and player.sprite.flip_h:
-			horizontalOffset = -35.0
-
-		var targetPosition = player.global_position + Vector2(horizontalOffset, -35.0)
-		global_position = global_position.lerp(targetPosition, followSpeed * delta)
-		global_position.y += sin(timePassed * hoverSpeed) * hoverAmplitude * delta
+		_process_guidance()
 
 	# --- 2. UNIQUE PASSIVE MODULE LOOPS ---
 	_process_unique_gear_and_modules(delta)
@@ -95,6 +96,14 @@ func _physics_process(delta: float) -> void:
 	# --- 5. RESCUE PROTOCOLS ---
 	_check_rescue_protocol(delta)
 
+func _spawn_bubble_trail(delta: float) -> void:
+	_bubble_trail_timer -= delta
+	if _bubble_trail_timer > 0.0 or global_position.distance_to(_last_trail_position) < 8.0:
+		return
+	_bubble_trail_timer = 0.18
+	_last_trail_position = global_position
+	Effects.spawn_bubble_trail(global_position + Vector2(0.0, 8.0))
+
 ## Sends the robot ahead of the otter toward a fixed story destination. The
 ## robot only advances while the otter remains close, so it naturally stops
 ## and waits instead of leaving the player behind.
@@ -103,25 +112,25 @@ func guide_player_to(destination: Vector2) -> void:
 		return
 	_guide_target = destination
 	_is_guiding = true
-	# A level rewind can leave the companion at the old level's coordinates.
-	# Re-anchor it beside the returning otter before it begins leading.
-	global_position = player.global_position + Vector2(0.0, -35.0)
+	_follow_player()
 	queue_redraw()
 
-func _process_guidance(delta: float) -> void:
+func _follow_player() -> void:
+	var facing_direction := Vector2.from_angle(player.currentSwimAngle)
+	# Start at the otter's head, then place the companion straight back along
+	# its facing/body line. This keeps it behind the head in every direction.
+	var head_position := player.global_position + facing_direction * headOffset
+	var formation_position := head_position - facing_direction * followDistance
+	# The small vertical bob is centered on the formation point, so the robot
+	# feels alive without ever drifting away from the otter.
+	var bob_offset := sin(timePassed * hoverSpeed) * hoverAmplitude
+	global_position = formation_position + Vector2(0.0, bob_offset)
+
+func _process_guidance() -> void:
 	var player_to_goal := _guide_target - player.global_position
 	if player_to_goal.length() <= guide_arrival_distance:
 		_is_guiding = false
 		queue_redraw()
-		return
-
-	var direction := player_to_goal.normalized()
-	var lead_position := player.global_position + direction * minf(guide_lead_distance, player_to_goal.length())
-	# Once the robot has established a lead, it waits there until the otter
-	# closes the gap. This makes the arrows an invitation to follow, not a
-	# moving target the player can lose.
-	if global_position.distance_to(player.global_position) <= guide_wait_distance:
-		global_position = global_position.move_toward(lead_position, guide_speed * delta)
 	queue_redraw()
 
 func _draw() -> void:
@@ -313,6 +322,7 @@ func _handle_targeting_and_curing(delta: float) -> void:
 # firing interval; the heal for that shot is delivered gradually by
 # _update_active_beam() rather than all at once.
 func _start_beam(target: Node2D, total_heal: float) -> void:
+	AudioManager.play_sfx("robot_shoot")
 	active_beam_target = target
 	active_beam_time_left = healing_injection_interval
 	active_beam_heal_rate = total_heal / healing_injection_interval

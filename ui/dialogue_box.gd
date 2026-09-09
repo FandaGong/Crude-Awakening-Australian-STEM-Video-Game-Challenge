@@ -117,16 +117,16 @@ func _ready() -> void:
 	_hint.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	
 	# Absolute control offsets ensure it remains safely inside the inner patch borders
-	_hint.offset_left = -140.0
+	_hint.offset_left = -190.0
 	_hint.offset_top = -28.0
 	_hint.offset_right = -28.0     
 	_hint.offset_bottom = -8.0     
-	_hint.text = "C  continue"
+	_hint.text = "C continue    X skip"
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	_hint.add_theme_font_size_override("font_size", 11)
-	_hint.add_theme_color_override("font_color", Color("9fd6d0"))
+	_hint.add_theme_color_override("font_color", Color("eaf8f5"))
 	
 	# Apply the same custom font asset to your advance hint prompt
 	if custom_font:
@@ -153,16 +153,24 @@ func _process(delta: float) -> void:
 	_text.visible_characters = int(_visible_characters)
 	if _text.visible_characters >= _text.text.length():
 		_typing = false
+		_hint.text = "C continue    X skip"
 		_hint.visible = true
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not visible or not event.is_action_pressed("interact"):
+	if not visible:
+		return
+	if event.is_action_pressed("skip_dialogue"):
+		get_viewport().set_input_as_handled()
+		_skip_all_lines()
+		return
+	if not event.is_action_pressed("interact"):
 		return
 	get_viewport().set_input_as_handled()
 	if _typing:
 		_visible_characters = _text.text.length()
 		_text.visible_characters = -1
 		_typing = false
+		_hint.text = "C continue    X skip"
 		_hint.visible = true
 		return
 	_line_index += 1
@@ -172,9 +180,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	_show_current_line()
 
+## X completes the current dialogue batch as if every remaining line had
+## been advanced, so any awaiting story event can continue immediately.
+func _skip_all_lines() -> void:
+	_typing = false
+	_line_index = _lines.size()
+	_lines = PackedStringArray()
+	_hint.visible = false
+	visible = false
+	finished.emit()
+
 func _show_current_line() -> void:
 	_text.text = _lines[_line_index]
 	_visible_characters = 0.0
 	_text.visible_characters = 0
 	_typing = true
-	_hint.visible = false
+	_hint.text = "C reveal    X skip"
+	_hint.visible = true

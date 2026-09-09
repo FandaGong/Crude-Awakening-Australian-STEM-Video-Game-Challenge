@@ -232,6 +232,7 @@ func enter_boss_arena(boss_id: int) -> void:
 		return
 
 	Effects.notify_level_changing()
+	AudioManager.play_music(AudioManager.Music.BOSS)
 	current_boss_data = load(path)
 	_clear_active_boss_arena()
 
@@ -318,6 +319,7 @@ func enter_level(era_index: int) -> void:
 ## their parallax background layers cannot bleed into another level or the
 ## laboratory hub.
 func _set_level_atmosphere(active_index: int) -> void:
+	AudioManager.play_music(AudioManager.Music.WATER if active_index >= 0 else AudioManager.Music.LAND)
 	for i in range(level_nodes.size()):
 		var level: Node = level_nodes[i]
 		if not level:
@@ -414,6 +416,7 @@ func _spawn_level_boss(level: Node, era_index: int) -> void:
 		return
 
 	current_level_boss_data = load(path)
+	AudioManager.play_music(AudioManager.Music.BOSS)
 	current_level_boss = BossScene.instantiate()
 	current_level_boss.boss_data = current_level_boss_data
 	level.add_child(current_level_boss)
@@ -421,6 +424,7 @@ func _spawn_level_boss(level: Node, era_index: int) -> void:
 	current_level_boss.defeated.connect(_on_level_boss_defeated.bind(era_index))
 
 func _on_level_boss_defeated(_boss_id: int, _era_index: int) -> void:
+	AudioManager.play_music(AudioManager.Music.WATER)
 	await get_tree().create_timer(1.5).timeout
 	_clear_level_boss()
 	# The otter no longer teleports home automatically - the level's own

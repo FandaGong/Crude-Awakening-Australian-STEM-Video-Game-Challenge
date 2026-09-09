@@ -65,6 +65,7 @@
 [ext_resource type="Texture2D" uid="uid://ek2mv3oubk4l" path="res://assets/sprites/ground (grass and dirt)/sand.png" id="47_kejda"]
 [ext_resource type="Texture2D" uid="uid://cbkxx4vouyl8x" path="res://assets/sprites/ground (grass and dirt)/sandCornerConnector.png" id="48_uqk8q"]
 [ext_resource type="PackedScene" uid="uid://bl0otxks4eyl7" path="res://scenes/CompanionRobot.tscn" id="59_6orn5"]
+[ext_resource type="Script" uid="uid://cxbkpohhvsotf" path="res://scripts/ui/inset_volume_slider.gd" id="60_volume_slider"]
 [ext_resource type="Texture2D" uid="uid://clhrnwlg6nl65" path="res://assets/sprites/trash/trashMedium.png" id="61_2wyoe"]
 [ext_resource type="Texture2D" uid="uid://dbr0d1xd7ql2x" path="res://assets/sprites/ground (grass and dirt)/sandRight.png" id="61_6uidu"]
 [ext_resource type="Texture2D" uid="uid://b0vioq4wry4fi" path="res://assets/sprites/ground (grass and dirt)/sandStair.png" id="62_qu7as"]
@@ -1428,10 +1429,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -198.0
-offset_top = -116.0
-offset_right = 218.0
-offset_bottom = 132.0
+offset_left = -190.0
+offset_top = -150.0
+offset_right = 190.0
+offset_bottom = 150.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("8_q5dlx")
@@ -1439,10 +1440,10 @@ theme_override_styles/panel = ExtResource("29_thyvg")
 
 [node name="bgmButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=84036431]
 layout_mode = 0
-offset_left = 216.0
-offset_top = 72.0
-offset_right = 248.0
-offset_bottom = 88.0
+offset_left = 28.0
+offset_top = 80.0
+offset_right = 190.0
+offset_bottom = 100.0
 theme_override_styles/normal = SubResource("StyleBoxEmpty_3ngjr")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_qilgh")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_4qosj")
@@ -1463,10 +1464,10 @@ label_settings = ExtResource("8_hqns4")
 
 [node name="soundEffectsButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=403706817]
 layout_mode = 0
-offset_left = 216.0
-offset_top = 97.0
-offset_right = 248.0
-offset_bottom = 113.0
+offset_left = 28.0
+offset_top = 106.0
+offset_right = 190.0
+offset_bottom = 126.0
 theme_override_styles/normal = SubResource("StyleBoxEmpty_3ngjr")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_qilgh")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_4qosj")
@@ -1535,10 +1536,10 @@ label_settings = ExtResource("8_hqns4")
 
 [node name="particlesButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=1687058592]
 layout_mode = 0
-offset_left = 33.0
-offset_top = 64.0
-offset_right = 65.0
-offset_bottom = 80.0
+offset_left = 28.0
+offset_top = 162.0
+offset_right = 190.0
+offset_bottom = 182.0
 theme_override_styles/normal = SubResource("StyleBoxEmpty_3ngjr")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_qilgh")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_4qosj")
@@ -1557,33 +1558,107 @@ offset_bottom = 13.0
 text = "Particles"
 label_settings = ExtResource("8_hqns4")
 
+[node name="graphicsLabel" type="Label" parent="UI/settingsMenu/Panel" unique_id=172590303]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 136.0
+offset_right = 120.0
+offset_bottom = 154.0
+theme_override_font_sizes/font_size = 8
+text = "GRAPHICS"
+label_settings = ExtResource("8_hqns4")
+
 [node name="soundLabel" type="Label" parent="UI/settingsMenu/Panel" unique_id=238209664]
 layout_mode = 0
-offset_left = 218.0
-offset_top = 27.0
-offset_right = 306.0
-offset_bottom = 55.0
-text = "Sound"
-label_settings = ExtResource("21_fbwgr")
+offset_left = 28.0
+offset_top = 54.0
+offset_right = 120.0
+offset_bottom = 72.0
+theme_override_font_sizes/font_size = 8
+text = "AUDIO"
+label_settings = ExtResource("8_hqns4")
 
 [node name="generalLabel" type="Label" parent="UI/settingsMenu/Panel" unique_id=805448548]
 layout_mode = 0
-offset_left = 31.0
-offset_top = 24.0
-offset_right = 154.0
-offset_bottom = 52.0
-text = "General"
+offset_left = 28.0
+offset_top = 20.0
+offset_right = 170.0
+offset_bottom = 46.0
+theme_override_font_sizes/font_size = 18
+text = "Settings"
 label_settings = ExtResource("21_fbwgr")
 
 [node name="closeSettingsButton" type="TextureButton" parent="UI/settingsMenu/Panel" unique_id=210517809]
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 0
-offset_left = 361.0
-offset_top = 22.0
-offset_right = 393.0
-offset_bottom = 54.0
+offset_left = 332.0
+offset_top = 16.0
+offset_right = 364.0
+offset_bottom = 48.0
 texture_normal = ExtResource("21_7plk7")
-script = ExtResource("9_btnfx")
+
+[node name="masterVolumeLabel" type="Label" parent="UI/settingsMenu/Panel" unique_id=1736045641]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 202.0
+offset_right = 142.0
+offset_bottom = 220.0
+theme_override_font_sizes/font_size = 8
+text = "Master"
+label_settings = ExtResource("8_hqns4")
+
+[node name="masterVolumeSlider" type="HSlider" parent="UI/settingsMenu/Panel" unique_id=1349755783]
+layout_mode = 0
+offset_left = 148.0
+offset_top = 202.0
+offset_right = 320.0
+offset_bottom = 220.0
+max_value = 1.0
+step = 0.05
+value = 1.0
+script = ExtResource("60_volume_slider")
+
+[node name="musicVolumeLabel" type="Label" parent="UI/settingsMenu/Panel" unique_id=1436973765]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 228.0
+offset_right = 142.0
+offset_bottom = 246.0
+theme_override_font_sizes/font_size = 8
+text = "Music"
+label_settings = ExtResource("8_hqns4")
+
+[node name="musicVolumeSlider" type="HSlider" parent="UI/settingsMenu/Panel" unique_id=1415892472]
+layout_mode = 0
+offset_left = 148.0
+offset_top = 228.0
+offset_right = 320.0
+offset_bottom = 246.0
+max_value = 1.0
+step = 0.05
+value = 1.0
+script = ExtResource("60_volume_slider")
+
+[node name="sfxVolumeLabel" type="Label" parent="UI/settingsMenu/Panel" unique_id=1081932989]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 254.0
+offset_right = 142.0
+offset_bottom = 272.0
+theme_override_font_sizes/font_size = 8
+text = "Sound effects"
+label_settings = ExtResource("8_hqns4")
+
+[node name="sfxVolumeSlider" type="HSlider" parent="UI/settingsMenu/Panel" unique_id=1826124297]
+layout_mode = 0
+offset_left = 148.0
+offset_top = 254.0
+offset_right = 320.0
+offset_bottom = 272.0
+max_value = 1.0
+step = 0.05
+value = 1.0
+script = ExtResource("60_volume_slider")
 
 [node name="pauseMenu" type="Control" parent="UI" unique_id=1991277421]
 process_mode = 3

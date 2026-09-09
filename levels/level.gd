@@ -13,6 +13,7 @@ signal mobs_cleared
 
 const MutantMobScene := preload("res://mutantMob.tscn")
 const AirBubbleScene := preload("res://pickups/air_bubble.tscn")
+const HealingPadScene := preload("res://effects/healing_pad.tscn")
 
 @export_range(1, 30, 1) var mob_count := 8
 @export_range(1, 20, 1) var bubbles_per_level := 6
@@ -56,6 +57,10 @@ func _spawn_preloaded_mobs() -> void:
 		var bubble := AirBubbleScene.instantiate()
 		add_child(bubble)
 		bubble.global_position = _random_spawn_position()
+	for i in range(2):
+		var pad := HealingPadScene.instantiate()
+		add_child(pad)
+		pad.global_position = _random_spawn_position()
 
 func _random_previous_mob_type() -> MutantMob.MobType:
 	return [
@@ -115,7 +120,7 @@ func get_remaining_mobs() -> int:
 
 func reset_encounter() -> void:
 	for child in get_children():
-		if child is MutantMob:
+		if child is MutantMob or child.is_in_group("healing_pads"):
 			child.free()
 	_remaining_mobs = mob_count
 	_spawn_preloaded_mobs()

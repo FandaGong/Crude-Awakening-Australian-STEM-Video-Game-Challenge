@@ -1903,21 +1903,24 @@ position = Vector2(556, 1190)
 shape = SubResource("RectangleShape2D_level1_water")
 
 [node name="atmosphere" type="Node2D" parent="World/Levels/Level1" unique_id=1481185670]
-position = Vector2(-19673, -1789)
+position = Vector2(-20008, -1765)
 
 [node name="ocean1" type="Parallax2D" parent="World/Levels/Level1/atmosphere" unique_id=1695843891]
+visible = false
 z_index = -100
-scroll_scale = Vector2(0, 0)
+scroll_scale = Vector2(0.01, 0.01)
+scroll_offset = Vector2(-398, -1168)
+repeat_size = Vector2(1280, 0)
 
 [node name="Sprite2D" type="Sprite2D" parent="World/Levels/Level1/atmosphere/ocean1" unique_id=1404036008]
-position = Vector2(545, 2799)
-scale = Vector2(15, 15)
+position = Vector2(389.99994, 1869.0002)
+scale = Vector2(5, 5)
 texture = ExtResource("69_sg3tl")
 
 [node name="skyLayer1" type="Parallax2D" parent="World/Levels/Level1/atmosphere" unique_id=1569653698]
 z_index = -100
 scroll_scale = Vector2(0, 0)
-scroll_offset = Vector2(0, 71)
+scroll_offset = Vector2(159, 875)
 repeat_size = Vector2(256, 0)
 
 [node name="Sprite2D" type="Sprite2D" parent="World/Levels/Level1/atmosphere/skyLayer1" unique_id=385170000]
@@ -1926,8 +1929,8 @@ texture = ExtResource("72_16pp4")
 
 [node name="skyLayer2" type="Parallax2D" parent="World/Levels/Level1/atmosphere" unique_id=1340767132]
 z_index = -100
-scroll_scale = Vector2(0, 0)
-scroll_offset = Vector2(0, 67)
+scroll_scale = Vector2(0.005, 0.005)
+scroll_offset = Vector2(-180, 562)
 repeat_size = Vector2(256, 0)
 
 [node name="Sprite2D" type="Sprite2D" parent="World/Levels/Level1/atmosphere/skyLayer2" unique_id=1232989631]
@@ -1936,8 +1939,8 @@ texture = ExtResource("73_5od4l")
 
 [node name="skyLayer3" type="Parallax2D" parent="World/Levels/Level1/atmosphere" unique_id=1965181276]
 z_index = -100
-scroll_scale = Vector2(0, 0)
-scroll_offset = Vector2(-4, 63)
+scroll_scale = Vector2(0.01, 0.01)
+scroll_offset = Vector2(-184, 558)
 repeat_size = Vector2(256, 0)
 
 [node name="Sprite2D" type="Sprite2D" parent="World/Levels/Level1/atmosphere/skyLayer3" unique_id=1484257147]
@@ -1966,6 +1969,7 @@ position = Vector2(800, 0)
 shape = SubResource("RectangleShape2D_level2_water")
 
 [node name="atmosphere" type="Node2D" parent="World/Levels/Level2" unique_id=2101490497]
+position = Vector2(-4, -13)
 
 [node name="ocean1" type="Parallax2D" parent="World/Levels/Level2/atmosphere" unique_id=1569800680]
 z_index = -100
@@ -2254,12 +2258,16 @@ tile_set = SubResource("TileSet_ge17k")
 z_index = -100
 
 [node name="Sprite2D" type="Sprite2D" parent="World/endingScene/sunsetSky/sky1" unique_id=1068738899]
+position = Vector2(117, 90)
+scale = Vector2(3, 3)
 texture = ExtResource("80_fv7tb")
 
 [node name="water" type="Parallax2D" parent="World/endingScene/sunsetSky" unique_id=1923783361]
 z_index = -100
 
 [node name="Sprite2D" type="Sprite2D" parent="World/endingScene/sunsetSky/water" unique_id=414687633]
+position = Vector2(113, 87)
+scale = Vector2(3, 3)
 texture = ExtResource("81_1m5r5")
 
 [node name="player" parent="World" unique_id=1331852227 instance=ExtResource("1_0e48y")]

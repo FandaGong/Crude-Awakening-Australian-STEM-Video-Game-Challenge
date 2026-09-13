@@ -12,15 +12,12 @@ signal finished
 @onready var title_label: Label = $TitleLabel
 @onready var skip_label: Label = $SkipLabel
 
-# How many "digits flicker" steps the year slider runs through before
-# landing on the real target year, and the fastest/slowest delay between
-# steps. Interpolating the per-step delay from fast to slow (rather than
-# just the step count) is what sells the "spinning up, then settling"
-# feel of an odometer or slot machine coming to rest.
-const YEAR_SPIN_STEPS := 16
+# The timeline always begins in the present day, then advances one year at a
+# time toward the selected historical turning point. Each change slows down
+# as it nears its destination.
+const CURRENT_YEAR := 2026
 const YEAR_SPIN_FASTEST_DELAY := 0.02
 const YEAR_SPIN_SLOWEST_DELAY := 0.22
-const YEAR_SPIN_SCATTER := 450
 var _finished := false
 var _active_tween: Tween
 
@@ -30,7 +27,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_skip()
 
 func play(year: int, era_title: String) -> void:
-	year_label.text = str(year)
+	year_label.text = str(CURRENT_YEAR)
 	title_label.text = era_title
 	fade.modulate.a = 0.0
 	year_label.modulate.a = 0.0
@@ -69,20 +66,19 @@ func _finish() -> void:
 	finished.emit()
 	queue_free()
 
-## Flips the year label through a handful of nearby years, starting fast
-## and easing into slower and slower steps until it settles exactly on
-## the real target year - like a slot machine or an odometer winding down.
+## Advances the real calendar from 2026 through every intervening year,
+## beginning rapidly and progressively easing to a stop at the destination.
 func _spin_year_label(target_year: int) -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.randomize()
-	for i in range(YEAR_SPIN_STEPS):
-		var progress := float(i) / float(YEAR_SPIN_STEPS - 1)
-		# Cubic ease-out: delay barely grows at first, then stretches out.
+	if target_year <= CURRENT_YEAR:
+		year_label.text = str(target_year)
+		return
+	var total_steps := target_year - CURRENT_YEAR
+	for year in range(CURRENT_YEAR + 1, target_year + 1):
+		year_label.text = str(year)
+		if year == target_year:
+			break
+		var progress := float(year - CURRENT_YEAR) / float(total_steps)
+		# Cubic ease-out keeps early years fast and lets the final years linger.
 		var eased_progress := 1.0 - pow(1.0 - progress, 3.0)
-		if i == YEAR_SPIN_STEPS - 1:
-			year_label.text = str(target_year)
-		else:
-			var offset := rng.randi_range(-YEAR_SPIN_SCATTER, YEAR_SPIN_SCATTER)
-			year_label.text = str(target_year + offset)
 		var delay: float = lerp(YEAR_SPIN_FASTEST_DELAY, YEAR_SPIN_SLOWEST_DELAY, eased_progress)
 		await get_tree().create_timer(delay).timeout

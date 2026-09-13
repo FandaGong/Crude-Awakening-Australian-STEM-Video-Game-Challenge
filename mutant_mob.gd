@@ -16,6 +16,7 @@ enum MobType { SHELL, JELLYFISH, CRAB, ANGLERFISH }
 @export var face_turn_speed: float = 5.0
 @export_range(1.0, 1000.0, 1.0, "suffix:px") var aggro_radius := 200.0
 @export var water_acceleration := 260.0
+@export var rush_acceleration := 900.0
 @export var water_drag := 180.0
 @export_enum("small", "medium", "large") var trash_size := "small"
 
@@ -36,7 +37,7 @@ const MOB_DROP_CHANCE := 1.0
 @export var shell_body_damage: float = 10.0
 @export var shell_charge_time: float = 1.1
 @export var shell_pause_time: float = 0.9
-@export var shell_charge_speed: float = 220.0
+@export var shell_charge_speed: float = 300.0
 
 @export_group("Jellyfish")
 @export var jelly_body_damage: float = 2.0
@@ -48,7 +49,7 @@ const MOB_DROP_CHANCE := 1.0
 @export var crab_body_damage: float = 15.0
 @export var crab_pivot_speed: float = 1.4 # rad/s around the player
 @export var crab_pivot_radius: float = 160.0
-@export var crab_charge_speed: float = 260.0
+@export var crab_charge_speed: float = 360.0
 @export var crab_pivot_time: float = 1.8
 @export var crab_charge_time: float = 0.5
 @export var crab_retreat_time: float = 0.6
@@ -80,6 +81,7 @@ var _angler_damage_accumulator: float = 0.0
 var _idle_direction := Vector2.RIGHT
 var _idle_direction_timer := 0.0
 var _was_aggro := false
+var _analysis_label: Label
 
 const MOB_SPRITE_SHEETS := {
 	MobType.SHELL: "res://assets/sprites/mobs/shell.png",
@@ -107,7 +109,9 @@ var blind_timer: float = 0.0
 func _ready() -> void:
 	add_to_group("corrupted_mobs")
 	player = get_tree().get_first_node_in_group("player")
+	_configure_collision_shape()
 	_configure_mob_sprite()
+	_setup_analysis_hud()
 
 	var depthScale = global_position.y / 1000.0
 	max_health = baseHealth + (depthScale * 10.0)
@@ -129,6 +133,58 @@ func _ready() -> void:
 	var hitbox := get_node_or_null("HitBox")
 	if hitbox:
 		hitbox.body_entered.connect(_on_hitbox_body_entered)
+
+## mutantMob.tscn contains one hand-authored collider for each creature.
+## Enable exactly the collider matching this instance's selected mob type.
+func _configure_collision_shape() -> void:
+	var active_shape_name: String = {
+		MobType.SHELL: "shell",
+		MobType.JELLYFISH: "jellyfish",
+		MobType.CRAB: "crab",
+		MobType.ANGLERFISH: "anglerfish",
+	}.get(mob_type, "shell")
+	for shape_name in ["shell", "jellyfish", "crab", "anglerfish"]:
+		var collision_shape := get_node_or_null(shape_name) as CollisionShape2D
+		if collision_shape:
+			collision_shape.set_deferred("disabled", shape_name != active_shape_name)
+
+## Bio-Analysis Engine exposes live encounter data above each mob once the
+## player has unlocked the Compendium upgrade.
+func _setup_analysis_hud() -> void:
+	_analysis_label = Label.new()
+	_analysis_label.position = Vector2(-58.0, -52.0)
+	_analysis_label.size = Vector2(116.0, 42.0)
+	_analysis_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_analysis_label.add_theme_font_size_override("font_size", 9)
+	_analysis_label.add_theme_color_override("font_outline_color", Color(0.02, 0.05, 0.08, 1.0))
+	_analysis_label.add_theme_constant_override("outline_size", 2)
+	_analysis_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_analysis_label)
+	_update_analysis_hud()
+
+func _update_analysis_hud() -> void:
+	if not _analysis_label:
+		return
+	_analysis_label.visible = GameData.has_skill("comp_2")
+	if not _analysis_label.visible:
+		return
+	_analysis_label.text = "Cure: %d%%\nSpeed: %d  Range: %d" % [
+		roundi(cure_percent()),
+		roundi(velocity.length()),
+		roundi(_analysis_attack_range()),
+	]
+
+func _analysis_attack_range() -> float:
+	match mob_type:
+		MobType.JELLYFISH:
+			return jelly_hover_distance + 24.0
+		MobType.ANGLERFISH:
+			return angler_light_radius
+		MobType.CRAB:
+			return 32.0
+		MobType.SHELL:
+			return 28.0
+	return 0.0
 
 func _configure_mob_sprite() -> void:
 	var sprite := get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
@@ -166,6 +222,7 @@ func _update_sprite_animation_speed() -> void:
 	sprite.speed_scale = clampf(0.65 + speed_ratio * 0.65, 0.65, 3.0)
 
 func _physics_process(delta: float) -> void:
+	_update_analysis_hud()
 	if isCured:
 		return
 
@@ -222,6 +279,8 @@ func _process_idle_float(delta: float) -> void:
 
 func _steer_toward(target_velocity: Vector2, delta: float) -> void:
 	var acceleration := water_drag if target_velocity.is_zero_approx() else water_acceleration
+	if target_velocity.length() > baseSpeed * 1.5:
+		acceleration = rush_acceleration
 	velocity = velocity.move_toward(target_velocity, acceleration * delta)
 
 func _apply_water_boundary(delta: float) -> void:

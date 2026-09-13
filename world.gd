@@ -121,6 +121,7 @@ func teleport_player_to_pond() -> void:
 	player.global_position = current_spawn_position
 	player.currentState = player.State.LAND
 	player.visible = true
+	_snap_companion_to_player()
 
 ## Sends the player back to the scientist's lab hub (the 2126 wasteland
 ## around pondScene) without re-running the opening pond sequence. Called
@@ -162,6 +163,7 @@ func _play_lab_arrival_effect(spawn_pos: Vector2) -> void:
 	player.global_position = spawn_pos
 	player.scale = original_scale
 	player.visible = true
+	_snap_companion_to_player()
 
 	# A little hop "out of" the hole rather than just appearing flat-footed.
 	var hop := create_tween()
@@ -208,21 +210,23 @@ func guide_player_to_scientist() -> void:
 
 func transitionToEnding() -> void:
 	Effects.notify_level_changing()
-	_set_level_atmosphere(-1)
+	_set_level_atmosphere(-1, false, true)
 	_clear_active_boss_arena()
 	current_spawn_position = ending_spawn.global_position
 	player.global_position = current_spawn_position
 	player.currentState = player.State.LAND
 	player.visible = true
+	_snap_companion_to_player()
 
 func enter_dive_tunnel() -> void:
 	Effects.notify_level_changing()
-	_set_level_atmosphere(-1)
+	_set_level_atmosphere(-1, false)
 	_clear_active_boss_arena()
 	current_spawn_position = dive_tunnel.global_position
 	player.global_position = current_spawn_position
 	player.currentState = player.State.SWIMMING
 	player.visible = true
+	_snap_companion_to_player()
 
 # --- Boss arenas -------------------------------------------------------------
 
@@ -248,6 +252,7 @@ func enter_boss_arena(boss_id: int) -> void:
 	player.currentState = player.State.SWIMMING
 	player.visible = true
 	current_spawn_position = player.global_position
+	_snap_companion_to_player()
 
 func _on_arena_boss_defeated(boss_id: int) -> void:
 	await get_tree().create_timer(1.5).timeout
@@ -277,6 +282,7 @@ func _return_to_tunnel_from_boss(boss_id: int) -> void:
 	player.global_position = dive_tunnel.global_position + gate_pos + Vector2(0, 90)
 	player.currentState = player.State.SWIMMING
 	current_spawn_position = player.global_position
+	_snap_companion_to_player()
 
 func _clear_active_boss_arena() -> void:
 	if current_boss_arena and is_instance_valid(current_boss_arena):
@@ -319,6 +325,7 @@ func enter_level(era_index: int) -> void:
 	# nearby enemies or hazards can deal damage.
 	player.respawn_immunity = 5.0
 	player.visible = true
+	_snap_companion_to_player()
 
 	_spawn_level_time_machine(level, era_index)
 
@@ -328,13 +335,32 @@ func enter_level(era_index: int) -> void:
 	level.set_mobs_active(false)
 	_show_level_briefing(era_index)
 
+func _snap_companion_to_player() -> void:
+	var robot := get_node_or_null("CompanionRobot")
+	if robot and robot.has_method("snap_to_player"):
+		robot.snap_to_player()
+
 ## Only the atmosphere belonging to the active historical level is allowed to
 ## render. The level scenes remain loaded for their mobs and terrain, but
 ## their parallax background layers cannot bleed into another level or the
 ## laboratory hub.
-func _set_level_atmosphere(active_index: int) -> void:
+func _set_level_atmosphere(
+	active_index: int, show_pond_atmosphere: bool = true, show_ending_atmosphere: bool = false
+) -> void:
 	AudioManager.play_music(AudioManager.Music.WATER if active_index >= 0 else AudioManager.Music.LAND)
 	_set_active_level_tilemap(active_index)
+	# Parallax2D layers ignore normal world placement, so each area needs an
+	# explicit visibility switch rather than relying on world coordinates.
+	var pond_atmosphere := pond_scene.get_node_or_null("atmosphere") as CanvasItem if pond_scene else null
+	if pond_atmosphere:
+		pond_atmosphere.visible = show_pond_atmosphere and active_index < 0
+	var ending_atmosphere := ending_scene.get_node_or_null("atmosphere") as CanvasItem if ending_scene else null
+	if not ending_atmosphere and ending_scene:
+		# The currently authored ending background predates the shared naming
+		# convention. Retain it while also supporting a future `atmosphere` node.
+		ending_atmosphere = ending_scene.get_node_or_null("sunsetSky") as CanvasItem
+	if ending_atmosphere:
+		ending_atmosphere.visible = show_ending_atmosphere
 	for i in range(level_nodes.size()):
 		var level: Node = level_nodes[i]
 		if not level:

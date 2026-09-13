@@ -3,9 +3,11 @@ extends Node2D
 # --- MOVEMENT CONTROLS ---
 @export var player: CharacterBody2D
 @export var followDistance: float = 64.0
-@export var headOffset: float = 12.0
 @export var hoverSpeed: float = 3.5
 @export var hoverAmplitude: float = 4.0
+@export var follow_dead_zone: float = 12.0
+@export var follow_acceleration: float = 900.0
+@export var follow_max_speed: float = 360.0
 
 # --- GUIDANCE CONTROLS ---
 @export var guide_speed: float = 185.0
@@ -49,6 +51,8 @@ var _guide_target: Vector2 = Vector2.ZERO
 var _is_guiding: bool = false
 var _bubble_trail_timer := 0.0
 var _last_trail_position := Vector2.ZERO
+var _follow_anchor := Vector2.ZERO
+var _follow_velocity := Vector2.ZERO
 
 func _ready() -> void:
 	if light_beam:
@@ -56,6 +60,9 @@ func _ready() -> void:
 		light_beam.width = 3.0
 	healing_injection_timer = healing_injection_interval
 	_last_trail_position = global_position
+	if player:
+		_follow_anchor = player.global_position
+		global_position = _follow_anchor + Vector2(0.0, -followDistance)
 
 func _physics_process(delta: float) -> void:
 	if not player or player.isDead or not player.hasRobotCompanion:
@@ -70,10 +77,7 @@ func _physics_process(delta: float) -> void:
 	_spawn_bubble_trail(delta)
 	
 	# --- 1. MOVEMENT ---
-	# This is intentionally a direct placement, not a smoothed follow: the
-	# companion must retain its formation position through dashes, teleports,
-	# and story guidance instead of ever falling behind.
-	_follow_player()
+	_follow_player(delta)
 	if _is_guiding:
 		_process_guidance()
 
@@ -118,19 +122,30 @@ func guide_player_to(destination: Vector2) -> void:
 		return
 	_guide_target = destination
 	_is_guiding = true
-	_follow_player()
 	queue_redraw()
 
-func _follow_player() -> void:
-	var facing_direction := Vector2.from_angle(player.currentSwimAngle)
-	# Start at the otter's head, then place the companion straight back along
-	# its facing/body line. This keeps it behind the head in every direction.
-	var head_position := player.global_position + facing_direction * headOffset
-	var formation_position := head_position - facing_direction * followDistance
-	# The small vertical bob is centered on the formation point, so the robot
-	# feels alive without ever drifting away from the otter.
+## World transitions can move the otter thousands of pixels in one frame.
+## Reset only in that case so regular movement still has smooth follow inertia.
+func snap_to_player() -> void:
+	if not player:
+		return
+	_follow_anchor = player.global_position
+	_follow_velocity = Vector2.ZERO
+	global_position = _follow_anchor + Vector2(0.0, -followDistance)
+	show()
+
+func _follow_player(delta: float) -> void:
+	# Follow the otter's world position, not its input direction. This keeps
+	# the robot hovering overhead rather than flipping sides on A/D turns.
+	if _follow_anchor.distance_to(player.global_position) > follow_dead_zone:
+		_follow_anchor = player.global_position
 	var bob_offset := sin(timePassed * hoverSpeed) * hoverAmplitude
-	global_position = formation_position + Vector2(0.0, bob_offset)
+	var hover_target := _follow_anchor + Vector2(0.0, -followDistance + bob_offset)
+	var offset := hover_target - global_position
+	var desired_velocity := offset * 5.0
+	desired_velocity = desired_velocity.limit_length(follow_max_speed)
+	_follow_velocity = _follow_velocity.move_toward(desired_velocity, follow_acceleration * delta)
+	global_position += _follow_velocity * delta
 
 func _process_guidance() -> void:
 	var player_to_goal := _guide_target - player.global_position

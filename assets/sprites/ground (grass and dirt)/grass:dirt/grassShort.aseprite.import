@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://bifjch8kouhpm"
+path="res://.godot/imported/grassShort.aseprite-6222dbe847f7e8ac8fe7d4ff7f15c2f1.res"
+
+[deps]
+
+source_file="res://assets/sprites/ground (grass and dirt)/grass:dirt/grassShort.aseprite"
+dest_files=["res://.godot/imported/grassShort.aseprite-6222dbe847f7e8ac8fe7d4ff7f15c2f1.res"]
+
+[params]
+

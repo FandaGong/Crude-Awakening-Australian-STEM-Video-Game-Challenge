@@ -35,6 +35,16 @@ const MAX_SPAWN_ATTEMPTS := 20
 
 var _remaining_mobs := 0
 
+## Ground cell data is kept outside node_2d.tscn and supplied by World only
+## while this historical level is active.
+func load_tilemap_data(tile_data: PackedByteArray) -> void:
+	if ground:
+		ground.tile_map_data = tile_data
+
+func unload_tilemap_data() -> void:
+	if ground:
+		ground.tile_map_data = PackedByteArray()
+
 func set_mobs_active(active: bool) -> void:
 	for mob in get_tree().get_nodes_in_group("corrupted_mobs"):
 		if mob.get_parent() == self:

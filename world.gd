@@ -8,6 +8,7 @@ const BlackHoleEffectScene := preload("res://effects/black_hole.tscn")
 const GrayscaleOverlayScene := preload("res://effects/grayscale_overlay.tscn")
 const ARENA_OFFSET := Vector2(6000, 0)
 const LEVEL_COUNT := 6
+const LEVEL_TILEMAP_PATH := "res://levels/tilemaps/level_%02d_tiles.res"
 
 @onready var pond_scene: Node2D = $pondScene
 @onready var ending_scene: Node2D = $endingScene
@@ -34,6 +35,7 @@ var level_nodes: Array = []
 var current_level_index: int = -1 # -1 = not currently inside a level
 var current_level_boss: Node = null
 var current_level_boss_data: BossData = null
+var _active_level_tilemap: Resource = null
 
 # The return-trip time machine dropped into the current level (see
 # _spawn_level_time_machine()). It always sits at that level's player_spawn
@@ -320,6 +322,7 @@ func enter_level(era_index: int) -> void:
 ## laboratory hub.
 func _set_level_atmosphere(active_index: int) -> void:
 	AudioManager.play_music(AudioManager.Music.WATER if active_index >= 0 else AudioManager.Music.LAND)
+	_set_active_level_tilemap(active_index)
 	for i in range(level_nodes.size()):
 		var level: Node = level_nodes[i]
 		if not level:
@@ -327,6 +330,35 @@ func _set_level_atmosphere(active_index: int) -> void:
 		var atmosphere := level.get_node_or_null("atmosphere") as CanvasItem
 		if atmosphere:
 			atmosphere.visible = i == active_index
+
+## Tile cell payloads are binary .res resources loaded only for the level the
+## player is in.  Clearing every other TileMapLayer also removes its physics
+## and rendering data.  CACHE_MODE_IGNORE keeps these on-demand resources out
+## of Godot's resource cache; dropping the active reference releases the old
+## payload.
+func _set_active_level_tilemap(active_index: int) -> void:
+	for i in range(level_nodes.size()):
+		var level: Node = level_nodes[i]
+		if level and level.has_method("unload_tilemap_data"):
+			level.unload_tilemap_data()
+
+	_active_level_tilemap = null
+
+	if active_index < 0 or active_index >= level_nodes.size():
+		return
+	var path := LEVEL_TILEMAP_PATH % (active_index + 1)
+	var tilemap_resource := ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE)
+	if not tilemap_resource:
+		push_error("world.gd: Could not load level tile data at %s" % path)
+		return
+	var tile_data = tilemap_resource.get("tile_map_data")
+	if not tile_data is PackedByteArray:
+		push_error("world.gd: Invalid tile data resource at %s" % path)
+		return
+	var active_level: Node = level_nodes[active_index]
+	if active_level and active_level.has_method("load_tilemap_data"):
+		active_level.load_tilemap_data(tile_data)
+		_active_level_tilemap = tilemap_resource
 
 func _set_grayscale_for_level(era_index: int) -> void:
 	if not _grayscale_material:

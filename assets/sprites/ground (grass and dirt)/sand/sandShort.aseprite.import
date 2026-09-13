@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://bh4068d3ns37c"
+path="res://.godot/imported/sandShort.aseprite-1f27858b1821f7611cf68d412af272b2.res"
+
+[deps]
+
+source_file="res://assets/sprites/ground (grass and dirt)/sand/sandShort.aseprite"
+dest_files=["res://.godot/imported/sandShort.aseprite-1f27858b1821f7611cf68d412af272b2.res"]
+
+[params]
+

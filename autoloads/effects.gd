@@ -47,9 +47,11 @@ func spawn_item_drop(origin: Vector2, item: ItemData, count: int = 1) -> void:
 		return
 	for i in range(max(1, count)):
 		var drop := ItemDropScene.instantiate()
-		scene.add_child(drop)
-		drop.global_position = origin
+		# ItemDrop begins scattering in _ready(), so configure it before it
+		# enters the tree. Otherwise it scatters from the scene origin.
 		drop.setup(item)
+		drop.global_position = origin
+		scene.add_child(drop)
 
 func spawn_air_bubble(origin: Vector2, air_amount: float = 100.0) -> void:
 	var scene := get_tree().current_scene

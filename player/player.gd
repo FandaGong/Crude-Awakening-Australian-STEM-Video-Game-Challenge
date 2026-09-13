@@ -10,7 +10,7 @@ var currentState = State.LAND
 @export var maxHealth: float = 100.0
 var currentHealth: float = maxHealth
 
-@export var maxAir: float = 100.0 # Oxygen capacity
+@export var maxAir: float = 60.0 # Oxygen capacity
 var currentAir: float = maxAir
 
 @export var drownDamageRate: float = 5.0 # Damage per second when drowning
@@ -274,14 +274,14 @@ func _update_movement_sound(delta: float) -> void:
 func update_max_air_capacity() -> void:
 	# Whale-Skin Wet-Suit: +50% Oxygen Capacity
 	if GameData.equip_body_id == "whale_skin_wetsuit":
-		maxAir = 150.0
+		maxAir = 90.0
 	else:
-		maxAir = 100.0
+		maxAir = 60.0
 	currentAir = min(currentAir, maxAir)
 
 func depleteAir(delta: float) -> void:
 	if currentAir > 0:
-		currentAir -= 0.5 * delta
+		currentAir -= 2.0 * delta
 		currentAir = max(0.0, currentAir)
 	else:
 		takeDamage(drownDamageRate * delta, "drown")
@@ -553,7 +553,19 @@ func _get_raycast_target_to_mouse(max_dist: float) -> Node2D:
 	if result and result.collider:
 		if result.collider.is_in_group("corrupted_mobs") and global_position.distance_to(result.collider.global_position) <= max_dist:
 			return result.collider
-	return null
+	# Field mobs can use lightweight or dynamically-created collision shapes.
+	# Fall back to the closest mob along the aim line so active abilities never
+	# become no-ops just because a ray cannot see a physics shape.
+	var closest_target: Node2D = null
+	var closest_distance := max_dist
+	var aim_dir := (get_global_mouse_position() - global_position).normalized()
+	for mob in get_tree().get_nodes_in_group("corrupted_mobs"):
+		var to_mob: Vector2 = mob.global_position - global_position
+		var distance := to_mob.length()
+		if distance <= closest_distance and distance > 0.0 and abs(aim_dir.angle_to(to_mob)) <= deg_to_rad(8.0):
+			closest_target = mob
+			closest_distance = distance
+	return closest_target
 
 func _spawn_curing_pearl(dir: Vector2) -> void:
 	var pearl = Line2D.new()
@@ -593,8 +605,9 @@ func _draw_temp_line(from: Vector2, to: Vector2, col: Color, time: float) -> voi
 
 func _draw_sweep_arc(center_dir: Vector2, angle_width: float, length: float) -> void:
 	var arc = Line2D.new()
-	arc.width = 4.0
-	arc.default_color = Color(1.0, 1.0, 1.0, 0.5)
+	arc.width = 7.0
+	arc.default_color = Color(1.0, 0.48, 0.16, 0.9)
+	arc.z_index = 20
 	
 	var pts: Array[Vector2] = []
 	var steps = 8
@@ -605,7 +618,9 @@ func _draw_sweep_arc(center_dir: Vector2, angle_width: float, length: float) -> 
 	arc.points = pts
 	get_parent().add_child(arc)
 	arc.global_position = global_position
-	get_tree().create_timer(0.2).timeout.connect(arc.queue_free)
+	var sweep := create_tween()
+	sweep.tween_property(arc, "modulate:a", 0.0, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	sweep.tween_callback(arc.queue_free)
 
 func _draw() -> void:
 	# Lure Headband: headlight slowing cone
@@ -691,6 +706,7 @@ func _on_water_area_body_exited(body: Node2D) -> void:
 		if GameData.equip_body_id == "whale_skin_wetsuit":
 			velocity = Vector2.ZERO
 		currentState = State.LAND
+		bubble_trail_timer = 0.0
 		sprite.rotation = 0.0
 		sprite.scale = Vector2(baseScale, baseScale)
 		sprite.flip_v = false

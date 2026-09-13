@@ -25,8 +25,13 @@ var sfx_volume := 1.0
 
 var _sfx_players: Dictionary = {}
 var _music_player: AudioStreamPlayer
+var _music_fade_player: AudioStreamPlayer
 var _music_streams: Dictionary = {}
 var _current_music: int = Music.NONE
+var _music_fade_tween: Tween
+
+## Long enough to feel continuous without delaying a level or boss transition.
+const MUSIC_CROSSFADE_DURATION := 0.8
 
 func _ready() -> void:
 	for sfx_name in SFX_PATHS:
@@ -39,6 +44,8 @@ func _ready() -> void:
 
 	_music_player = AudioStreamPlayer.new()
 	add_child(_music_player)
+	_music_fade_player = AudioStreamPlayer.new()
+	add_child(_music_fade_player)
 	for track in MUSIC_PATHS:
 		if not ResourceLoader.exists(MUSIC_PATHS[track]):
 			continue
@@ -71,7 +78,9 @@ func set_music_enabled(enabled: bool) -> void:
 	if enabled:
 		_apply_music_track()
 	else:
+		_stop_music_fade()
 		_music_player.stop()
+		_music_fade_player.stop()
 
 func set_sfx_enabled(enabled: bool) -> void:
 	sfx_enabled = enabled
@@ -89,14 +98,52 @@ func set_sfx_volume(value: float) -> void:
 	_apply_volumes()
 
 func _apply_volumes() -> void:
-	_music_player.volume_db = linear_to_db(maxf(0.001, master_volume * music_volume))
+	var music_db := _music_volume_db()
+	_music_player.volume_db = music_db
+	if not _music_fade_player.playing:
+		_music_fade_player.volume_db = music_db
 	for player: AudioStreamPlayer in _sfx_players.values():
 		player.volume_db = linear_to_db(maxf(0.001, master_volume * sfx_volume))
+
+func _music_volume_db() -> float:
+	return linear_to_db(maxf(0.001, master_volume * music_volume))
+
+func _stop_music_fade() -> void:
+	if _music_fade_tween and _music_fade_tween.is_valid():
+		_music_fade_tween.kill()
+	_music_fade_tween = null
 
 func _apply_music_track() -> void:
 	var stream: AudioStream = _music_streams.get(_current_music)
 	if not stream:
+		_stop_music_fade()
 		_music_player.stop()
+		_music_fade_player.stop()
 		return
-	_music_player.stream = stream
-	_music_player.play()
+	var target_db := _music_volume_db()
+	# First track has nothing to blend from. Later changes play through a
+	# second player, allowing both loops to overlap during the crossfade.
+	if not _music_player.playing:
+		_music_player.stream = stream
+		_music_player.volume_db = target_db
+		_music_player.play()
+		return
+	if _music_player.stream == stream:
+		return
+
+	_stop_music_fade()
+	_music_fade_player.stop()
+	_music_fade_player.stream = stream
+	_music_fade_player.volume_db = linear_to_db(0.001)
+	_music_fade_player.play()
+
+	_music_fade_tween = create_tween().set_parallel(true)
+	_music_fade_tween.tween_property(_music_player, "volume_db", linear_to_db(0.001), MUSIC_CROSSFADE_DURATION)
+	_music_fade_tween.tween_property(_music_fade_player, "volume_db", target_db, MUSIC_CROSSFADE_DURATION)
+	_music_fade_tween.chain().tween_callback(func() -> void:
+		_music_player.stop()
+		var previous_player := _music_player
+		_music_player = _music_fade_player
+		_music_fade_player = previous_player
+		_music_fade_tween = null
+	)

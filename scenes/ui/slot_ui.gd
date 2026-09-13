@@ -83,10 +83,10 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 func _notification(what: int) -> void:
 	if what != NOTIFICATION_DRAG_END or hotbar_slot_index >= 0 or robot_equipment_slot:
 		return
-	# Dragging an inventory item outside every valid slot discards it, matching
-	# the familiar Minecraft inventory gesture.
-	if not get_viewport().gui_is_drag_successful() and slot_data and slot_data.item_data:
-		GameData.discard_inventory_slot(slot_data)
+	# An invalid drop, including a drop over an informational details popup,
+	# must leave the item in its source slot. Treating every non-slot Control
+	# as a discard target made tooltips capable of destroying inventory data.
+	# Deliberate discarding should use an explicit UI action instead.
 
 func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 	if hotbar_slot_index >= 0:

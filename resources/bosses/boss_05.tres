@@ -1,17 +1,15 @@
-[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BossData" format=3 uid="uid://y5qymwgw0wbg"]
 
-[ext_resource type="Script" path="res://resources/boss_data.gd" id="1_bossdata"]
+[ext_resource type="Script" uid="uid://c4gq6k2op7osa" path="res://resources/boss_data.gd" id="1_bossdata"]
 
 [resource]
 script = ExtResource("1_bossdata")
 id = 5
 boss_name = "The Blue Whale"
 max_health = 700
-drop_item_paths = ["res://resources/items/whale_skin_wetsuit.tres", "res://resources/items/microplastic_recycler.tres", "res://resources/items/baleen_core.tres"]
+drop_item_paths = Array[String](["res://resources/items/whale_skin_wetsuit.tres", "res://resources/items/microplastic_recycler.tres", "res://resources/items/baleen_core.tres"])
 depth_meters = 1050
-bullet_speed_mult = 1.0
 pattern_interval = 2.2
 color = Color(0.5, 0.65, 0.85, 1)
 boss_type = "whale"
 body_damage = 10.0
-curable_by_normal_means = false

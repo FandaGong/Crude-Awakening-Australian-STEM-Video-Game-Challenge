@@ -54,7 +54,7 @@
 [ext_resource type="Texture2D" uid="uid://b3guub1mgpnx4" path="res://assets/sprites/corals/seagrass.png" id="39_qilgh"]
 [ext_resource type="Texture2D" uid="uid://bsllnbnyx3ke5" path="res://assets/sprites/water/ocean.png" id="40_3ngjr"]
 [ext_resource type="Texture2D" uid="uid://dvroa5mroc353" path="res://assets/sprites/water/oceanWave.png" id="41_qilgh"]
-[ext_resource type="Texture2D" path="res://assets/sprites/ground (grass and dirt)/grass:dirt/dirtINGrid.png" id="42_vl5tj"]
+[ext_resource type="Texture2D" uid="uid://ce20phdddfjy2" path="res://assets/sprites/ground (grass and dirt)/grass:dirt/dirtINGrid.png" id="42_vl5tj"]
 [ext_resource type="Texture2D" uid="uid://b0kyhnhtacfc3" path="res://assets/sprites/ground (grass and dirt)/grass:dirt/grassLong.png" id="47_0dcxc"]
 [ext_resource type="Texture2D" uid="uid://bl43qo0sxh2gf" path="res://assets/sprites/ground (grass and dirt)/grass:dirt/dirtOUTGrid.png" id="47_16pp4"]
 [ext_resource type="Texture2D" uid="uid://b7o3c14y1lh1g" path="res://assets/sprites/ground (grass and dirt)/sand/sandINGrid.png" id="48_5od4l"]
@@ -682,6 +682,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="compendiumDataDisplay" type="Panel" parent="UI/HUD" unique_id=727946038]
 layout_mode = 1

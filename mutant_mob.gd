@@ -25,7 +25,8 @@ const MOB_DROP_ITEM_PATHS := {
 	MobType.JELLYFISH: "res://resources/items/jelly_stinger.tres",
 	MobType.CRAB: "res://resources/items/crab_pincer.tres",
 }
-const MOB_DROP_CHANCE := 0.35
+# Every mob with a configured material reward visibly drops it when cured.
+const MOB_DROP_CHANCE := 1.0
 
 # --- Per-type tunables (defaults match the design doc) ---
 @export_group("Shell")
@@ -81,6 +82,16 @@ const MOB_SPRITE_SHEETS := {
 	MobType.ANGLERFISH: "res://assets/sprites/mobs/anglerFish.png",
 }
 
+# The exported sprite sheets do not all use square frames. In particular,
+# jellyfish and crab art is 128x64; slicing those sheets at their 64px height
+# displayed only half of each creature.
+const MOB_SPRITE_FRAME_WIDTHS := {
+	MobType.SHELL: 64,
+	MobType.JELLYFISH: 128,
+	MobType.CRAB: 128,
+	MobType.ANGLERFISH: 128,
+}
+
 # --- Status effects --------------------------------------------------------
 var stun_timer: float = 0.0
 var slow_timer: float = 0.0
@@ -121,47 +132,32 @@ func _configure_mob_sprite() -> void:
 	var sheet := load(sheet_path) as Texture2D
 	if not sheet:
 		return
-	# Each exported sheet is a row of square frames. Using the sheet height
-	# avoids slicing the 128px anglerfish frames into two flashing halves.
-	var frame_size := sheet.get_height()
-	var frame_count := maxi(1, int(sheet.get_width() / frame_size))
-	var largest_frame := _find_largest_sprite_frame(sheet, frame_size, frame_count)
+	var frame_width: int = MOB_SPRITE_FRAME_WIDTHS.get(mob_type, sheet.get_height())
+	var frame_height := sheet.get_height()
+	var frame_count := maxi(1, int(sheet.get_width() / frame_width))
 	var frames := SpriteFrames.new()
 	frames.remove_animation("default")
 	frames.add_animation("default")
-	var atlas := AtlasTexture.new()
-	atlas.atlas = sheet
-	atlas.region = Rect2(largest_frame * frame_size, 0, frame_size, frame_size)
-	frames.add_frame("default", atlas)
+	frames.set_animation_speed("default", 8.0)
+	for frame_index in range(frame_count):
+		var atlas := AtlasTexture.new()
+		atlas.atlas = sheet
+		atlas.region = Rect2(frame_index * frame_width, 0, frame_width, frame_height)
+		frames.add_frame("default", atlas)
 	sprite.sprite_frames = frames
 	sprite.scale = Vector2(1.65, 1.65)
 	sprite.animation = &"default"
 	sprite.frame = 0
-	sprite.pause()
+	sprite.play()
 
-func _find_largest_sprite_frame(sheet: Texture2D, frame_size: int, frame_count: int) -> int:
-	var image := sheet.get_image()
-	if not image:
-		return 0
-	var largest_frame := 0
-	var largest_area := -1
-	for frame_index in range(frame_count):
-		var left := frame_size
-		var right := -1
-		var top := frame_size
-		var bottom := -1
-		for y in range(frame_size):
-			for x in range(frame_size):
-				if image.get_pixel(frame_index * frame_size + x, y).a > 0.05:
-					left = mini(left, x)
-					right = maxi(right, x)
-					top = mini(top, y)
-					bottom = maxi(bottom, y)
-		var area := 0 if right < left else (right - left + 1) * (bottom - top + 1)
-		if area > largest_area:
-			largest_area = area
-			largest_frame = frame_index
-	return largest_frame
+func _update_sprite_animation_speed() -> void:
+	var sprite := get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if not sprite:
+		return
+	# Idle motion remains alive, while charge states visibly accelerate with
+	# the creature's actual movement speed.
+	var speed_ratio := velocity.length() / maxf(baseSpeed, 1.0)
+	sprite.speed_scale = clampf(0.65 + speed_ratio * 0.65, 0.65, 3.0)
 
 func _physics_process(delta: float) -> void:
 	if isCured:
@@ -178,6 +174,7 @@ func _physics_process(delta: float) -> void:
 
 	if stun_timer > 0.0:
 		velocity = velocity.move_toward(Vector2.ZERO, 400.0 * delta)
+		_update_sprite_animation_speed()
 		move_and_slide()
 		return
 
@@ -187,6 +184,7 @@ func _physics_process(delta: float) -> void:
 		MobType.CRAB: _process_crab(delta)
 		MobType.ANGLERFISH: _process_anglerfish(delta)
 
+	_update_sprite_animation_speed()
 	move_and_slide()
 	_apply_contact_damage()
 

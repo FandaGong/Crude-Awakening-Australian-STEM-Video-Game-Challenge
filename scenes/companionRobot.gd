@@ -97,6 +97,12 @@ func _physics_process(delta: float) -> void:
 	_check_rescue_protocol(delta)
 
 func _spawn_bubble_trail(delta: float) -> void:
+	# The robot follows the otter on land as well as underwater. Only emit a
+	# bubble wake while the otter is actually swimming.
+	if not player or player.currentState != player.State.SWIMMING:
+		_bubble_trail_timer = 0.0
+		_last_trail_position = global_position
+		return
 	_bubble_trail_timer -= delta
 	if _bubble_trail_timer > 0.0 or global_position.distance_to(_last_trail_position) < 8.0:
 		return

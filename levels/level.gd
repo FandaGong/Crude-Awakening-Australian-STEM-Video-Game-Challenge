@@ -16,7 +16,7 @@ const AirBubbleScene := preload("res://pickups/air_bubble.tscn")
 const HealingPadScene := preload("res://effects/healing_pad.tscn")
 
 @export_range(1, 30, 1) var mob_count := 8
-@export_range(1, 20, 1) var bubbles_per_level := 6
+@export_range(1, 30, 1) var bubbles_per_level := 12
 @export var mob_spawn_size := Vector2(1100, 460)
 @export var mob_type: MutantMob.MobType = MutantMob.MobType.SHELL
 ## Levels 5 and 6 contain Whale/Kraken bosses, not matching field mobs. Their
@@ -26,14 +26,15 @@ const HealingPadScene := preload("res://effects/healing_pad.tscn")
 @onready var player_spawn: Marker2D = $PlayerSpawn
 @onready var boss_spawn: Marker2D = $BossSpawn
 @onready var mob_spawn_center: Marker2D = $MobSpawnCenter
-@onready var water_collision: CollisionShape2D = $waterArea/CollisionShape2D
 @onready var ground: TileMapLayer = get_node_or_null("Ground")
 
 ## Random spawn positions get re-rolled up to this many times if they land
 ## on a solid (wall/terrain) tile before giving up and using the last roll.
-const MAX_SPAWN_ATTEMPTS := 20
+const MAX_SPAWN_ATTEMPTS := 80
+const MOB_SPAWN_CLEARANCE := 28.0
 
 var _remaining_mobs := 0
+var _encounter_spawned := false
 
 ## Ground cell data is kept outside node_2d.tscn and supplied by World only
 ## while this historical level is active.
@@ -51,6 +52,15 @@ func set_mobs_active(active: bool) -> void:
 			mob.set("encounter_active", active)
 
 func _ready() -> void:
+	# World loads this level's collision tile data only when the level becomes
+	# active. Spawning here would validate positions against an empty TileMap.
+	pass
+
+## Called by World immediately after the active level's tile data is loaded.
+func ensure_encounter_spawned() -> void:
+	if _encounter_spawned:
+		return
+	_encounter_spawned = true
 	_spawn_preloaded_mobs()
 
 func _spawn_preloaded_mobs() -> void:
@@ -97,10 +107,14 @@ func _random_spawn_position() -> Vector2:
 		)
 		if not _is_inside_wall(candidate):
 			return candidate
-	# Couldn't find a clear spot after MAX_SPAWN_ATTEMPTS tries (very cramped
-	# level) - fall back to the last roll rather than spawning at dead center
-	# every time.
-	return candidate
+	# Never return a known invalid point. Search progressively wider rings from
+	# the encounter center, then use the player entry marker as a safe fallback.
+	for radius in range(32, 1025, 32):
+		for angle_index in range(16):
+			candidate = mob_spawn_center.global_position + Vector2.from_angle(TAU * angle_index / 16.0) * radius
+			if not _is_inside_wall(candidate):
+				return candidate
+	return player_spawn.global_position
 
 ## True if the given global position lands on a Ground tile that has
 ## collision (i.e. a wall/solid terrain tile, as opposed to open water,
@@ -108,11 +122,18 @@ func _random_spawn_position() -> Vector2:
 func _is_inside_wall(global_pos: Vector2) -> bool:
 	if not ground:
 		return false
-	var cell := ground.local_to_map(ground.to_local(global_pos))
-	var tile_data := ground.get_cell_tile_data(cell)
-	if not tile_data:
-		return false
-	return tile_data.get_collision_polygons_count(0) > 0
+	# Validate the full mob footprint, not just its center tile, so wide art
+	# and colliders cannot overlap a nearby wall on spawn.
+	for offset in [
+		Vector2.ZERO,
+		Vector2(MOB_SPAWN_CLEARANCE, 0.0), Vector2(-MOB_SPAWN_CLEARANCE, 0.0),
+		Vector2(0.0, MOB_SPAWN_CLEARANCE), Vector2(0.0, -MOB_SPAWN_CLEARANCE),
+	]:
+		var cell := ground.local_to_map(ground.to_local(global_pos + offset))
+		var tile_data := ground.get_cell_tile_data(cell)
+		if tile_data and tile_data.get_collision_polygons_count(0) > 0:
+			return true
+	return false
 
 func _on_mob_cured(_mob: MutantMob) -> void:
 	_remaining_mobs = max(0, _remaining_mobs - 1)
@@ -133,5 +154,6 @@ func reset_encounter() -> void:
 		if child is MutantMob or child.is_in_group("healing_pads"):
 			child.free()
 	_remaining_mobs = mob_count
+	_encounter_spawned = true
 	_spawn_preloaded_mobs()
 	set_mobs_active(false)

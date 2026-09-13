@@ -302,10 +302,22 @@ func enter_level(era_index: int) -> void:
 	current_level_index = era_index
 	_set_level_atmosphere(era_index)
 	_set_grayscale_for_level(era_index)
+	if level.has_method("ensure_encounter_spawned"):
+		level.ensure_encounter_spawned()
 
 	current_spawn_position = level.player_spawn.global_position
 	player.global_position = current_spawn_position
-	player.currentState = player.State.SWIMMING
+	# Historical-level time machines place the otter at the level's dry entry
+	# marker. Do not carry the previous dive state's movement, rotation, or
+	# swim animation through the time-travel transition.
+	player.currentState = player.State.LAND
+	player.velocity = Vector2.ZERO
+	player.currentSwimAngle = 0.0
+	player.sprite.rotation = 0.0
+	player.sprite.flip_v = false
+	# Give the otter time to orient after emerging from the time machine before
+	# nearby enemies or hazards can deal damage.
+	player.respawn_immunity = 5.0
 	player.visible = true
 
 	_spawn_level_time_machine(level, era_index)

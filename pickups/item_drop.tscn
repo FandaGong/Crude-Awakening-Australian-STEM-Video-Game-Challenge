@@ -25,7 +25,7 @@ texture = ExtResource("2_icon")
 
 [node name="PickupArea" type="Area2D" parent="." unique_id=640014253]
 collision_layer = 4
-collision_mask = 2
+collision_mask = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PickupArea" unique_id=2109175635]
 shape = SubResource("CircleShape2D_pickup")

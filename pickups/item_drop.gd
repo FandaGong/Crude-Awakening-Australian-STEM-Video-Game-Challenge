@@ -85,13 +85,16 @@ func _process(delta: float) -> void:
 	var pulse := 0.85 + 0.18 * sin(_bob_t * 1.4)
 	glow.scale = Vector2.ONE * pulse * 2.1
 
-	if _phase == "settle_water":
-		global_position.y += 10.0 * delta
-
 	# Only start counting down the drop's lifetime once it has actually
 	# settled somewhere - the brief scatter/settle animation shouldn't eat
 	# into the minute the player has to notice and grab it.
 	if _phase == "idle":
+		# Keep collection reliable even if a player scene has no compatible
+		# collision shape for the pickup Area2D.
+		var player := get_tree().get_first_node_in_group("player") as Node2D
+		if player and global_position.distance_to(player.global_position) <= PICKUP_RADIUS:
+			_collect_to_inventory()
+			return
 		_lifetime_left -= delta
 		if _lifetime_left <= 0.0:
 			_teleport_to_robot()
@@ -122,7 +125,8 @@ func _scatter() -> void:
 
 func _settle() -> void:
 	if _in_water:
-		_phase = "settle_water"
+		# Water drops should bob in view instead of sinking forever.
+		_phase = "idle"
 	else:
 		_drop_to_ground()
 

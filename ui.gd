@@ -426,8 +426,19 @@ func _on_hotbar_hover_entered(hotbar_slot: TextureButton) -> void:
 	var item: ItemData = load(item_path)
 	hud_item_name_label.text = item.name
 	hud_item_desc_label.text = item.description
-	hud_details_panel.global_position = get_viewport().get_mouse_position() + Vector2(10, 10)
 	hud_details_panel.show()
+	_position_hotbar_details_panel(get_viewport().get_mouse_position())
+
+## Keeps hotbar details above the cursor, leaving the lower HUD edge clear.
+## The horizontal placement remains on the cursor's right for an easy visual
+## association with the hovered hotbar slot.
+func _position_hotbar_details_panel(mouse_position: Vector2) -> void:
+	var viewport_size := get_viewport().get_visible_rect().size
+	var panel_size := hud_details_panel.size
+	var target := mouse_position + Vector2(10.0, -10.0 - panel_size.y)
+	target.x = clamp(target.x, 0.0, maxf(0.0, viewport_size.x - panel_size.x))
+	target.y = clamp(target.y, 0.0, maxf(0.0, viewport_size.y - panel_size.y))
+	hud_details_panel.global_position = target
 
 func _on_hotbar_hover_exited() -> void:
 	if hud_details_panel:

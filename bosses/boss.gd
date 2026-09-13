@@ -23,7 +23,7 @@ var spiral_angle: float = 0.0
 var is_defeated: bool = false
 
 @onready var visual: Polygon2D = $Visual
-@onready var boss_sprite: Sprite2D = $BossSprite
+@onready var boss_sprite: AnimatedSprite2D = $BossSprite
 @onready var health_bar: ColorRect = $HealthBar
 
 var _health_bar_full_width: float = 0.0
@@ -112,21 +112,45 @@ func _configure_boss_sprite() -> void:
 		# editor's Aseprite importer generates a texture; retain the fallback
 		# polygon if that source is not available as a runtime texture.
 		return
-	# Mob files are horizontal sprite sheets. Most use 64x64 frames, while the
-	# anglerfish art uses 128x128 frames. Show the first complete frame so the
-	# sprite never flashes through a split frame.
+	# Mob files are horizontal sprite sheets. Jellyfish and crab use wide
+	# 128x64 frames, while shell is 64x64 and anglerfish is 128x128. Using the
+	# texture height as every frame width was cropping wide creatures in half.
+	var frames := SpriteFrames.new()
+	frames.remove_animation("default")
+	frames.add_animation("default")
+	frames.set_animation_speed("default", 8.0)
 	if path.ends_with(".png") and texture.get_height() > 0:
-		var atlas := AtlasTexture.new()
-		atlas.atlas = texture
-		var frame_size := texture.get_height()
-		atlas.region = Rect2(0, 0, frame_size, frame_size)
-		boss_sprite.texture = atlas
+		var frame_widths := {
+			"shell": 64,
+			"jellyfish": 128,
+			"crab": 128,
+			"anglerfish": 128,
+		}
+		var frame_width: int = frame_widths.get(boss_data.boss_type, texture.get_height())
+		var frame_count := maxi(1, int(texture.get_width() / frame_width))
+		for frame_index in range(frame_count):
+			var atlas := AtlasTexture.new()
+			atlas.atlas = texture
+			atlas.region = Rect2(frame_index * frame_width, 0, frame_width, texture.get_height())
+			frames.add_frame("default", atlas)
 	else:
-		boss_sprite.texture = texture
+		frames.add_frame("default", texture)
+	boss_sprite.sprite_frames = frames
+	boss_sprite.animation = &"default"
+	boss_sprite.frame = 0
 	boss_sprite.scale = Vector2(2.5, 2.5)
 	boss_sprite.visible = true
+	boss_sprite.play()
 	if visual:
 		visual.visible = false
+
+func _update_boss_sprite_animation_speed(distance_moved: float, delta: float) -> void:
+	if not boss_sprite or delta <= 0.0:
+		return
+	# Bosses move directly through scripted position updates, so derive their
+	# animation rate from distance covered this physics frame.
+	var movement_speed := distance_moved / delta
+	boss_sprite.speed_scale = clampf(0.65 + movement_speed / 180.0, 0.65, 3.0)
 
 func _on_health_changed(current: float, max_hp: float) -> void:
 	if health_bar and max_hp > 0.0:
@@ -136,6 +160,7 @@ func _physics_process(delta: float) -> void:
 	if is_defeated or not boss_data:
 		return
 
+	var position_before_update := global_position
 	body_contact_cooldown = max(0.0, body_contact_cooldown - delta)
 	_constrain_from_walls()
 
@@ -151,6 +176,7 @@ func _physics_process(delta: float) -> void:
 			if attack_timer <= 0.0:
 				_generic_attack_pattern()
 				attack_timer = _current_pattern_interval()
+	_update_boss_sprite_animation_speed(global_position.distance_to(position_before_update), delta)
 
 ## Bosses are Areas, so their scripted movement does not go through
 ## move_and_collide(). Keep every movement pattern inside the level's solid

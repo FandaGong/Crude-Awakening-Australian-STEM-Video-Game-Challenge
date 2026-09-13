@@ -16,7 +16,9 @@ const AirBubbleScene := preload("res://pickups/air_bubble.tscn")
 const HealingPadScene := preload("res://effects/healing_pad.tscn")
 
 @export_range(1, 30, 1) var mob_count := 8
+## Maximum number of ambient air bubbles this level may have at once.
 @export_range(1, 30, 1) var bubbles_per_level := 12
+@export_range(1.0, 120.0, 1.0, "suffix:s") var bubble_spawn_interval := 20.0
 @export var mob_spawn_size := Vector2(1100, 460)
 @export var mob_type: MutantMob.MobType = MutantMob.MobType.SHELL
 ## Levels 5 and 6 contain Whale/Kraken bosses, not matching field mobs. Their
@@ -27,6 +29,7 @@ const HealingPadScene := preload("res://effects/healing_pad.tscn")
 @onready var boss_spawn: Marker2D = $BossSpawn
 @onready var mob_spawn_center: Marker2D = $MobSpawnCenter
 @onready var ground: TileMapLayer = get_node_or_null("Ground")
+@onready var water_collision: CollisionShape2D = get_node_or_null("waterArea/CollisionShape2D")
 
 ## Random spawn positions get re-rolled up to this many times if they land
 ## on a solid (wall/terrain) tile before giving up and using the last roll.
@@ -35,6 +38,7 @@ const MOB_SPAWN_CLEARANCE := 28.0
 
 var _remaining_mobs := 0
 var _encounter_spawned := false
+var _bubble_spawn_timer := 20.0
 
 ## Ground cell data is kept outside node_2d.tscn and supplied by World only
 ## while this historical level is active.
@@ -54,7 +58,17 @@ func set_mobs_active(active: bool) -> void:
 func _ready() -> void:
 	# World loads this level's collision tile data only when the level becomes
 	# active. Spawning here would validate positions against an empty TileMap.
-	pass
+	_bubble_spawn_timer = bubble_spawn_interval
+
+func _process(delta: float) -> void:
+	if not _encounter_spawned or not _is_current_level():
+		return
+	_bubble_spawn_timer -= delta
+	if _bubble_spawn_timer > 0.0:
+		return
+	_bubble_spawn_timer = bubble_spawn_interval
+	if _ambient_bubble_count() < bubbles_per_level:
+		_spawn_ambient_bubble()
 
 ## Called by World immediately after the active level's tile data is loaded.
 func ensure_encounter_spawned() -> void:
@@ -73,10 +87,6 @@ func _spawn_preloaded_mobs() -> void:
 	else:
 		for i in range(mob_count):
 			_spawn_level_mob(mob_type)
-	for i in range(bubbles_per_level):
-		var bubble := AirBubbleScene.instantiate()
-		add_child(bubble)
-		bubble.global_position = _random_spawn_position()
 	for i in range(2):
 		var pad := HealingPadScene.instantiate()
 		add_child(pad)
@@ -115,6 +125,38 @@ func _random_spawn_position() -> Vector2:
 			if not _is_inside_wall(candidate):
 				return candidate
 	return player_spawn.global_position
+
+## Bubbles use the level's water collision rectangle rather than the smaller
+## mob encounter area, so they can appear anywhere across the playable map.
+func _random_bubble_spawn_position() -> Vector2:
+	if water_collision and water_collision.shape is RectangleShape2D:
+		var size := (water_collision.shape as RectangleShape2D).size
+		for attempt in range(MAX_SPAWN_ATTEMPTS):
+			var candidate := water_collision.to_global(Vector2(
+				randf_range(-size.x * 0.5, size.x * 0.5),
+				randf_range(-size.y * 0.5, size.y * 0.5)
+			))
+			if not _is_inside_wall(candidate):
+				return candidate
+	return _random_spawn_position()
+
+func _spawn_ambient_bubble() -> void:
+	var bubble := AirBubbleScene.instantiate()
+	add_child(bubble)
+	bubble.global_position = _random_bubble_spawn_position()
+
+func _ambient_bubble_count() -> int:
+	var count := 0
+	for child in get_children():
+		if child.is_in_group("air_bubbles"):
+			count += 1
+	return count
+
+func _is_current_level() -> bool:
+	var world := get_tree().get_first_node_in_group("world")
+	return world != null and world.current_level_index >= 0 \
+		and world.current_level_index < world.level_nodes.size() \
+		and world.level_nodes[world.current_level_index] == self
 
 ## True if the given global position lands on a Ground tile that has
 ## collision (i.e. a wall/solid terrain tile, as opposed to open water,

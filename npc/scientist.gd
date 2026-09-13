@@ -11,6 +11,8 @@ signal dialogue_finished
 
 @onready var prompt: Label = $Prompt
 @onready var dialogue_box: DialogueBox = get_tree().get_first_node_in_group("dialogue_box") as DialogueBox
+@onready var body_sprite: AnimatedSprite2D = $Body
+@onready var robot_sprite: AnimatedSprite2D = $Robot
 
 const DIALOGUE := [
 	"You're standing in 2126. Ninety-nine percent of life is gone. Smoke has swallowed the sky, and the poisoned ponds are all that remain.",
@@ -29,10 +31,24 @@ var _talking: bool = false
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
+	if body_sprite:
+		body_sprite.play(&"default")
+	if robot_sprite:
+		robot_sprite.play(&"default")
+	GameData.robot_unlocked_changed.connect(_on_robot_unlocked_changed)
+	_on_robot_unlocked_changed(GameData.is_robot_unlocked)
 	if prompt:
 		prompt.visible = false
 	if dialogue_box and not dialogue_box.finished.is_connected(_on_dialogue_finished):
 		dialogue_box.finished.connect(_on_dialogue_finished)
+
+func _on_robot_unlocked_changed(unlocked: bool) -> void:
+	# The robot beside the scientist is the same unit handed to the player.
+	# Keep it visible and animated only until that handoff has happened.
+	if robot_sprite:
+		robot_sprite.visible = not unlocked
+		if not unlocked:
+			robot_sprite.play(&"default")
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not player_in_range or not event.is_action_pressed("interact"):

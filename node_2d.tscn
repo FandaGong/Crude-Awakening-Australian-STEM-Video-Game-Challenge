@@ -1381,6 +1381,30 @@ grow_horizontal = 0
 texture_normal = ExtResource("18_c4wnb")
 script = ExtResource("9_btnfx")
 
+[node name="activeEffects" type="Panel" parent="UI/HUD" unique_id=1446992598]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -142.0
+offset_top = 221.0
+offset_right = -8.0
+offset_bottom = 244.0
+grow_horizontal = 0
+theme = SubResource("Theme_thyvg")
+theme_override_styles/panel = SubResource("StyleBoxTexture_nsnm2")
+
+[node name="DescriptionLabel" type="Label" parent="UI/HUD/activeEffects" unique_id=1158160489]
+custom_minimum_size = Vector2(122, 0)
+custom_maximum_size = Vector2(122, -1)
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 128.0
+offset_bottom = 15.0
+label_settings = ExtResource("28_nsnm2")
+autowrap_mode = 3
+
 [node name="settingsMenu" type="Control" parent="UI" unique_id=1446795298]
 process_mode = 3
 visible = false

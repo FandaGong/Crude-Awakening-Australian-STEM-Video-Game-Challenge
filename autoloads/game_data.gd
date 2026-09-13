@@ -442,7 +442,7 @@ func get_equipped_weapon_item() -> ItemData:
 
 func _init_skill_database() -> void:
 	# --- 1. TARGETING & AI ---
-	_register_skill("target_1", "Multi-Threat Scanner", "Robot prioritizes targeting mobs closest to the Otter.", SkillNodeData.Branch.TARGETING, 50, "")
+	_register_skill("target_1", "Multi-Threat Scanner", "Robot prioritizes mobs closest to 100% cured.", SkillNodeData.Branch.TARGETING, 50, "")
 	_register_skill("target_2", "Predictive Lock-On", "Curing projectiles gain slight homing capabilities.", SkillNodeData.Branch.TARGETING, 100, "target_1")
 	_register_skill("target_3", "Priority Protocols", "Unlocks UI targeting priority toggles (Fast, Boss, Low-HP).", SkillNodeData.Branch.TARGETING, 150, "target_2")
 	_register_skill("target_4", "Sovereign Eye", "[KEYSTONE] Doubles fire rate against mobs within 2 tiles of Otter.", SkillNodeData.Branch.TARGETING, 300, "target_3", true)

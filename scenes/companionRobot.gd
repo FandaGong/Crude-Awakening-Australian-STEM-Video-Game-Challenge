@@ -235,6 +235,10 @@ func _select_targets() -> Array[Node2D]:
 	valid_mobs.sort_custom(func(a, b):
 		if GameData.has_skill("target_3"):
 			return _target_health_ratio(a) < _target_health_ratio(b)
+		if GameData.has_skill("target_1"):
+			# Finish the creature nearest full restoration before selecting a
+			# farther-away completion target.
+			return _target_health_ratio(a) > _target_health_ratio(b)
 		if spotlight_pos:
 			return a.global_position.distance_to(spotlight_pos) < b.global_position.distance_to(spotlight_pos)
 		

@@ -22,6 +22,12 @@ var state_before_settings: UIState = UIState.TITLE
 @onready var hud_details_panel: Panel = $HUD/DetailsPanel
 @onready var hud_item_name_label: Label = $HUD/DetailsPanel/SkillNameLabel
 @onready var hud_item_desc_label: Label = $HUD/DetailsPanel/DescriptionLabel
+@onready var active_effects_panel: Panel = $HUD/activeEffects
+@onready var active_effects_label: Label = $HUD/activeEffects/DescriptionLabel
+
+const ACTIVE_EFFECTS_WIDTH := 134.0
+const ACTIVE_EFFECTS_PADDING := 6.0
+var _active_effects_text := ""
 
 # --- COOLDOWN & SLOT REFERENCES (Added to fix the "not declared" error) ---
 @onready var slot1: TextureButton = $HUD/hotbarContainer/TextureButton
@@ -64,10 +70,65 @@ func _ready() -> void:
 			hotbar_slot.mouse_exited.connect(_on_hotbar_hover_exited)
 	if hud_details_panel:
 		hud_details_panel.hide()
+	if active_effects_panel:
+		active_effects_panel.hide()
 	if robot_inventory_button:
 		robot_inventory_button.pressed.connect(_on_robot_inventory_button_pressed)
 	_connect_button_sounds()
 	
+
+func _process(_delta: float) -> void:
+	_update_active_effects_hud()
+
+## This lists temporary effects that are currently changing player or robot
+## gameplay. Permanent equipment bonuses remain in the inventory UI.
+func _update_active_effects_hud() -> void:
+	if not active_effects_panel or not active_effects_label or not player:
+		return
+	var effects: Array[String] = []
+	if GameData.bubble_booster_timer > 0.0:
+		effects.append("Bubble Booster: +30% cure speed (%s)" % _format_effect_time(GameData.bubble_booster_timer))
+	if player.respawn_immunity > 0.0:
+		effects.append("Respawn Shield: immune (%s)" % _format_effect_time(player.respawn_immunity))
+	if player.carapace_active_timer > 0.0:
+		effects.append("Carapace Guard: 50% damage reduction (%s)" % _format_effect_time(player.carapace_active_timer))
+	if player.physical_skill_timer > 0.0:
+		effects.append("Guardian Relay: 15% damage reduction (%s)" % _format_effect_time(player.physical_skill_timer))
+	if player.currentState == player.State.SWIMMING and player.currentAir <= 0.0:
+		effects.append("Drowning: taking damage")
+
+	var robot := world.get_node_or_null("CompanionRobot") if world else null
+	if robot and bool(robot.get("is_overheated")) and float(robot.get("overheat_timer")) > 0.0:
+		effects.append("Overheat: +30% cure speed (%s)" % _format_effect_time(float(robot.get("overheat_timer"))))
+
+	var new_text := "\n".join(effects)
+	if new_text == _active_effects_text:
+		return
+	_active_effects_text = new_text
+	active_effects_panel.visible = not new_text.is_empty()
+	if new_text.is_empty():
+		return
+	active_effects_label.text = new_text
+	active_effects_label.position = Vector2(ACTIVE_EFFECTS_PADDING, ACTIVE_EFFECTS_PADDING)
+	active_effects_label.size.x = ACTIVE_EFFECTS_WIDTH - ACTIVE_EFFECTS_PADDING * 2.0
+	active_effects_label.reset_size()
+	call_deferred("_resize_active_effects_panel")
+
+func _resize_active_effects_panel() -> void:
+	if not active_effects_panel.visible:
+		return
+	var text_height := active_effects_label.get_combined_minimum_size().y
+	active_effects_label.size = Vector2(
+		ACTIVE_EFFECTS_WIDTH - ACTIVE_EFFECTS_PADDING * 2.0,
+		text_height
+	)
+	active_effects_panel.size = Vector2(
+		ACTIVE_EFFECTS_WIDTH,
+		text_height + ACTIVE_EFFECTS_PADDING * 2.0
+	)
+
+func _format_effect_time(seconds: float) -> String:
+	return "%ds" % maxi(1, ceili(seconds))
 
 func _setup_settings_controls() -> void:
 	_configure_toggle(music_toggle, "Music", AudioManager.music_enabled, _on_music_toggled)

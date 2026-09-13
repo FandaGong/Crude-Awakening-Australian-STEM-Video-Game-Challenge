@@ -14,6 +14,9 @@ enum MobType { SHELL, JELLYFISH, CRAB, ANGLERFISH }
 @export var baseHealth: float = 18.0
 @export var baseSpeed: float = 50.0
 @export var face_turn_speed: float = 5.0
+@export_range(1.0, 1000.0, 1.0, "suffix:px") var aggro_radius := 200.0
+@export var water_acceleration := 260.0
+@export var water_drag := 180.0
 @export_enum("small", "medium", "large") var trash_size := "small"
 
 # Field mobs (as opposed to their boss versions in bosses/boss.gd) have a
@@ -74,6 +77,9 @@ var _pivot_angle: float = 0.0
 var _pivot_dir: int = 1
 var _zap_timer: float = 0.0
 var _angler_damage_accumulator: float = 0.0
+var _idle_direction := Vector2.RIGHT
+var _idle_direction_timer := 0.0
+var _was_aggro := false
 
 const MOB_SPRITE_SHEETS := {
 	MobType.SHELL: "res://assets/sprites/mobs/shell.png",
@@ -171,9 +177,21 @@ func _physics_process(delta: float) -> void:
 
 	_tick_status_effects(delta)
 	body_hit_cooldown = max(0.0, body_hit_cooldown - delta)
+	if not _is_player_in_aggro_range():
+		if _was_aggro:
+			_reset_combat_state()
+		_was_aggro = false
+		_process_idle_float(delta)
+		_apply_water_boundary(delta)
+		_update_sprite_animation_speed()
+		move_and_slide()
+		return
+	_was_aggro = true
+	_face_player(delta)
 
 	if stun_timer > 0.0:
 		velocity = velocity.move_toward(Vector2.ZERO, 400.0 * delta)
+		_apply_water_boundary(delta)
 		_update_sprite_animation_speed()
 		move_and_slide()
 		return
@@ -184,9 +202,53 @@ func _physics_process(delta: float) -> void:
 		MobType.CRAB: _process_crab(delta)
 		MobType.ANGLERFISH: _process_anglerfish(delta)
 
+	_apply_water_boundary(delta)
 	_update_sprite_animation_speed()
 	move_and_slide()
 	_apply_contact_damage()
+
+func _is_player_in_aggro_range() -> bool:
+	return player != null and is_instance_valid(player) \
+		and global_position.distance_to(player.global_position) <= aggro_radius
+
+## Keep distant creatures visibly alive without allowing their combat state
+## machines to advance or deal damage.
+func _process_idle_float(delta: float) -> void:
+	_idle_direction_timer -= delta
+	if _idle_direction_timer <= 0.0:
+		_idle_direction = Vector2.from_angle(randf() * TAU)
+		_idle_direction_timer = randf_range(1.0, 2.5)
+	_steer_toward(_idle_direction * baseSpeed * 0.25, delta)
+
+func _steer_toward(target_velocity: Vector2, delta: float) -> void:
+	var acceleration := water_drag if target_velocity.is_zero_approx() else water_acceleration
+	velocity = velocity.move_toward(target_velocity, acceleration * delta)
+
+func _apply_water_boundary(delta: float) -> void:
+	if _is_in_water(global_position + velocity * delta):
+		return
+	# Water has no gravity. Stop at shore rather than allowing a remaining
+	# movement step to carry the creature onto land.
+	velocity = Vector2.ZERO
+
+func _is_in_water(world_position: Vector2) -> bool:
+	var level := get_parent()
+	var water_collision := level.get_node_or_null("waterArea/CollisionShape2D") as CollisionShape2D if level else null
+	if not water_collision or not water_collision.shape is RectangleShape2D:
+		return true
+	var half_size := (water_collision.shape as RectangleShape2D).size * 0.5
+	var local_position := water_collision.to_local(world_position)
+	return absf(local_position.x) <= half_size.x - 20.0 \
+		and absf(local_position.y) <= half_size.y - 20.0
+
+func _reset_combat_state() -> void:
+	_zap_timer = 0.0
+	_angler_damage_accumulator = 0.0
+	match mob_type:
+		MobType.SHELL:
+			_enter_state("pause", shell_pause_time)
+		MobType.CRAB:
+			_enter_state("pivot", crab_pivot_time)
 
 func _face_player(delta: float) -> void:
 	if not player:
@@ -222,12 +284,12 @@ func _process_shell(delta: float) -> void:
 	_state_timer -= delta
 	match _state:
 		"pause":
-			velocity = velocity.move_toward(Vector2.ZERO, 500.0 * delta)
+			_steer_toward(Vector2.ZERO, delta)
 			if _state_timer <= 0.0:
 				_enter_state("charge", shell_charge_time)
 		"charge":
 			var dir := (player.global_position - global_position).normalized()
-			velocity = dir * shell_charge_speed * _speed_mult()
+			_steer_toward(dir * shell_charge_speed * _speed_mult(), delta)
 			if _state_timer <= 0.0:
 				_enter_state("pause", shell_pause_time)
 		_:
@@ -241,11 +303,11 @@ func _process_jellyfish(delta: float) -> void:
 	var dist := to_player.length()
 	var desired := jelly_hover_distance
 	if dist > desired + 8.0:
-		velocity = to_player.normalized() * baseSpeed * _speed_mult()
+		_steer_toward(to_player.normalized() * baseSpeed * _speed_mult(), delta)
 	elif dist < desired - 8.0:
-		velocity = -to_player.normalized() * baseSpeed * _speed_mult()
+		_steer_toward(-to_player.normalized() * baseSpeed * _speed_mult(), delta)
 	else:
-		velocity = velocity.move_toward(Vector2.ZERO, 300.0 * delta)
+		_steer_toward(Vector2.ZERO, delta)
 
 	if dist <= desired + 24.0:
 		_zap_timer -= delta
@@ -273,18 +335,17 @@ func _process_crab(delta: float) -> void:
 		"pivot":
 			_pivot_angle += crab_pivot_speed * _pivot_dir * delta
 			var target := player.global_position + Vector2.from_angle(_pivot_angle) * crab_pivot_radius
-			velocity = (target - global_position) * 4.0
-			velocity = velocity.limit_length(baseSpeed * _speed_mult())
+			_steer_toward((target - global_position).limit_length(baseSpeed * _speed_mult()), delta)
 			if _state_timer <= 0.0:
 				_enter_state("charge", crab_charge_time)
 		"charge":
 			var dir := (player.global_position - global_position).normalized()
-			velocity = dir * crab_charge_speed * _speed_mult()
+			_steer_toward(dir * crab_charge_speed * _speed_mult(), delta)
 			if _state_timer <= 0.0:
 				_enter_state("retreat", crab_retreat_time)
 		"retreat":
 			var away := (global_position - player.global_position).normalized()
-			velocity = away * baseSpeed * 1.2 * _speed_mult()
+			_steer_toward(away * baseSpeed * 1.2 * _speed_mult(), delta)
 			if _state_timer <= 0.0:
 				_enter_state("pivot", crab_pivot_time)
 		_:
@@ -297,9 +358,9 @@ func _process_anglerfish(delta: float) -> void:
 	var to_player := player.global_position - global_position
 	var dist := to_player.length()
 	if dist > angler_stalk_distance:
-		velocity = to_player.normalized() * baseSpeed * _speed_mult()
+		_steer_toward(to_player.normalized() * baseSpeed * _speed_mult(), delta)
 	else:
-		velocity = velocity.move_toward(Vector2.ZERO, 300.0 * delta)
+		_steer_toward(Vector2.ZERO, delta)
 
 	if dist <= angler_light_radius:
 		_angler_damage_accumulator += angler_radius_dps * delta

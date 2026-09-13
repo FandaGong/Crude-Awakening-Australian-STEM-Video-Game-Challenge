@@ -15,9 +15,13 @@ signal health_changed(current: float, max: float)
 const EnemyBullet := preload("res://bullets/enemy_bullet.tscn")
 
 @export var boss_data: BossData
+@export_range(1.0, 1000.0, 1.0, "suffix:px") var aggro_radius := 300.0
+@export var water_acceleration := 360.0
+@export var water_drag := 220.0
 
 var current_health: float = 0.0
 var player: Node2D
+var velocity := Vector2.ZERO
 var attack_timer: float = 0.0
 var spiral_angle: float = 0.0
 var is_defeated: bool = false
@@ -60,6 +64,8 @@ var kraken_stage: int = 1
 var _kraken_poke_x: float = 0.0
 var _kraken_suction_telegraph_timer: float = 0.0
 var _kraken_sway_time: float = 0.0
+var _idle_direction := Vector2.RIGHT
+var _idle_direction_timer := 0.0
 
 func _ready() -> void:
 	add_to_group("boss")
@@ -162,6 +168,12 @@ func _physics_process(delta: float) -> void:
 
 	var position_before_update := global_position
 	body_contact_cooldown = max(0.0, body_contact_cooldown - delta)
+	if not _is_player_in_aggro_range():
+		_stop_active_attacks()
+		_process_idle_float(delta)
+		_constrain_from_walls()
+		_update_boss_sprite_animation_speed(global_position.distance_to(position_before_update), delta)
+		return
 	_constrain_from_walls()
 
 	match boss_data.boss_type:
@@ -178,6 +190,29 @@ func _physics_process(delta: float) -> void:
 				attack_timer = _current_pattern_interval()
 	_update_boss_sprite_animation_speed(global_position.distance_to(position_before_update), delta)
 
+func _is_player_in_aggro_range() -> bool:
+	if not player or not is_instance_valid(player):
+		player = get_tree().get_first_node_in_group("player")
+	return player != null and global_position.distance_to(player.global_position) <= aggro_radius
+
+## Bosses retain their idle animation and drift slowly until the Otter is
+## close enough to engage. Combat timers remain paused outside this range.
+func _process_idle_float(delta: float) -> void:
+	_idle_direction_timer -= delta
+	if _idle_direction_timer <= 0.0:
+		_idle_direction = Vector2.from_angle(randf() * TAU)
+		_idle_direction_timer = randf_range(1.25, 3.0)
+	_move_boss_by(_idle_direction * 20.0 * delta)
+
+func _stop_active_attacks() -> void:
+	if _beam_active:
+		_beam_active = false
+		_beam_timer = 0.0
+		_angler_beam_damage_accumulator = 0.0
+	if light_cone:
+		light_cone.visible = false
+	_angler_bulb_damage_accumulator = 0.0
+
 ## Bosses are Areas, so their scripted movement does not go through
 ## move_and_collide(). Keep every movement pattern inside the level's solid
 ## Ground tiles, and inside the reusable arena's circular play space.
@@ -185,10 +220,17 @@ func _move_boss_by(offset: Vector2) -> void:
 	_move_boss_to(global_position + offset)
 
 func _move_boss_to(destination: Vector2) -> void:
-	var safe_destination := _safe_swept_destination(global_position, destination)
+	var delta := get_physics_process_delta_time()
+	if delta <= 0.0:
+		delta = 1.0 / 60.0
+	var desired_velocity := (destination - global_position) / delta
+	var acceleration := water_drag if desired_velocity.is_zero_approx() else water_acceleration
+	velocity = velocity.move_toward(desired_velocity, acceleration * delta)
+	var safe_destination := _safe_swept_destination(global_position, global_position + velocity * delta)
 	if safe_destination == destination or safe_destination != global_position:
 		global_position = safe_destination
 		return
+	velocity = Vector2.ZERO
 	# Sliding along a wall is preferable to stopping completely, especially
 	# for the crab charge and orbiting bosses.
 	var horizontal := Vector2(destination.x, global_position.y)
@@ -218,12 +260,19 @@ func _safe_swept_destination(from: Vector2, to: Vector2) -> Vector2:
 	return last_safe
 
 func _constrain_from_walls() -> void:
-	_move_boss_to(global_position)
+	if _position_is_blocked(global_position):
+		velocity = Vector2.ZERO
 
 func _position_is_blocked(candidate: Vector2) -> bool:
 	var level := get_parent()
 	var ground := level.get_node_or_null("Ground") as TileMapLayer if level else null
 	if ground:
+		var water_collision := level.get_node_or_null("waterArea/CollisionShape2D") as CollisionShape2D
+		if water_collision and water_collision.shape is RectangleShape2D:
+			var half_size := (water_collision.shape as RectangleShape2D).size * 0.5
+			var water_local := water_collision.to_local(candidate)
+			if absf(water_local.x) > half_size.x - 44.0 or absf(water_local.y) > half_size.y - 44.0:
+				return true
 		# Test the boss centre plus its collision radius in eight directions so
 		# the visual body cannot clip through a solid tile at the edge.
 		var samples := [Vector2.ZERO]

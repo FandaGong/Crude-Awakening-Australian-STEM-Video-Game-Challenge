@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://d2svb071siwo1"
+path="res://.godot/imported/seagrassMid.aseprite-da54b2c0c659c4a4ee9e6fb7fc870dc7.res"
+
+[deps]
+
+source_file="res://assets/sprites/ocean/seagrassMid.aseprite"
+dest_files=["res://.godot/imported/seagrassMid.aseprite-da54b2c0c659c4a4ee9e6fb7fc870dc7.res"]
+
+[params]
+

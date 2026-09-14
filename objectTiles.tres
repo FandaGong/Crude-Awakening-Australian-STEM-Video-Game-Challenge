@@ -1,0 +1,54 @@
+[gd_resource type="TileSet" format=3 uid="uid://db7vqgswkdwuw"]
+
+[ext_resource type="Texture2D" uid="uid://b1usuuh4s3xad" path="res://assets/sprites/corals/coralBrain.png" id="1_2rhix"]
+[ext_resource type="Texture2D" uid="uid://c8boh8777fb5m" path="res://assets/sprites/corals/coralFire.png" id="2_rhiko"]
+[ext_resource type="Texture2D" uid="uid://da8piqq13p1sp" path="res://assets/sprites/corals/coralTube.png" id="3_63trh"]
+[ext_resource type="Texture2D" uid="uid://b3guub1mgpnx4" path="res://assets/sprites/corals/seagrass.png" id="4_wcrvs"]
+[ext_resource type="Texture2D" uid="uid://briplth3xsjt7" path="res://assets/sprites/trash/trashLarge.png" id="5_mixtv"]
+[ext_resource type="Texture2D" uid="uid://clhrnwlg6nl65" path="res://assets/sprites/trash/trashMedium.png" id="6_qyfbp"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_2rhix"]
+texture = ExtResource("3_63trh")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+1:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rhiko"]
+texture = ExtResource("4_wcrvs")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_63trh"]
+texture = ExtResource("5_mixtv")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_wcrvs"]
+texture = ExtResource("6_qyfbp")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_mixtv"]
+texture = ExtResource("1_2rhix")
+texture_region_size = Vector2i(32, 32)
+0:1/0 = 0
+1:1/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_qyfbp"]
+texture = ExtResource("2_rhiko")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+1:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+
+[resource]
+tile_size = Vector2i(32, 32)
+sources/6 = SubResource("TileSetAtlasSource_63trh")
+sources/7 = SubResource("TileSetAtlasSource_wcrvs")
+sources/8 = SubResource("TileSetAtlasSource_mixtv")
+sources/9 = SubResource("TileSetAtlasSource_qyfbp")
+sources/10 = SubResource("TileSetAtlasSource_2rhix")
+sources/11 = SubResource("TileSetAtlasSource_rhiko")

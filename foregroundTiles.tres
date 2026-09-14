@@ -1,0 +1,64 @@
+[gd_resource type="TileSet" format=3 uid="uid://blh2poy2s3kqw"]
+
+[ext_resource type="Texture2D" uid="uid://ce20phdddfjy2" path="res://assets/sprites/ground (grass and dirt)/grass:dirt/dirtINGrid.png" id="1_ise8e"]
+[ext_resource type="Texture2D" uid="uid://bl43qo0sxh2gf" path="res://assets/sprites/ground (grass and dirt)/grass:dirt/dirtOUTGrid.png" id="2_g7dcn"]
+[ext_resource type="Texture2D" uid="uid://b7o3c14y1lh1g" path="res://assets/sprites/ground (grass and dirt)/sand/sandINGrid.png" id="3_3iyw5"]
+[ext_resource type="Texture2D" uid="uid://xn0kh1rgu52o" path="res://assets/sprites/ground (grass and dirt)/sand/sandOUTGrid.png" id="4_40x82"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_js144"]
+texture = ExtResource("1_ise8e")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+0:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+2:1/0 = 0
+2:0/0 = 0
+1:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_1b0i3"]
+texture = ExtResource("2_g7dcn")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_707hy"]
+texture = ExtResource("3_3iyw5")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+0:1/0 = 0
+2:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_3jrbe"]
+texture = ExtResource("4_40x82")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+
+[resource]
+tile_size = Vector2i(32, 32)
+physics_layer_0/collision_layer = 1
+sources/12 = SubResource("TileSetAtlasSource_js144")
+sources/26 = SubResource("TileSetAtlasSource_1b0i3")
+sources/27 = SubResource("TileSetAtlasSource_707hy")
+sources/28 = SubResource("TileSetAtlasSource_3jrbe")

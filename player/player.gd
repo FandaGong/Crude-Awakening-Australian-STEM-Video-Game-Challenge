@@ -14,7 +14,7 @@ var currentHealth: float = maxHealth
 var currentAir: float = maxAir
 
 @export var drownDamageRate: float = 5.0 # Damage per second when drowning
-@export var airRecoveryRate: float = 5.0 # How fast oxygen recovers on land
+@export var airRecoveryRate: float = 20.0 # How fast oxygen recovers on land
 
 var isDead: bool = false
 var respawn_immunity: float = 0.0

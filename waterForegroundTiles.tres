@@ -1,0 +1,54 @@
+[gd_resource type="TileSet" format=3 uid="uid://b8jord65tr27b"]
+
+[ext_resource type="Texture2D" uid="uid://dholji8kklx8h" path="res://assets/sprites/water/oceanForeground.png" id="1_aa0fy"]
+[ext_resource type="Texture2D" uid="uid://bejwdroxtliab" path="res://assets/sprites/water/oceanWaveForeground.png" id="2_i5vs1"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_3hhlv"]
+texture = ExtResource("1_aa0fy")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_d88dk"]
+texture = ExtResource("2_i5vs1")
+texture_region_size = Vector2i(32, 32)
+0:0/animation_columns = 32
+0:0/animation_speed = 10.0
+0:0/animation_frame_0/duration = 1.0
+0:0/animation_frame_1/duration = 1.0
+0:0/animation_frame_2/duration = 1.0
+0:0/animation_frame_3/duration = 1.0
+0:0/animation_frame_4/duration = 1.0
+0:0/animation_frame_5/duration = 1.0
+0:0/animation_frame_6/duration = 1.0
+0:0/animation_frame_7/duration = 1.0
+0:0/animation_frame_8/duration = 1.0
+0:0/animation_frame_9/duration = 1.0
+0:0/animation_frame_10/duration = 1.0
+0:0/animation_frame_11/duration = 1.0
+0:0/animation_frame_12/duration = 1.0
+0:0/animation_frame_13/duration = 1.0
+0:0/animation_frame_14/duration = 1.0
+0:0/animation_frame_15/duration = 1.0
+0:0/animation_frame_16/duration = 1.0
+0:0/animation_frame_17/duration = 1.0
+0:0/animation_frame_18/duration = 1.0
+0:0/animation_frame_19/duration = 1.0
+0:0/animation_frame_20/duration = 1.0
+0:0/animation_frame_21/duration = 1.0
+0:0/animation_frame_22/duration = 1.0
+0:0/animation_frame_23/duration = 1.0
+0:0/animation_frame_24/duration = 1.0
+0:0/animation_frame_25/duration = 1.0
+0:0/animation_frame_26/duration = 1.0
+0:0/animation_frame_27/duration = 1.0
+0:0/animation_frame_28/duration = 1.0
+0:0/animation_frame_29/duration = 1.0
+0:0/animation_frame_30/duration = 1.0
+0:0/animation_frame_31/duration = 1.0
+0:0/0 = 0
+
+[resource]
+tile_size = Vector2i(32, 32)
+physics_layer_0/collision_layer = 1
+sources/0 = SubResource("TileSetAtlasSource_3hhlv")
+sources/1 = SubResource("TileSetAtlasSource_d88dk")

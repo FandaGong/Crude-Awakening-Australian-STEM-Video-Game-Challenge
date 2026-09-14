@@ -20,7 +20,6 @@ config/icon="res://icon.svg"
 GameData="*res://autoloads/game_data.gd"
 StoryManager="*res://autoloads/story_manager.gd"
 Effects="*res://autoloads/effects.gd"
-_mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 AudioManager="*res://autoloads/audio_manager.gd"
 
 [display]
@@ -30,10 +29,6 @@ window/size/viewport_height=270
 window/size/window_width_override=1920
 window/size/window_height_override=1080
 window/stretch/mode="canvas_items"
-
-[editor_plugins]
-
-enabled=PackedStringArray("res://addons/AsepriteWizard/plugin.cfg", "res://addons/godot_ai/plugin.cfg")
 
 [input]
 

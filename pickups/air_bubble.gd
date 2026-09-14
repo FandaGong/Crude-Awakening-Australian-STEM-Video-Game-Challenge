@@ -1,12 +1,9 @@
 extends Area2D
 
-## Stationary environment pickup (design doc: "bubbles have no body dmg.
-## when touched they pop and provide a full bar of air"). Spawned freely in
-## every level. The companion robot's Baleen Resonance Core module pulls
-## nearby members of the "air_bubbles" group toward the player.
+##bubbles have no body dmg. when touched they pop and provide a full bar of air.
+## baleen resonance core pulls in nearby members of the "air_bubbles" group towards the player. 
 
-## "Environment Drop: Bubbles" - popping a bubble has a small chance to pop
-## loose a physical Bubble Booster Charm alongside the air refill.
+##popping a bubble has a small chance to drop a Bubble Booster Charm alongside the air refill.
 const BUBBLE_BOOSTER_CHARM_PATH := "res://resources/items/bubble_booster_charm.tres"
 const BUBBLE_BOOSTER_DROP_CHANCE := 0.1
 @export var air_amount: float = 100.0
@@ -17,28 +14,6 @@ const BUBBLE_SHEET_PATH := "res://assets/sprites/mobs/bubble.png"
 
 func _ready() -> void:
 	add_to_group("air_bubbles")
-	body_entered.connect(_on_body_entered)
-	_configure_animation()
-
-func _configure_animation() -> void:
-	if not sprite or not ResourceLoader.exists(BUBBLE_SHEET_PATH):
-		return
-	var sheet := load(BUBBLE_SHEET_PATH) as Texture2D
-	if not sheet or sheet.get_height() <= 0:
-		return
-	var frame_size := sheet.get_height()
-	var frame_count := maxi(1, int(sheet.get_width() / frame_size))
-	var frames := SpriteFrames.new()
-	frames.remove_animation("default")
-	frames.add_animation("default")
-	frames.set_animation_speed("default", 10.0)
-	for frame_index in range(frame_count):
-		var atlas := AtlasTexture.new()
-		atlas.atlas = sheet
-		atlas.region = Rect2(frame_index * frame_size, 0, frame_size, frame_size)
-		frames.add_frame("default", atlas)
-	sprite.sprite_frames = frames
-	sprite.animation = &"default"
 	sprite.play()
 
 func _on_body_entered(body: Node2D) -> void:

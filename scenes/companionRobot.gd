@@ -46,6 +46,7 @@ var active_beam_time_left: float = 0.0
 var active_beam_heal_accumulator: float = 0.0
 
 @onready var light_beam: Line2D = get_node_or_null("CureBeam")
+@onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 var _dialogue_box: DialogueBox = null
 var _guide_target: Vector2 = Vector2.ZERO
 var _is_guiding: bool = false
@@ -73,6 +74,7 @@ func _physics_process(delta: float) -> void:
 		return
 		
 	show()
+	_play_default_animation()
 	timePassed += delta
 	_spawn_bubble_trail(delta)
 	
@@ -113,6 +115,12 @@ func _spawn_bubble_trail(delta: float) -> void:
 	_bubble_trail_timer = 0.18
 	_last_trail_position = global_position
 	Effects.spawn_bubble_trail(global_position + Vector2(0.0, 8.0))
+
+## The robot only has a hovering idle animation. Start it whenever the
+## companion is active with the otter, without restarting it every frame.
+func _play_default_animation() -> void:
+	if animated_sprite and animated_sprite.sprite_frames and animated_sprite.sprite_frames.has_animation("default") and (animated_sprite.animation != "default" or not animated_sprite.is_playing()):
+		animated_sprite.play("default")
 
 ## Sends the robot ahead of the otter toward a fixed story destination. The
 ## robot only advances while the otter remains close, so it naturally stops

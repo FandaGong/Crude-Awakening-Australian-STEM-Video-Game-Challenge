@@ -1,9 +1,55 @@
 [gd_resource type="TileSet" format=3 uid="uid://blh2poy2s3kqw"]
 
+[ext_resource type="Texture2D" uid="uid://dholji8kklx8h" path="res://assets/sprites/water/oceanForeground.png" id="1_5gep1"]
 [ext_resource type="Texture2D" uid="uid://ce20phdddfjy2" path="res://assets/sprites/ground (grass and dirt)/grass:dirt/dirtINGrid.png" id="1_ise8e"]
 [ext_resource type="Texture2D" uid="uid://bl43qo0sxh2gf" path="res://assets/sprites/ground (grass and dirt)/grass:dirt/dirtOUTGrid.png" id="2_g7dcn"]
+[ext_resource type="Texture2D" uid="uid://bejwdroxtliab" path="res://assets/sprites/water/oceanWaveForeground.png" id="2_ise8e"]
 [ext_resource type="Texture2D" uid="uid://b7o3c14y1lh1g" path="res://assets/sprites/ground (grass and dirt)/sand/sandINGrid.png" id="3_3iyw5"]
 [ext_resource type="Texture2D" uid="uid://xn0kh1rgu52o" path="res://assets/sprites/ground (grass and dirt)/sand/sandOUTGrid.png" id="4_40x82"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_g7dcn"]
+texture = ExtResource("1_5gep1")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_3iyw5"]
+texture = ExtResource("2_ise8e")
+texture_region_size = Vector2i(32, 32)
+0:0/animation_columns = 32
+0:0/animation_speed = 10.0
+0:0/animation_frame_0/duration = 1.0
+0:0/animation_frame_1/duration = 1.0
+0:0/animation_frame_2/duration = 1.0
+0:0/animation_frame_3/duration = 1.0
+0:0/animation_frame_4/duration = 1.0
+0:0/animation_frame_5/duration = 1.0
+0:0/animation_frame_6/duration = 1.0
+0:0/animation_frame_7/duration = 1.0
+0:0/animation_frame_8/duration = 1.0
+0:0/animation_frame_9/duration = 1.0
+0:0/animation_frame_10/duration = 1.0
+0:0/animation_frame_11/duration = 1.0
+0:0/animation_frame_12/duration = 1.0
+0:0/animation_frame_13/duration = 1.0
+0:0/animation_frame_14/duration = 1.0
+0:0/animation_frame_15/duration = 1.0
+0:0/animation_frame_16/duration = 1.0
+0:0/animation_frame_17/duration = 1.0
+0:0/animation_frame_18/duration = 1.0
+0:0/animation_frame_19/duration = 1.0
+0:0/animation_frame_20/duration = 1.0
+0:0/animation_frame_21/duration = 1.0
+0:0/animation_frame_22/duration = 1.0
+0:0/animation_frame_23/duration = 1.0
+0:0/animation_frame_24/duration = 1.0
+0:0/animation_frame_25/duration = 1.0
+0:0/animation_frame_26/duration = 1.0
+0:0/animation_frame_27/duration = 1.0
+0:0/animation_frame_28/duration = 1.0
+0:0/animation_frame_29/duration = 1.0
+0:0/animation_frame_30/duration = 1.0
+0:0/animation_frame_31/duration = 1.0
+0:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_js144"]
 texture = ExtResource("1_ise8e")
@@ -62,3 +108,5 @@ sources/12 = SubResource("TileSetAtlasSource_js144")
 sources/26 = SubResource("TileSetAtlasSource_1b0i3")
 sources/27 = SubResource("TileSetAtlasSource_707hy")
 sources/28 = SubResource("TileSetAtlasSource_3jrbe")
+sources/0 = SubResource("TileSetAtlasSource_g7dcn")
+sources/1 = SubResource("TileSetAtlasSource_3iyw5")

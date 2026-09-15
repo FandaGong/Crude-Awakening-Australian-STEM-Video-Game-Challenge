@@ -1,0 +1,49 @@
+[gd_scene format=3 uid="uid://btjo2ji2810hx"]
+
+[ext_resource type="Texture2D" uid="uid://mmcku5n04vv5" path="res://assets/sprites/future/sonicMiningDrillOff.png" id="1_08f5b"]
+[ext_resource type="LabelSettings" uid="uid://bpksd23vhgtxi" path="res://smallLabels.tres" id="2_08f5b"]
+[ext_resource type="Texture2D" uid="uid://btdt5px3mpveh" path="res://assets/sprites/future/sonicMiningDrilOnl.png" id="2_cdu8n"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cdu8n"]
+size = Vector2(33, 40)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_6uerd"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_08f5b")
+}],
+"loop": 1,
+"name": &"off",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_cdu8n")
+}],
+"loop": 1,
+"name": &"on",
+"speed": 5.0
+}]
+
+[node name="SonicMiningLaser" type="Area2D" unique_id=2026992920]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=139055816]
+position = Vector2(-27.5, 22)
+shape = SubResource("RectangleShape2D_cdu8n")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=259967459]
+sprite_frames = SubResource("SpriteFrames_6uerd")
+animation = &"on"
+
+[node name="Prompt" type="Label" parent="." unique_id=238380068]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -51.0
+offset_top = -26.0
+offset_right = 3.0
+offset_bottom = -3.0
+grow_horizontal = 2
+size_flags_vertical = 1
+label_settings = ExtResource("2_08f5b")

@@ -1,0 +1,50 @@
+[gd_scene format=3 uid="uid://jgwxtdg4leu"]
+
+[ext_resource type="Texture2D" uid="uid://dvkhsgd632dvn" path="res://assets/sprites/future/chipPedestal.png" id="1_a25es"]
+[ext_resource type="LabelSettings" uid="uid://bpksd23vhgtxi" path="res://smallLabels.tres" id="2_utpdp"]
+[ext_resource type="Texture2D" uid="uid://cboca7rc0j8k6" path="res://assets/sprites/future/quantumMotherboardGrid.png" id="3_utpdp"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_g14lc"]
+size = Vector2(20, 42)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ge17k"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_a25es")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="QuantumMotherboardGridPedestal" type="Area2D" unique_id=450342266]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1128090513]
+position = Vector2(0, 26)
+shape = SubResource("RectangleShape2D_g14lc")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=850413071]
+sprite_frames = SubResource("SpriteFrames_ge17k")
+
+[node name="Prompt" type="Label" parent="." unique_id=1581032358]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -27.0
+offset_top = -19.0
+offset_right = 27.0
+offset_bottom = 4.0
+grow_horizontal = 2
+size_flags_vertical = 1
+label_settings = ExtResource("2_utpdp")
+
+[node name="quantumProcessingChip" type="TextureRect" parent="." unique_id=498783853]
+z_index = -1
+offset_left = -5.0
+offset_top = 6.0
+offset_right = 5.0
+offset_bottom = 16.0
+texture = ExtResource("3_utpdp")
+expand_mode = 1
+metadata/_edit_use_anchors_ = true

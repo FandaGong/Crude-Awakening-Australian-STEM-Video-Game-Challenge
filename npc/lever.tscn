@@ -1,0 +1,49 @@
+[gd_scene format=3 uid="uid://jcw0fk5l64yp"]
+
+[ext_resource type="Texture2D" uid="uid://dqt14vmhbcp3e" path="res://assets/sprites/future/switchOff.png" id="1_qr4dh"]
+[ext_resource type="Texture2D" uid="uid://bf0akv6xtly4l" path="res://assets/sprites/future/switch.png" id="2_46iag"]
+[ext_resource type="LabelSettings" uid="uid://bpksd23vhgtxi" path="res://smallLabels.tres" id="3_r6p32"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_grsvp"]
+size = Vector2(15, 11)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_vy6nf"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_qr4dh")
+}],
+"loop": 1,
+"name": &"off",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_46iag")
+}],
+"loop": 1,
+"name": &"on",
+"speed": 5.0
+}]
+
+[node name="Lever" type="Area2D" unique_id=1585608423]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=196993987]
+position = Vector2(8, 0)
+shape = SubResource("RectangleShape2D_grsvp")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=951081278]
+sprite_frames = SubResource("SpriteFrames_vy6nf")
+animation = &"off"
+
+[node name="Prompt" type="Label" parent="." unique_id=1361066833]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -38.0
+offset_top = -34.0
+offset_right = 16.0
+offset_bottom = -11.0
+grow_horizontal = 2
+size_flags_vertical = 1
+label_settings = ExtResource("3_r6p32")

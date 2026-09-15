@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://b5ipucflnmb70"]
+
+[ext_resource type="Texture2D" uid="uid://7jb3g4f1t2wa" path="res://assets/sprites/future/lab.png" id="1_1c0oy"]
+[ext_resource type="LabelSettings" uid="uid://bpksd23vhgtxi" path="res://smallLabels.tres" id="2_73oqo"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ii5uj"]
+size = Vector2(63, 69)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_qegre"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_1c0oy")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="AerosolCommandStation" type="Area2D" unique_id=491595224]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1438092417]
+position = Vector2(-1.5, 18.5)
+shape = SubResource("RectangleShape2D_ii5uj")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=144592728]
+sprite_frames = SubResource("SpriteFrames_qegre")
+
+[node name="Prompt" type="Label" parent="." unique_id=850041064]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -27.0
+offset_top = -43.0
+offset_right = 27.0
+offset_bottom = -20.0
+grow_horizontal = 2
+size_flags_vertical = 1
+label_settings = ExtResource("2_73oqo")

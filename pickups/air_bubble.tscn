@@ -124,6 +124,7 @@ animations = [{
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_bubble"]
+radius = 32.01562
 
 [node name="AirBubble" type="Area2D" unique_id=1122424785]
 collision_layer = 4
@@ -131,7 +132,6 @@ script = ExtResource("1_bubble")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1072996352]
 modulate = Color(0.7, 0.95, 1, 0.9)
-scale = Vector2(0.5, 0.5)
 sprite_frames = SubResource("SpriteFrames_nw6ej")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1882735967]

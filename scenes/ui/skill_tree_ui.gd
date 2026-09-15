@@ -9,13 +9,10 @@ extends Control
 
 var selected_node: SkillNodeData = null
 
-# Tracks every skill node (and the details panel itself) the mouse is
-# currently over. The panel is shown the instant this set stops being empty
-# and hidden the instant it goes back to empty, so it appears on hover over
-# the skill tree and disappears the moment nothing relevant is hovered.
+# Hovered controls
 var _hovered: Dictionary = {}
 
-## How far from the cursor (in viewport pixels) the panel is placed.
+# Details popup offset
 @export var details_panel_mouse_offset: Vector2 = Vector2(10, 10)
 
 func _ready() -> void:
@@ -26,17 +23,12 @@ func _ready() -> void:
 	_update_currency_display(GameData.compendium_data)
 	_connect_all_nodes(self)
 
-	# The panel itself can be hovered too (e.g. while reading the
-	# description), which should keep it open rather than having it vanish
-	# out from under the cursor the moment it leaves the skill node.
+	# Details popup hover
 	details_panel.mouse_entered.connect(_on_panel_hover_entered)
 	details_panel.mouse_exited.connect(_on_panel_hover_exited)
 	details_panel.hide()
 
-## While a skill node is hovered, keep the panel tracking the cursor. Once
-## the cursor has moved onto the panel itself we stop repositioning it (it's
-## no longer over a node), which is what lets the mouse travel from the
-## button onto the panel without the panel sliding out from under it.
+# Details popup position
 func _process(_delta: float) -> void:
 	if details_panel.visible and _is_hovering_a_node():
 		_position_details_panel(get_global_mouse_position())
@@ -47,8 +39,7 @@ func _is_hovering_a_node() -> bool:
 			return true
 	return false
 
-## Places the panel just off the cursor, clamped so it never runs off the
-## edge of the viewport.
+# Clamp to viewport
 func _position_details_panel(global_mouse_pos: Vector2) -> void:
 	var viewport_size := get_viewport_rect().size
 	var panel_size := details_panel.size
@@ -85,9 +76,7 @@ func _on_panel_hover_exited() -> void:
 	_hovered.erase(details_panel)
 	call_deferred("_update_panel_visibility")
 
-## Deferred so that leaving one node and entering an adjacent one (or the
-## panel) in the same input pass doesn't flicker the panel closed and
-## immediately back open.
+# Prevent hover flicker
 func _update_panel_visibility() -> void:
 	if _hovered.is_empty():
 		details_panel.hide()

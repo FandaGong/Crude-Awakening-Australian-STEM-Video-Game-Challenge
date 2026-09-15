@@ -1,9 +1,6 @@
 extends Node2D
 
-## A single reusable arena. World.gd instances this scene and calls
-## setup(boss_data) to configure which boss spawns here. Keeping one arena
-## template (instead of ten hand-built scenes) is what lets ten scaling
-## bossfights exist without duplicating level geometry ten times over.
+# Boss arena
 
 signal boss_defeated(boss_id: int)
 

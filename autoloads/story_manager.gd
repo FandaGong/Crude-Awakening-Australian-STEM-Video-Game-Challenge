@@ -1,10 +1,6 @@
 extends Node
 
-## Tracks the otter's trip forward through the timeline. Read straight off
-## the design doc's six Historical Turning Points, ending back in 2126 once
-## the Kraken (the AI itself) is cured:
-##   2032 Silicon Crab -> 2045 Solar-Drift Jellyfish -> 2061 Calcified Shell
-##   -> 2078 Abyssal Anglerfish -> 2102 Blue Whale -> 2120 Kraken -> 2126 (home)
+# Timeline progression
 
 signal robot_given
 signal era_changed(year: int, era_title: String, boss_id: int)
@@ -62,9 +58,7 @@ func robot_was_given() -> void:
 	GameData.is_robot_unlocked = true
 	robot_given.emit()
 
-## Called once the scientist's time machine is first used, and again every
-## time a boss is cured. Jumps to the next era; once the Kraken (the last
-## era) is cured, the next call fires story_completed instead.
+# Advance era
 func advance_to_next_era() -> void:
 	current_era_index += 1
 	if current_era_index >= ERAS.size():

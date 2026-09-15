@@ -1,44 +1,54 @@
 extends TextureButton
 
-## Attach this script to any Button to give it a quick "dimming" tween
-## on hover and press, so menus feel responsive without needing custom art.
+# Hover brightness
+@export var hover_brightness: float = 0.88
+# Press brightness
+@export var press_brightness: float = 0.7
+# Fade duration
+@export var tween_time: float = 0.08
 
-@export var hoverBrightness: float = 0.88
-@export var pressBrightness: float = 0.7
-@export var tweenTime: float = 0.08
 
 func _ready() -> void:
-	# Connect the signals to our local methods
-	mouse_entered.connect(_onMouseEntered)
-	mouse_exited.connect(_onMouseExited)
-	button_down.connect(_onButtonDown)
-	button_up.connect(_onButtonUp)
-	focus_entered.connect(_onMouseEntered)
-	focus_exited.connect(_onMouseExited)
+	# Signals
+	mouse_entered.connect(_on_mouse_entered)
+	mouse_exited.connect(_on_mouse_exited)
+	button_down.connect(_on_button_down)
+	button_up.connect(_on_button_up)
+	# Mouse state
+	focus_entered.connect(_on_mouse_entered)
+	focus_exited.connect(_on_mouse_exited)
 
-func _onMouseEntered() -> void:
+
+func _on_mouse_entered() -> void:
 	if disabled:
 		return
-	_dimTo(hoverBrightness)
+	_animate_to_brightness(hover_brightness)
 
-func _onMouseExited() -> void:
+
+func _on_mouse_exited() -> void:
 	if disabled:
 		return
-	_dimTo(1.0)
+	_animate_to_brightness(1.0)  # Full brightness when not hovered.
 
-func _onButtonDown() -> void:
+
+func _on_button_down() -> void:
 	if disabled:
 		return
-	_dimTo(pressBrightness)
+	_animate_to_brightness(press_brightness)
 
-func _onButtonUp() -> void:
+
+func _on_button_up() -> void:
 	if disabled:
 		return
-	# Settle on the hover shade if still hovering, otherwise return to full brightness
-	var stillHovering := get_global_rect().has_point(get_global_mouse_position())
-	_dimTo(hoverBrightness if stillHovering else 1.0)
+	# Hover state
+	var is_still_hovering: bool = get_global_rect().has_point(get_global_mouse_position())
+	var target_brightness: float = 0
+	if is_still_hovering == true: target_brightness = hover_brightness
+	_animate_to_brightness(target_brightness)
 
-func _dimTo(brightness: float) -> void:
-	var tween := create_tween()
+
+func _animate_to_brightness(brightness: float) -> void:
+	# Smooth fade
+	var tween: Tween = create_tween()
 	tween.set_trans(Tween.TRANS_SINE)
-	tween.tween_property(self, "modulate", Color(brightness, brightness, brightness, 1.0), tweenTime)
+	tween.tween_property(self, "modulate", Color(brightness, brightness, brightness, 1.0), tween_time)

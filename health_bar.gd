@@ -2,7 +2,7 @@ extends TextureProgressBar
 
 @export var player: CharacterBody2D
 
-@onready var health_label: Label = $healthLabel
+@export var health_label: Label
 
 func _ready() -> void:
 	if player:

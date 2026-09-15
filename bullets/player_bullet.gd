@@ -1,7 +1,6 @@
 extends Area2D
 
-## The player's projectile. Damage/speed/color come from the currently
-## equipped WeaponData resource so switching weapons changes how this feels.
+# Player projectile
 
 var velocity: Vector2 = Vector2.ZERO
 var damage: float = 10.0

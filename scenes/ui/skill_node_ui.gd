@@ -45,11 +45,7 @@ func update_state() -> void:
 		if border: border.modulate = Color.DIM_GRAY
 		if unlock_label: unlock_label.text = ""
 
-## Clicking the node itself is now the only way to upgrade — the details
-## panel (shown on hover) is purely informational. A click attempts to
-## unlock the skill (unlock_skill is a safe no-op if it's already unlocked,
-## locked behind a prerequisite, or unaffordable) and always still notifies
-## listeners so the hover panel stays in sync.
+# Skill unlock
 func _on_pressed() -> void:
 	if not node_data:
 		return

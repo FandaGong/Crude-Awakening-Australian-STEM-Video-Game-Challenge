@@ -1,8 +1,6 @@
 extends HSlider
 
-## Compact settings slider whose handle lives inside the track rather than
-## hanging outside it. Drawing it here also lets a value of 100% fill the
-## complete width of the bar.
+# Inset volume slider
 
 const BAR_HEIGHT := 10.0
 const KNOB_RADIUS := 4.0
@@ -25,8 +23,7 @@ func _ready() -> void:
 	_fill_style.corner_radius_bottom_left = 5
 	_fill_style.corner_radius_bottom_right = 5
 
-	# Hide Godot's default grabber and track; this control draws its own
-	# compact versions while retaining HSlider's normal input behavior.
+	# Custom slider visuals
 	var empty_style := StyleBoxEmpty.new()
 	add_theme_stylebox_override("slider", empty_style)
 	add_theme_stylebox_override("grabber_area", empty_style)
@@ -47,7 +44,7 @@ func _draw() -> void:
 
 	var percent := 0.0 if is_zero_approx(max_value - min_value) else clampf((value - min_value) / (max_value - min_value), 0.0, 1.0)
 	if percent > 0.0:
-		# At maximum the filled rect is exactly the bar width.
+		# Full volume
 		draw_style_box(_fill_style, Rect2(bar.position, Vector2(bar.size.x * percent, bar.size.y)))
 
 	var knob_x := lerpf(bar.position.x + KNOB_RADIUS, bar.end.x - KNOB_RADIUS, percent)

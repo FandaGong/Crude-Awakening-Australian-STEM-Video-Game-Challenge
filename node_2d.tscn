@@ -78,6 +78,18 @@
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6uidu"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hotbar_highlight"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.72, 1, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
 [sub_resource type="Theme" id="Theme_thyvg"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_nsnm2"]
@@ -572,7 +584,7 @@ grow_vertical = 2
 label_settings = ExtResource("8_hqns4")
 autowrap_mode = 3
 
-[node name="healthBar" type="TextureProgressBar" parent="UI/HUD" unique_id=1954421371 node_paths=PackedStringArray("player")]
+[node name="healthBar" type="TextureProgressBar" parent="UI/HUD" unique_id=1954421371 node_paths=PackedStringArray("player", "health_label")]
 layout_mode = 1
 offset_left = 16.0
 offset_right = 216.0
@@ -581,6 +593,7 @@ texture_over = ExtResource("25_barback")
 texture_progress = ExtResource("23_health")
 script = ExtResource("4_nr8wp")
 player = NodePath("../../../World/player")
+health_label = NodePath("healthLabel")
 
 [node name="healthLabel" type="Label" parent="UI/HUD/healthBar" unique_id=736326394]
 layout_mode = 1
@@ -694,6 +707,22 @@ grow_vertical = 0
 text = "1"
 label_settings = ExtResource("8_hqns4")
 
+[node name="SelectionHighlight" type="Panel" parent="UI/HUD/hotbarContainer/TextureButton" unique_id=1496834961]
+visible = false
+z_index = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -1.0
+offset_top = -1.0
+offset_right = 1.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hotbar_highlight")
+
 [node name="TextureButton2" type="TextureButton" parent="UI/HUD/hotbarContainer" unique_id=140125434]
 custom_minimum_size = Vector2(24, 24)
 custom_maximum_size = Vector2(24, 24)
@@ -731,6 +760,22 @@ grow_vertical = 0
 text = "2"
 label_settings = ExtResource("8_hqns4")
 
+[node name="SelectionHighlight" type="Panel" parent="UI/HUD/hotbarContainer/TextureButton2" unique_id=2004289820]
+visible = false
+z_index = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -1.0
+offset_top = -1.0
+offset_right = 1.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hotbar_highlight")
+
 [node name="TextureButton3" type="TextureButton" parent="UI/HUD/hotbarContainer" unique_id=1804302130]
 custom_minimum_size = Vector2(24, 24)
 custom_maximum_size = Vector2(24, 24)
@@ -767,6 +812,22 @@ grow_horizontal = 0
 grow_vertical = 0
 text = "3"
 label_settings = ExtResource("8_hqns4")
+
+[node name="SelectionHighlight" type="Panel" parent="UI/HUD/hotbarContainer/TextureButton3" unique_id=71479142]
+visible = false
+z_index = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -1.0
+offset_top = -1.0
+offset_right = 1.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hotbar_highlight")
 
 [node name="DetailsPanel" type="Panel" parent="UI/HUD" unique_id=1887430424]
 visible = false
@@ -854,7 +915,7 @@ grow_vertical = 0
 text = "R"
 label_settings = ExtResource("8_hqns4")
 
-[node name="inventoryPanel" type="Control" parent="UI/HUD" unique_id=1755249018]
+[node name="inventoryPanel" type="Control" parent="UI/HUD" unique_id=1755249018 node_paths=PackedStringArray("grid_container", "head_slot", "body_slot", "acc_slot", "details_panel", "item_name_label", "item_desc_label")]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -864,6 +925,13 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("21_ma08v")
+grid_container = NodePath("inventoryPanelBg/gridContainer")
+head_slot = NodePath("inventoryPanelBg/equipSlots/headSlot")
+body_slot = NodePath("inventoryPanelBg/equipSlots/bodySlot")
+acc_slot = NodePath("inventoryPanelBg/equipSlots/accSlot")
+details_panel = NodePath("DetailsPanel")
+item_name_label = NodePath("DetailsPanel/SkillNameLabel")
+item_desc_label = NodePath("DetailsPanel/DescriptionLabel")
 
 [node name="ColorRect" type="ColorRect" parent="UI/HUD/inventoryPanel" unique_id=1328485646]
 layout_mode = 1
@@ -1032,7 +1100,7 @@ text = "CHARM"
 label_settings = ExtResource("28_nsnm2")
 horizontal_alignment = 1
 
-[node name="robotInventoryPanel" type="Control" parent="UI/HUD" unique_id=1354064504]
+[node name="robotInventoryPanel" type="Control" parent="UI/HUD" unique_id=1354064504 node_paths=PackedStringArray("equip_slots_container", "grid_container", "details_panel", "item_name_label", "item_desc_label")]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -1042,6 +1110,11 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("21_robotinv")
+equip_slots_container = NodePath("inventoryPanelBg/equipSlots")
+grid_container = NodePath("inventoryPanelBg/gridContainer")
+details_panel = NodePath("inventoryPanelBg/DetailsPanel")
+item_name_label = NodePath("inventoryPanelBg/DetailsPanel/SkillNameLabel")
+item_desc_label = NodePath("inventoryPanelBg/DetailsPanel/DescriptionLabel")
 
 [node name="ColorRect" type="ColorRect" parent="UI/HUD/robotInventoryPanel" unique_id=201770622]
 layout_mode = 1
@@ -1293,12 +1366,25 @@ grow_vertical = 2
 theme = ExtResource("8_q5dlx")
 theme_override_styles/panel = ExtResource("29_thyvg")
 
-[node name="bgmButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=84036431]
+[node name="SettingsTabs" type="Control" parent="UI/settingsMenu/Panel" unique_id=1333641181]
+anchors_preset = 0
+offset_left = 20.0
+offset_top = 56.0
+offset_right = 360.0
+offset_bottom = 280.0
+
+[node name="Graphics" type="Control" parent="UI/settingsMenu/Panel/SettingsTabs" unique_id=1453411445]
+anchors_preset = 0
+offset_top = 30.0
+offset_right = 340.0
+offset_bottom = 224.0
+
+[node name="particlesButton" type="CheckButton" parent="UI/settingsMenu/Panel/SettingsTabs/Graphics" unique_id=1687058592]
 layout_mode = 0
-offset_left = 28.0
-offset_top = 80.0
-offset_right = 190.0
-offset_bottom = 100.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 182.0
+offset_bottom = 40.0
 theme_override_styles/normal = SubResource("StyleBoxEmpty_3ngjr")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_qilgh")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_4qosj")
@@ -1308,7 +1394,37 @@ theme_override_styles/focus = SubResource("StyleBoxEmpty_ytlpd")
 theme_override_icons/checked = ExtResource("21_4qosj")
 theme_override_icons/unchecked = ExtResource("22_cjlbh")
 
-[node name="Label" type="Label" parent="UI/settingsMenu/Panel/bgmButton" unique_id=797123166]
+[node name="Label" type="Label" parent="UI/settingsMenu/Panel/SettingsTabs/Graphics/particlesButton" unique_id=1802868712]
+layout_mode = 0
+offset_left = 34.0
+offset_top = 2.0
+offset_right = 90.0
+offset_bottom = 13.0
+text = "Particles"
+label_settings = ExtResource("8_hqns4")
+
+[node name="Audio" type="Control" parent="UI/settingsMenu/Panel/SettingsTabs" unique_id=226333526]
+anchors_preset = 0
+offset_top = 30.0
+offset_right = 340.0
+offset_bottom = 224.0
+
+[node name="bgmButton" type="CheckButton" parent="UI/settingsMenu/Panel/SettingsTabs/Audio" unique_id=84036431]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 182.0
+offset_bottom = 40.0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_3ngjr")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_qilgh")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_4qosj")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_kfelt")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_cjlbh")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ytlpd")
+theme_override_icons/checked = ExtResource("21_4qosj")
+theme_override_icons/unchecked = ExtResource("22_cjlbh")
+
+[node name="Label" type="Label" parent="UI/settingsMenu/Panel/SettingsTabs/Audio/bgmButton" unique_id=797123166]
 layout_mode = 0
 offset_left = 34.0
 offset_top = 2.0
@@ -1317,12 +1433,12 @@ offset_bottom = 13.0
 text = "BGM"
 label_settings = ExtResource("8_hqns4")
 
-[node name="soundEffectsButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=403706817]
+[node name="soundEffectsButton" type="CheckButton" parent="UI/settingsMenu/Panel/SettingsTabs/Audio" unique_id=403706817]
 layout_mode = 0
-offset_left = 28.0
-offset_top = 106.0
-offset_right = 190.0
-offset_bottom = 126.0
+offset_left = 20.0
+offset_top = 48.0
+offset_right = 182.0
+offset_bottom = 68.0
 theme_override_styles/normal = SubResource("StyleBoxEmpty_3ngjr")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_qilgh")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_4qosj")
@@ -1332,7 +1448,7 @@ theme_override_styles/focus = SubResource("StyleBoxEmpty_ytlpd")
 theme_override_icons/checked = ExtResource("21_4qosj")
 theme_override_icons/unchecked = ExtResource("22_cjlbh")
 
-[node name="Label" type="Label" parent="UI/settingsMenu/Panel/soundEffectsButton" unique_id=1183198273]
+[node name="Label" type="Label" parent="UI/settingsMenu/Panel/SettingsTabs/Audio/soundEffectsButton" unique_id=1183198273]
 layout_mode = 0
 offset_left = 35.0
 offset_top = 3.0
@@ -1340,6 +1456,94 @@ offset_right = 112.0
 offset_bottom = 14.0
 text = "Sound Effects"
 label_settings = ExtResource("8_hqns4")
+
+[node name="masterVolumeLabel" type="Label" parent="UI/settingsMenu/Panel/SettingsTabs/Audio" unique_id=1736045641]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 92.0
+offset_right = 134.0
+offset_bottom = 110.0
+theme_override_font_sizes/font_size = 8
+text = "Master"
+label_settings = ExtResource("8_hqns4")
+
+[node name="masterVolumeSlider" type="HSlider" parent="UI/settingsMenu/Panel/SettingsTabs/Audio" unique_id=1349755783]
+layout_mode = 0
+offset_left = 130.0
+offset_top = 92.0
+offset_right = 302.0
+offset_bottom = 110.0
+max_value = 1.0
+step = 0.05
+value = 1.0
+script = ExtResource("60_volume_slider")
+
+[node name="musicVolumeLabel" type="Label" parent="UI/settingsMenu/Panel/SettingsTabs/Audio" unique_id=1436973765]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 126.0
+offset_right = 134.0
+offset_bottom = 144.0
+theme_override_font_sizes/font_size = 8
+text = "Music"
+label_settings = ExtResource("8_hqns4")
+
+[node name="musicVolumeSlider" type="HSlider" parent="UI/settingsMenu/Panel/SettingsTabs/Audio" unique_id=1415892472]
+layout_mode = 0
+offset_left = 130.0
+offset_top = 126.0
+offset_right = 302.0
+offset_bottom = 144.0
+max_value = 1.0
+step = 0.05
+value = 1.0
+script = ExtResource("60_volume_slider")
+
+[node name="sfxVolumeLabel" type="Label" parent="UI/settingsMenu/Panel/SettingsTabs/Audio" unique_id=1081932989]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 160.0
+offset_right = 134.0
+offset_bottom = 178.0
+theme_override_font_sizes/font_size = 8
+text = "Sound effects"
+label_settings = ExtResource("8_hqns4")
+
+[node name="sfxVolumeSlider" type="HSlider" parent="UI/settingsMenu/Panel/SettingsTabs/Audio" unique_id=1826124297]
+layout_mode = 0
+offset_left = 130.0
+offset_top = 160.0
+offset_right = 302.0
+offset_bottom = 178.0
+max_value = 1.0
+step = 0.05
+value = 1.0
+script = ExtResource("60_volume_slider")
+
+[node name="GraphicsTabButton" type="Button" parent="UI/settingsMenu/Panel/SettingsTabs" unique_id=437937345]
+layout_mode = 0
+offset_left = 42.0
+offset_right = 142.0
+offset_bottom = 24.0
+theme_override_font_sizes/font_size = 8
+text = "Graphics"
+flat = true
+
+[node name="AudioTabButton" type="Button" parent="UI/settingsMenu/Panel/SettingsTabs" unique_id=995822015]
+layout_mode = 0
+offset_left = 198.0
+offset_right = 298.0
+offset_bottom = 24.0
+theme_override_font_sizes/font_size = 8
+text = "Audio"
+flat = true
+
+[node name="TabUnderline" type="ColorRect" parent="UI/settingsMenu/Panel/SettingsTabs" unique_id=1941361501]
+layout_mode = 0
+offset_left = 42.0
+offset_top = 24.0
+offset_right = 142.0
+offset_bottom = 26.0
 
 [node name="reduceMotionButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=1531014113]
 layout_mode = 0
@@ -1389,50 +1593,6 @@ offset_bottom = 14.0
 text = "Colorblind"
 label_settings = ExtResource("8_hqns4")
 
-[node name="particlesButton" type="CheckButton" parent="UI/settingsMenu/Panel" unique_id=1687058592]
-layout_mode = 0
-offset_left = 28.0
-offset_top = 162.0
-offset_right = 190.0
-offset_bottom = 182.0
-theme_override_styles/normal = SubResource("StyleBoxEmpty_3ngjr")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_qilgh")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_4qosj")
-theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_kfelt")
-theme_override_styles/disabled = SubResource("StyleBoxEmpty_cjlbh")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_ytlpd")
-theme_override_icons/checked = ExtResource("21_4qosj")
-theme_override_icons/unchecked = ExtResource("22_cjlbh")
-
-[node name="Label" type="Label" parent="UI/settingsMenu/Panel/particlesButton" unique_id=1802868712]
-layout_mode = 0
-offset_left = 34.0
-offset_top = 2.0
-offset_right = 90.0
-offset_bottom = 13.0
-text = "Particles"
-label_settings = ExtResource("8_hqns4")
-
-[node name="graphicsLabel" type="Label" parent="UI/settingsMenu/Panel" unique_id=172590303]
-layout_mode = 0
-offset_left = 28.0
-offset_top = 136.0
-offset_right = 120.0
-offset_bottom = 154.0
-theme_override_font_sizes/font_size = 8
-text = "GRAPHICS"
-label_settings = ExtResource("8_hqns4")
-
-[node name="soundLabel" type="Label" parent="UI/settingsMenu/Panel" unique_id=238209664]
-layout_mode = 0
-offset_left = 28.0
-offset_top = 54.0
-offset_right = 120.0
-offset_bottom = 72.0
-theme_override_font_sizes/font_size = 8
-text = "AUDIO"
-label_settings = ExtResource("8_hqns4")
-
 [node name="generalLabel" type="Label" parent="UI/settingsMenu/Panel" unique_id=805448548]
 layout_mode = 0
 offset_left = 28.0
@@ -1451,69 +1611,6 @@ offset_top = 16.0
 offset_right = 364.0
 offset_bottom = 48.0
 texture_normal = ExtResource("21_7plk7")
-
-[node name="masterVolumeLabel" type="Label" parent="UI/settingsMenu/Panel" unique_id=1736045641]
-layout_mode = 0
-offset_left = 28.0
-offset_top = 202.0
-offset_right = 142.0
-offset_bottom = 220.0
-theme_override_font_sizes/font_size = 8
-text = "Master"
-label_settings = ExtResource("8_hqns4")
-
-[node name="masterVolumeSlider" type="HSlider" parent="UI/settingsMenu/Panel" unique_id=1349755783]
-layout_mode = 0
-offset_left = 148.0
-offset_top = 202.0
-offset_right = 320.0
-offset_bottom = 220.0
-max_value = 1.0
-step = 0.05
-value = 1.0
-script = ExtResource("60_volume_slider")
-
-[node name="musicVolumeLabel" type="Label" parent="UI/settingsMenu/Panel" unique_id=1436973765]
-layout_mode = 0
-offset_left = 28.0
-offset_top = 228.0
-offset_right = 142.0
-offset_bottom = 246.0
-theme_override_font_sizes/font_size = 8
-text = "Music"
-label_settings = ExtResource("8_hqns4")
-
-[node name="musicVolumeSlider" type="HSlider" parent="UI/settingsMenu/Panel" unique_id=1415892472]
-layout_mode = 0
-offset_left = 148.0
-offset_top = 228.0
-offset_right = 320.0
-offset_bottom = 246.0
-max_value = 1.0
-step = 0.05
-value = 1.0
-script = ExtResource("60_volume_slider")
-
-[node name="sfxVolumeLabel" type="Label" parent="UI/settingsMenu/Panel" unique_id=1081932989]
-layout_mode = 0
-offset_left = 28.0
-offset_top = 254.0
-offset_right = 142.0
-offset_bottom = 272.0
-theme_override_font_sizes/font_size = 8
-text = "Sound effects"
-label_settings = ExtResource("8_hqns4")
-
-[node name="sfxVolumeSlider" type="HSlider" parent="UI/settingsMenu/Panel" unique_id=1826124297]
-layout_mode = 0
-offset_left = 148.0
-offset_top = 254.0
-offset_right = 320.0
-offset_bottom = 272.0
-max_value = 1.0
-step = 0.05
-value = 1.0
-script = ExtResource("60_volume_slider")
 
 [node name="pauseMenu" type="Control" parent="UI" unique_id=1991277421]
 process_mode = 3
@@ -1642,10 +1739,12 @@ position = Vector2(2560, 1500)
 position = Vector2(2908.5, 1551)
 shape = SubResource("RectangleShape2D_ge17k")
 
-[node name="strugglingAnimal" type="Area2D" parent="World/pondScene" unique_id=694002811 node_paths=PackedStringArray("player")]
+[node name="strugglingAnimal" type="Area2D" parent="World/pondScene" unique_id=694002811 node_paths=PackedStringArray("speech_bubble", "animated_sprite", "player")]
 z_index = 5
 position = Vector2(2474, 1491)
 script = ExtResource("3_kdubu")
+speech_bubble = NodePath("speechBubble")
+animated_sprite = NodePath("../devCameo/AnimatedSprite2D")
 player = NodePath("../../player")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="World/pondScene/strugglingAnimal" unique_id=1453170273]
@@ -1777,10 +1876,15 @@ tile_set = ExtResource("42_thyvg")
 
 [node name="Levels" type="Node2D" parent="World" unique_id=810030000]
 
-[node name="Level1" type="Node2D" parent="World/Levels" unique_id=810030001]
+[node name="Level1" type="Node2D" parent="World/Levels" unique_id=810030001 node_paths=PackedStringArray("player_spawn", "boss_spawn", "mob_spawn_center", "ground", "water_collision")]
 position = Vector2(20000, 1400)
 script = ExtResource("72_level")
 mob_type = 2
+player_spawn = NodePath("PlayerSpawn")
+boss_spawn = NodePath("BossSpawn")
+mob_spawn_center = NodePath("MobSpawnCenter")
+ground = NodePath("Ground")
+water_collision = NodePath("waterArea/CollisionShape2D")
 
 [node name="Ground" type="TileMapLayer" parent="World/Levels/Level1" unique_id=810030002]
 z_index = 20
@@ -1856,10 +1960,15 @@ z_index = -10
 position = Vector2(-20547, -107)
 tile_set = ExtResource("54_f8kvm")
 
-[node name="Level2" type="Node2D" parent="World/Levels" unique_id=810030011]
+[node name="Level2" type="Node2D" parent="World/Levels" unique_id=810030011 node_paths=PackedStringArray("player_spawn", "boss_spawn", "mob_spawn_center", "ground", "water_collision")]
 position = Vector2(24000, 1400)
 script = ExtResource("72_level")
 mob_type = 1
+player_spawn = NodePath("PlayerSpawn")
+boss_spawn = NodePath("BossSpawn")
+mob_spawn_center = NodePath("MobSpawnCenter")
+ground = NodePath("Ground")
+water_collision = NodePath("waterArea/CollisionShape2D")
 
 [node name="Ground" type="TileMapLayer" parent="World/Levels/Level2" unique_id=810030012]
 z_index = 20
@@ -1941,9 +2050,14 @@ z_index = -10
 position = Vector2(-20547, -107)
 tile_set = ExtResource("54_f8kvm")
 
-[node name="Level3" type="Node2D" parent="World/Levels" unique_id=810030021]
+[node name="Level3" type="Node2D" parent="World/Levels" unique_id=810030021 node_paths=PackedStringArray("player_spawn", "boss_spawn", "mob_spawn_center", "ground", "water_collision")]
 position = Vector2(28000, 1400)
 script = ExtResource("72_level")
+player_spawn = NodePath("PlayerSpawn")
+boss_spawn = NodePath("BossSpawn")
+mob_spawn_center = NodePath("MobSpawnCenter")
+ground = NodePath("Ground")
+water_collision = NodePath("waterArea/CollisionShape2D")
 
 [node name="Ground" type="TileMapLayer" parent="World/Levels/Level3" unique_id=810030022]
 z_index = 20
@@ -2024,10 +2138,15 @@ z_index = -10
 position = Vector2(-20547, -107)
 tile_set = ExtResource("54_f8kvm")
 
-[node name="Level4" type="Node2D" parent="World/Levels" unique_id=810030031]
+[node name="Level4" type="Node2D" parent="World/Levels" unique_id=810030031 node_paths=PackedStringArray("player_spawn", "boss_spawn", "mob_spawn_center", "ground", "water_collision")]
 position = Vector2(32000, 1400)
 script = ExtResource("72_level")
 mob_type = 3
+player_spawn = NodePath("PlayerSpawn")
+boss_spawn = NodePath("BossSpawn")
+mob_spawn_center = NodePath("MobSpawnCenter")
+ground = NodePath("Ground")
+water_collision = NodePath("waterArea/CollisionShape2D")
 
 [node name="Ground" type="TileMapLayer" parent="World/Levels/Level4" unique_id=810030032]
 z_index = 20
@@ -2108,11 +2227,16 @@ z_index = -10
 position = Vector2(-20547, -107)
 tile_set = ExtResource("54_f8kvm")
 
-[node name="Level5" type="Node2D" parent="World/Levels" unique_id=810030041]
+[node name="Level5" type="Node2D" parent="World/Levels" unique_id=810030041 node_paths=PackedStringArray("player_spawn", "boss_spawn", "mob_spawn_center", "ground", "water_collision")]
 position = Vector2(36000, 1400)
 script = ExtResource("72_level")
 mob_type = 3
 randomize_field_mobs = true
+player_spawn = NodePath("PlayerSpawn")
+boss_spawn = NodePath("BossSpawn")
+mob_spawn_center = NodePath("MobSpawnCenter")
+ground = NodePath("Ground")
+water_collision = NodePath("waterArea/CollisionShape2D")
 
 [node name="Ground" type="TileMapLayer" parent="World/Levels/Level5" unique_id=810030042]
 z_index = 20
@@ -2162,11 +2286,16 @@ z_index = -10
 position = Vector2(-20547, -107)
 tile_set = ExtResource("54_f8kvm")
 
-[node name="Level6" type="Node2D" parent="World/Levels" unique_id=810030051]
+[node name="Level6" type="Node2D" parent="World/Levels" unique_id=810030051 node_paths=PackedStringArray("player_spawn", "boss_spawn", "mob_spawn_center", "ground", "water_collision")]
 position = Vector2(40000, 1400)
 script = ExtResource("72_level")
 mob_type = 3
 randomize_field_mobs = true
+player_spawn = NodePath("PlayerSpawn")
+boss_spawn = NodePath("BossSpawn")
+mob_spawn_center = NodePath("MobSpawnCenter")
+ground = NodePath("Ground")
+water_collision = NodePath("waterArea/CollisionShape2D")
 
 [node name="Ground" type="TileMapLayer" parent="World/Levels/Level6" unique_id=810030052]
 z_index = 20
@@ -2253,10 +2382,12 @@ z_index = -10
 position = Vector2(-20547, -107)
 tile_set = ExtResource("54_f8kvm")
 
-[node name="player" parent="World" unique_id=1331852227 instance=ExtResource("1_0e48y")]
+[node name="player" parent="World" unique_id=1331852227 node_paths=PackedStringArray("sprite", "mainCollision2D") instance=ExtResource("1_0e48y")]
 z_index = 5
 position = Vector2(1745, 781)
 script = ExtResource("2_epypp")
+sprite = NodePath("AnimatedSprite2D")
+mainCollision2D = NodePath("mainCollision2D")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="World/player" unique_id=1374419649]
 sprite_frames = SubResource("SpriteFrames_g14lc")
@@ -2311,7 +2442,16 @@ player = NodePath("../player")
 [connection signal="pressed" from="UI/titleScreen/settingsButton" to="UI" method="_on_settings_button_pressed"]
 [connection signal="pressed" from="UI/HUD/inventoryButton" to="UI" method="_on_inventory_button_pressed"]
 [connection signal="pressed" from="UI/HUD/inventoryButton" to="UI/HUD/inventoryPanel" method="_on_inventory_button_pressed"]
+[connection signal="pressed" from="UI/HUD/robotInventoryButton" to="UI" method="_on_robot_inventory_button_pressed"]
 [connection signal="pressed" from="UI/HUD/hudPauseButton" to="UI" method="_on_hud_pause_button_pressed"]
+[connection signal="toggled" from="UI/settingsMenu/Panel/SettingsTabs/Graphics/particlesButton" to="UI" method="_on_effects_toggled"]
+[connection signal="toggled" from="UI/settingsMenu/Panel/SettingsTabs/Audio/bgmButton" to="UI" method="_on_music_toggled"]
+[connection signal="toggled" from="UI/settingsMenu/Panel/SettingsTabs/Audio/soundEffectsButton" to="UI" method="_on_sfx_toggled"]
+[connection signal="value_changed" from="UI/settingsMenu/Panel/SettingsTabs/Audio/masterVolumeSlider" to="UI" method="_on_master_volume_changed"]
+[connection signal="value_changed" from="UI/settingsMenu/Panel/SettingsTabs/Audio/musicVolumeSlider" to="UI" method="_on_music_volume_changed"]
+[connection signal="value_changed" from="UI/settingsMenu/Panel/SettingsTabs/Audio/sfxVolumeSlider" to="UI" method="_on_sfx_volume_changed"]
+[connection signal="pressed" from="UI/settingsMenu/Panel/SettingsTabs/GraphicsTabButton" to="UI" method="_on_graphics_tab_button_pressed"]
+[connection signal="pressed" from="UI/settingsMenu/Panel/SettingsTabs/AudioTabButton" to="UI" method="_on_audio_tab_button_pressed"]
 [connection signal="pressed" from="UI/settingsMenu/Panel/closeSettingsButton" to="UI" method="_on_close_settings_button_pressed"]
 [connection signal="pressed" from="UI/pauseMenu/Panel/resumeButton" to="UI" method="_on_resume_button_pressed"]
 [connection signal="pressed" from="UI/pauseMenu/Panel/pauseSettingsButton" to="UI" method="_on_settings_button_pressed"]

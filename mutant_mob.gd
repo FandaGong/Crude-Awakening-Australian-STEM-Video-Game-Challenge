@@ -3,10 +3,7 @@ class_name MutantMob
 
 signal cured(mob: MutantMob)
 
-## Generic field mob. Which of the four creature types this instance behaves
-## as is picked with `mob_type`; the boss
-## versions of these same creatures live in bosses/boss.gd instead, since
-## they need the health-bar / bullet-hell scaffolding that only bosses use.
+# Field mob
 
 enum MobType { SHELL, JELLYFISH, CRAB, ANGLERFISH }
 
@@ -134,8 +131,7 @@ func _ready() -> void:
 	if hitbox:
 		hitbox.body_entered.connect(_on_hitbox_body_entered)
 
-## mutantMob.tscn contains one hand-authored collider for each creature.
-## Enable exactly the collider matching this instance's selected mob type.
+# Mob collider
 func _configure_collision_shape() -> void:
 	var active_shape_name: String = {
 		MobType.SHELL: "shell",
@@ -148,8 +144,7 @@ func _configure_collision_shape() -> void:
 		if collision_shape:
 			collision_shape.set_deferred("disabled", shape_name != active_shape_name)
 
-## Bio-Analysis Engine exposes live encounter data above each mob once the
-## player has unlocked the Compendium upgrade.
+# Bio-Analysis display
 func _setup_analysis_hud() -> void:
 	_analysis_label = Label.new()
 	_analysis_label.position = Vector2(-58.0, -52.0)
@@ -268,8 +263,7 @@ func _is_player_in_aggro_range() -> bool:
 	return player != null and is_instance_valid(player) \
 		and global_position.distance_to(player.global_position) <= aggro_radius
 
-## Keep distant creatures visibly alive without allowing their combat state
-## machines to advance or deal damage.
+# Distant mob state
 func _process_idle_float(delta: float) -> void:
 	_idle_direction_timer -= delta
 	if _idle_direction_timer <= 0.0:
@@ -453,9 +447,11 @@ func _on_hitbox_body_entered(body: Node2D) -> void:
 func apply_cure(amount: float) -> void:
 	if isCured:
 		return
+	var health_before := currentHealth
 	currentHealth = minf(max_health, currentHealth + amount)
-	if Effects and amount > 0.0:
-		Effects.show_number(global_position, amount, true)
+	var cure_amount := currentHealth - health_before
+	if Effects and cure_amount > 0.0:
+		Effects.show_number(global_position, cure_amount, true, self)
 	if currentHealth >= max_health:
 		cureMob()
 

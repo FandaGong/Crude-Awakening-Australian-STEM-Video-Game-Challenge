@@ -1,13 +1,6 @@
 extends Area2D
 
-## Generic boss encounter shell. Every boss in the game uses this same
-## script; what makes each fight different is the BossData resource
-## assigned to it (health, reward, colour, timings) plus `boss_data.boss_type`,
-## which picks a scripted attack pattern below. `boss_type == "generic"`
-## (the default, and what all ten pre-existing bosses use) keeps the
-## original radial/aimed/spiral bullet-hell untouched. The four field-boss
-## types from the design doc ("shell", "jellyfish", "crab", "anglerfish")
-## and the two unique megabosses ("whale", "kraken") get their own patterns.
+# Boss encounter
 
 signal defeated(boss_id: int)
 signal health_changed(current: float, max: float)
@@ -32,22 +25,22 @@ var is_defeated: bool = false
 
 var _health_bar_full_width: float = 0.0
 
-# --- Shell: consecutive pearl volley then retract ---------------------------
+# Shell
 var _shell_pearls_fired: int = 0
 var _shell_pearls: Array[Node2D] = []
 var _shell_state: String = "pause"
 var _shell_state_timer: float = 0.0
 
-# --- Jellyfish: random 5-10s circular shockwave -----------------------------
+# Jellyfish
 var _shockwave_timer: float = 0.0
 var _jelly_angle: float = 0.0
 
-# --- Crab: charge-in melee ---------------------------------------------------
+# Crab
 var _crab_state: String = "wait"
 var _crab_state_timer: float = 0.0
 var body_contact_cooldown: float = 0.0
 
-# --- Anglerfish: sustained triangle light beam ------------------------------
+# Anglerfish
 var _beam_active: bool = false
 var _beam_timer: float = 0.0
 var _angler_orbit_angle: float = 0.0
@@ -55,11 +48,11 @@ var _angler_beam_damage_accumulator: float = 0.0
 var _angler_bulb_damage_accumulator: float = 0.0
 @onready var light_cone: Polygon2D = get_node_or_null("LightCone")
 
-# --- Whale: shockwave + blowhole cure event ---------------------------------
+# Whale
 var whale_cured_by_event: bool = false
 @onready var blowhole: Area2D = get_node_or_null("Blowhole")
 
-# --- Kraken: two-stage tentacle fight ----------------------------------------
+# Kraken
 var kraken_stage: int = 1
 var _kraken_poke_x: float = 0.0
 var _kraken_suction_telegraph_timer: float = 0.0
@@ -195,8 +188,7 @@ func _is_player_in_aggro_range() -> bool:
 		player = get_tree().get_first_node_in_group("player")
 	return player != null and global_position.distance_to(player.global_position) <= aggro_radius
 
-## Bosses retain their idle animation and drift slowly until the Otter is
-## close enough to engage. Combat timers remain paused outside this range.
+# Boss activation range
 func _process_idle_float(delta: float) -> void:
 	_idle_direction_timer -= delta
 	if _idle_direction_timer <= 0.0:
@@ -213,9 +205,7 @@ func _stop_active_attacks() -> void:
 		light_cone.visible = false
 	_angler_bulb_damage_accumulator = 0.0
 
-## Bosses are Areas, so their scripted movement does not go through
-## move_and_collide(). Keep every movement pattern inside the level's solid
-## Ground tiles, and inside the reusable arena's circular play space.
+# Boss movement bounds
 func _move_boss_by(offset: Vector2) -> void:
 	_move_boss_to(global_position + offset)
 
@@ -243,9 +233,7 @@ func _move_boss_to(destination: Vector2) -> void:
 	if safe_destination != global_position:
 		global_position = safe_destination
 
-## Check intermediate positions as well as the endpoint. Boss charges can
-## cover hundreds of pixels per second, which otherwise lets an Area2D skip
-## over a thin wall between physics frames.
+# Charge collision
 func _safe_swept_destination(from: Vector2, to: Vector2) -> Vector2:
 	var distance := from.distance_to(to)
 	if distance <= 0.01:
@@ -303,9 +291,7 @@ func _current_pattern_interval() -> float:
 		return base_interval * 0.78
 	return base_interval
 
-# =============================================================================
-# GENERIC BULLET-HELL (unchanged behaviour for the original ten bosses)
-# =============================================================================
+# Generic attacks
 
 func _generic_attack_pattern() -> void:
 	var health_pct := 1.0 - current_health / boss_data.max_health
@@ -353,9 +339,7 @@ func _spawn_bullet(vel: Vector2) -> void:
 	b.color = boss_data.color
 	b.damage = 6.0 + boss_data.id * 0.6
 
-# =============================================================================
-# BOSS SHELL: 5 pearls in a row (15 dmg each), retract, repeat
-# =============================================================================
+# Shell attacks
 
 func _process_shell(delta: float) -> void:
 	if not player or not is_instance_valid(player):
@@ -411,9 +395,7 @@ func _retract_shell_pearls() -> void:
 		tween.tween_callback(pearl.queue_free)
 	_shell_pearls.clear()
 
-# =============================================================================
-# BOSS JELLYFISH: gentle zaps + a big circular shockwave every 5-10s
-# =============================================================================
+# Jellyfish attacks
 
 func _process_jellyfish(delta: float) -> void:
 	if not player or not is_instance_valid(player):
@@ -454,9 +436,7 @@ func _fire_shockwave() -> void:
 	, 20.0, 260.0, 0.7)
 	tween.tween_callback(ring.queue_free)
 
-# =============================================================================
-# BOSS CRAB: longer, faster charge into melee contact damage
-# =============================================================================
+# Crab attacks
 
 func _process_crab(delta: float) -> void:
 	if not player or not is_instance_valid(player):
@@ -485,9 +465,7 @@ func _on_body_entered(body: Node2D) -> void:
 		body.takeDamage(boss_data.body_damage, "physical")
 		body_contact_cooldown = 0.6
 
-# =============================================================================
-# BOSS ANGLERFISH: triangle light beam (10 dps) + a weaker bulb glow (5 dps)
-# =============================================================================
+# Anglerfish attacks
 
 func _process_anglerfish(delta: float) -> void:
 	if not player or not is_instance_valid(player):
@@ -604,9 +582,11 @@ func takeDamage(amount: float) -> void:
 	if not boss_data.curable_by_normal_means and not whale_cured_by_event:
 		return
 	var max_health := maxf(1.0, boss_data.max_health)
+	var health_before := current_health
 	current_health = clampf(current_health + amount, 0.0, max_health)
-	if Effects:
-		Effects.show_number(global_position, amount, true)
+	var cure_amount := current_health - health_before
+	if Effects and cure_amount > 0.0:
+		Effects.show_number(global_position, cure_amount, true, self)
 	health_changed.emit(current_health, max_health)
 	if current_health >= max_health - 0.001:
 		current_health = max_health

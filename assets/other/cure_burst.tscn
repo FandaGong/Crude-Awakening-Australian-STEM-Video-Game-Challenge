@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://bnri7c1ghoheh"]
+
+[node name="cureBurst" type="Node2D" unique_id=6093220]
+
+[node name="Line2D" type="Line2D" parent="." unique_id=190802662]
+width = 2.0
+default_color = Color(0.40392157, 1, 0.050980393, 1)

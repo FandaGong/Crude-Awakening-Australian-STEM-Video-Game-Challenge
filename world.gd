@@ -26,21 +26,14 @@ var current_spawn_position: Vector2 = Vector2.ZERO
 var current_boss_arena: Node = null
 var current_boss_data: BossData = null
 
-# --- New hand-drawn level system --------------------------------------------
-# level_nodes[0] is Level1 (era index 0 / boss_01), level_nodes[5] is Level6
-# (era index 5 / boss_06). Each level node comes from levels/level.gd and
-# exposes player_spawn / boss_spawn markers you can drag
-# around in the editor.
+# Levels
 var level_nodes: Array = []
 var current_level_index: int = -1 # -1 = not currently inside a level
 var current_level_boss: Node = null
 var current_level_boss_data: BossData = null
 var _active_level_tilemap: Resource = null
 
-# The return-trip time machine dropped into the current level (see
-# _spawn_level_time_machine()). It always sits at that level's player_spawn
-# marker - the same coordinates the otter arrives at - and stays inert
-# until its level's boss is cured.
+# Level return machine
 var current_level_time_machine: Area2D = null
 const TIMELINE_SAMPLE_INTERVAL := 0.1
 const TIMELINE_SECONDS := 3.0
@@ -108,7 +101,7 @@ func rewind_timeline(seconds: float = 1.5) -> void:
 				actor.current_health = actor_data["health"]
 	_timeline_history.clear()
 
-# --- Overworld areas --------------------------------------------------------
+# Overworld
 
 func teleport_player_to_pond() -> void:
 	Effects.notify_level_changing()
@@ -123,16 +116,7 @@ func teleport_player_to_pond() -> void:
 	player.visible = true
 	_snap_companion_to_player()
 
-## Sends the player back to the scientist's lab hub (the 2126 wasteland
-## around pondScene) without re-running the opening pond sequence. Called
-## once the otter actually uses a level's own time machine after its boss
-## has been cured (see _on_level_boss_defeated() / time_machine.gd), so the
-## otter can catch its breath and walk back into the main time machine for
-## the next Historical Turning Point.
-##
-## Rather than just popping into existence at labReturnSpawn, the otter now
-## visibly steps back out of the original lab time machine itself: a small
-## black hole opens up on it, the otter hops out, and the hole shrinks away.
+# Return to lab
 func return_to_lab() -> void:
 	Effects.notify_level_changing()
 	_set_level_atmosphere(-1)
@@ -148,8 +132,7 @@ func return_to_lab() -> void:
 	current_spawn_position = spawn_pos
 	_play_lab_arrival_effect(spawn_pos)
 
-## Grows a small black hole at spawn_pos, pops the otter out of it once
-## it's fully open, then shrinks the hole away and frees it.
+# Lab arrival effect
 func _play_lab_arrival_effect(spawn_pos: Vector2) -> void:
 	player.currentState = player.State.LAND
 	var original_scale: Vector2 = player.scale
@@ -175,10 +158,7 @@ func _play_lab_arrival_effect(spawn_pos: Vector2) -> void:
 
 	await hole.shrink_and_free()
 
-## Sends the player right to the time machine's doorway instead of the
-## general lab spawn. Used only when the otter dies mid-level and gets
-## rewound back through the machine, so they visibly step back out of it
-## rather than just reappearing somewhere in the lab.
+# Lab rewind
 func return_to_time_machine() -> void:
 	Effects.notify_level_changing()
 	_set_level_atmosphere(-1)
@@ -190,8 +170,7 @@ func return_to_time_machine() -> void:
 	current_spawn_position = spawn
 	await _play_lab_arrival_effect(spawn)
 
-## The robot's first instruction is spatial as well as verbal: it heads for
-## the lab time machine and leaves a visible arrow trail for the otter.
+# Time machine guidance
 func guide_player_to_time_machine() -> void:
 	if not time_machine or GameData.has_seen_time_machine_guidance:
 		return
@@ -200,8 +179,7 @@ func guide_player_to_time_machine() -> void:
 		GameData.has_seen_time_machine_guidance = true
 		robot.guide_player_to(time_machine.global_position)
 
-## After the first death, lead the otter from the return machine back to the
-## scientist. Later deaths deliberately use only the rewind effect.
+# Scientist guidance
 func guide_player_to_scientist() -> void:
 	var scientist := pond_scene.get_node_or_null("Scientist") as Node2D if pond_scene else null
 	var robot := get_node_or_null("CompanionRobot")
@@ -228,7 +206,7 @@ func enter_dive_tunnel() -> void:
 	player.visible = true
 	_snap_companion_to_player()
 
-# --- Boss arenas -------------------------------------------------------------
+# Boss arenas
 
 func enter_boss_arena(boss_id: int) -> void:
 	if not GameData.is_robot_unlocked:
@@ -289,10 +267,7 @@ func _clear_active_boss_arena() -> void:
 		current_boss_arena.queue_free()
 	current_boss_arena = null
 
-# --- Hand-drawn levels ---------------------------------------------------------
-# Called by the time machine (see npc/time_machine.gd) each time it sends the
-# otter to a new Historical Turning Point. era_index is 0-based and matches
-# StoryManager.current_era_index (0 -> Level1/boss_01, ... 5 -> Level6/boss_06).
+# Level entry
 
 func enter_level(era_index: int) -> void:
 	if era_index < 0 or era_index >= level_nodes.size():
@@ -340,10 +315,7 @@ func _snap_companion_to_player() -> void:
 	if robot and robot.has_method("snap_to_player"):
 		robot.snap_to_player()
 
-## Only the atmosphere belonging to the active historical level is allowed to
-## render. The level scenes remain loaded for their mobs and terrain, but
-## their parallax background layers cannot bleed into another level or the
-## laboratory hub.
+# Active level atmosphere
 func _set_level_atmosphere(
 	active_index: int, show_pond_atmosphere: bool = true, show_ending_atmosphere: bool = false
 ) -> void:
@@ -369,11 +341,7 @@ func _set_level_atmosphere(
 		if atmosphere:
 			atmosphere.visible = i == active_index
 
-## Tile cell payloads are binary .res resources loaded only for the level the
-## player is in.  Clearing every other TileMapLayer also removes its physics
-## and rendering data.  CACHE_MODE_IGNORE keeps these on-demand resources out
-## of Godot's resource cache; dropping the active reference releases the old
-## payload.
+# Active level tilemap
 func _set_active_level_tilemap(active_index: int) -> void:
 	for i in range(level_nodes.size()):
 		var level: Node = level_nodes[i]
@@ -406,10 +374,7 @@ func _set_grayscale_for_level(era_index: int) -> void:
 		grayscale_amount = 1.0 - float(era_index) / float(LEVEL_COUNT - 1)
 	_grayscale_material.set_shader_parameter("grayscale_amount", grayscale_amount)
 
-## Drops this level's return-trip time machine right on top of the otter's
-## spawn point - the same coordinates every time this level is entered -
-## and plays its grow-in effect since it's appearing alongside them. It
-## stays inert (see time_machine.gd) until this level's boss is cured.
+# Return machine spawn
 func _spawn_level_time_machine(level: Node, era_index: int) -> void:
 	_clear_level_time_machine()
 	current_level_time_machine = TimeMachineScene.instantiate()
@@ -448,11 +413,7 @@ func _show_level_briefing(era_index: int) -> void:
 			_spawn_level_boss(level, era_index)
 	dialogue_box.finished.connect(on_briefing_done, CONNECT_ONE_SHOT)
 
-## The robot teaches the full encounter loop once, in the first era.  It
-## leads to the field-mob area after the briefing, then world progression
-## advances that same arrow trail to the boss and finally to the return
-## machine.  The flag is set when this sequence begins so a death/re-entry
-## cannot restart the tutorial partway through.
+# First level guidance
 func _start_first_level_guidance(level: Node, era_index: int) -> void:
 	if era_index != 0 or GameData.has_seen_first_level_guidance:
 		return
@@ -514,11 +475,11 @@ func _clear_level_boss() -> void:
 	current_level_boss = null
 	current_level_boss_data = null
 
-# --- Shop --------------------------------------------------------------------
+# Shop
 
 
 
-# --- Death / respawn -----------------------------------------------------------
+# Death and respawn
 
 func _on_player_died() -> void:
 	player.set_physics_process(false)

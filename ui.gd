@@ -5,46 +5,126 @@ enum UIState { TITLE, PLAYING, PAUSED, SETTINGS }
 var current_state: UIState = UIState.TITLE
 var state_before_settings: UIState = UIState.TITLE
 
-@onready var title_screen: Control = $titleScreen
-@onready var settings_menu: Control = $settingsMenu
-@onready var pause_menu: Control = $pauseMenu
-@onready var hud: Control = $HUD
-@onready var settings_panel: Panel = $settingsMenu/Panel
-@onready var music_toggle: CheckButton = $settingsMenu/Panel/bgmButton
-@onready var sfx_toggle: CheckButton = $settingsMenu/Panel/soundEffectsButton
-@onready var effects_toggle: CheckButton = $settingsMenu/Panel/particlesButton
-@onready var close_settings_button: TextureButton = $settingsMenu/Panel/closeSettingsButton
-@onready var master_volume_slider: HSlider = $settingsMenu/Panel/masterVolumeSlider
-@onready var music_volume_slider: HSlider = $settingsMenu/Panel/musicVolumeSlider
-@onready var sfx_volume_slider: HSlider = $settingsMenu/Panel/sfxVolumeSlider
+@export_category("Screens")
+@export var title_screen_path: NodePath = ^"titleScreen"
+@export var settings_menu_path: NodePath = ^"settingsMenu"
+@export var pause_menu_path: NodePath = ^"pauseMenu"
+@export var hud_path: NodePath = ^"HUD"
 
-@onready var hud_compendium_label: Label = $HUD/compendiumDataDisplay/compendiumLabel
-@onready var hud_details_panel: Panel = $HUD/DetailsPanel
-@onready var hud_item_name_label: Label = $HUD/DetailsPanel/SkillNameLabel
-@onready var hud_item_desc_label: Label = $HUD/DetailsPanel/DescriptionLabel
-@onready var active_effects_panel: Panel = $HUD/activeEffects
-@onready var active_effects_label: Label = $HUD/activeEffects/DescriptionLabel
+@export_category("Settings Menu")
+@export var settings_panel_path: NodePath = ^"settingsMenu/Panel"
+@export var music_toggle_path: NodePath = ^"settingsMenu/Panel/SettingsTabs/Audio/bgmButton"
+@export var sfx_toggle_path: NodePath = ^"settingsMenu/Panel/SettingsTabs/Audio/soundEffectsButton"
+@export var effects_toggle_path: NodePath = ^"settingsMenu/Panel/SettingsTabs/Graphics/particlesButton"
+@export var close_settings_button_path: NodePath = ^"settingsMenu/Panel/closeSettingsButton"
+@export var master_volume_slider_path: NodePath = ^"settingsMenu/Panel/SettingsTabs/Audio/masterVolumeSlider"
+@export var music_volume_slider_path: NodePath = ^"settingsMenu/Panel/SettingsTabs/Audio/musicVolumeSlider"
+@export var sfx_volume_slider_path: NodePath = ^"settingsMenu/Panel/SettingsTabs/Audio/sfxVolumeSlider"
+@export var graphics_tab_path: NodePath = ^"settingsMenu/Panel/SettingsTabs/Graphics"
+@export var audio_tab_path: NodePath = ^"settingsMenu/Panel/SettingsTabs/Audio"
+@export var graphics_tab_button_path: NodePath = ^"settingsMenu/Panel/SettingsTabs/GraphicsTabButton"
+@export var audio_tab_button_path: NodePath = ^"settingsMenu/Panel/SettingsTabs/AudioTabButton"
+@export var tab_underline_path: NodePath = ^"settingsMenu/Panel/SettingsTabs/TabUnderline"
+## Controls hidden because the feature behind them isn't finished yet.
+@export var unfinished_settings_controls: Array[NodePath] = [
+	^"settingsMenu/Panel/reduceMotionButton",
+	^"settingsMenu/Panel/colorblindButton",
+]
+@export var music_toggle_label: String = "Music"
+@export var sfx_toggle_label: String = "Sound effects"
+@export var effects_toggle_label: String = "Bubble trails"
+@export var toggle_font_size: int = 8
+@export var close_settings_tooltip: String = "Return to the previous menu"
 
-const ACTIVE_EFFECTS_WIDTH := 134.0
-const ACTIVE_EFFECTS_PADDING := 6.0
-var _active_effects_text := ""
+@export_category("HUD")
+@export var hud_compendium_label_path: NodePath = ^"HUD/compendiumDataDisplay/compendiumLabel"
+@export var hud_details_panel_path: NodePath = ^"HUD/DetailsPanel"
+@export var hud_item_name_label_path: NodePath = ^"HUD/DetailsPanel/SkillNameLabel"
+@export var hud_item_desc_label_path: NodePath = ^"HUD/DetailsPanel/DescriptionLabel"
+@export var active_effects_panel_path: NodePath = ^"HUD/activeEffects"
+@export var active_effects_label_path: NodePath = ^"HUD/activeEffects/DescriptionLabel"
+@export var compendium_label_format: String = "Compendium Data: %d"
 
-# --- COOLDOWN & SLOT REFERENCES (Added to fix the "not declared" error) ---
-@onready var slot1: TextureButton = $HUD/hotbarContainer/TextureButton
-@onready var slot2: TextureButton = $HUD/hotbarContainer/TextureButton2
-@onready var slot3: TextureButton = $HUD/hotbarContainer/TextureButton3
+@export_category("Active Effects Layout")
+@export var active_effects_width: float = 134.0
+@export var active_effects_padding: float = 6.0
 
-# References relative to this UI node
-@onready var player: CharacterBody2D = $"../World/player"
-@onready var world: Node2D = $"../World"
+@export_category("Active Effects Text")
+@export var bubble_booster_text: String = "Bubble Booster: +30% cure speed (%s)"
+@export var respawn_shield_text: String = "Respawn Shield: immune (%s)"
+@export var carapace_guard_text: String = "Carapace Guard: 50% damage reduction (%s)"
+@export var guardian_relay_text: String = "Guardian Relay: 15% damage reduction (%s)"
+@export var drowning_text: String = "Drowning: taking damage"
+@export var overheat_text: String = "Overheat: +30% cure speed (%s)"
 
-# --- Inventory Panel References ---
-@onready var inventory_panel: Control = $HUD/inventoryPanel
+@export_category("Hotbar")
+@export var hotbar_slots: Array[TextureButton] = []
+@export var hotbar_slot_paths: Array[NodePath] = [
+	^"HUD/hotbarContainer/TextureButton",
+	^"HUD/hotbarContainer/TextureButton2",
+	^"HUD/hotbarContainer/TextureButton3",
+]
+@export var hotbar_highlight_paths: Array[NodePath] = [
+	^"HUD/hotbarContainer/TextureButton/SelectionHighlight",
+	^"HUD/hotbarContainer/TextureButton2/SelectionHighlight",
+	^"HUD/hotbarContainer/TextureButton3/SelectionHighlight",
+]
+@export var unselected_hotbar_texture: Texture2D = preload("res://assets/UI/player/unselectedHotbarBox.png")
+@export var selected_hotbar_texture: Texture2D = preload("res://assets/UI/player/selectedHotbarBox.png")
+@export_global_dir var item_resource_dir: String = "res://resources/items/"
+
+@export_category("Inventory")
+@export var inventory_panel_path: NodePath = ^"HUD/inventoryPanel"
+@export var robot_inventory_button_path: NodePath = ^"HUD/robotInventoryButton"
+@export var robot_inventory_panel_path: NodePath = ^"HUD/robotInventoryPanel"
+
+@export_category("World References")
+@export var player_path: NodePath = ^"../World/player"
+@export var world_path: NodePath = ^"../World"
+@export var companion_robot_node_name: String = "CompanionRobot"
+
+@export_category("Input")
+@export var hotbar_select_actions: Array[StringName] = [&"hotbar_slot_1", &"hotbar_slot_2", &"hotbar_slot_3"]
+@export var inventory_toggle_action: StringName = &"inventory"
+@export var robot_inventory_toggle_action: StringName = &"robotInventory"
+@export var button_click_sfx: StringName = &"button_click"
+
+@onready var title_screen: Control = get_node_or_null(title_screen_path) as Control
+@onready var settings_menu: Control = get_node_or_null(settings_menu_path) as Control
+@onready var pause_menu: Control = get_node_or_null(pause_menu_path) as Control
+@onready var hud: Control = get_node_or_null(hud_path) as Control
+@onready var settings_panel: Panel = get_node_or_null(settings_panel_path) as Panel
+@onready var music_toggle: CheckButton = get_node_or_null(music_toggle_path) as CheckButton
+@onready var sfx_toggle: CheckButton = get_node_or_null(sfx_toggle_path) as CheckButton
+@onready var effects_toggle: CheckButton = get_node_or_null(effects_toggle_path) as CheckButton
+@onready var close_settings_button: TextureButton = get_node_or_null(close_settings_button_path) as TextureButton
+@onready var master_volume_slider: HSlider = get_node_or_null(master_volume_slider_path) as HSlider
+@onready var music_volume_slider: HSlider = get_node_or_null(music_volume_slider_path) as HSlider
+@onready var sfx_volume_slider: HSlider = get_node_or_null(sfx_volume_slider_path) as HSlider
+@onready var graphics_tab: Control = get_node_or_null(graphics_tab_path) as Control
+@onready var audio_tab: Control = get_node_or_null(audio_tab_path) as Control
+@onready var graphics_tab_button: Button = get_node_or_null(graphics_tab_button_path) as Button
+@onready var audio_tab_button: Button = get_node_or_null(audio_tab_button_path) as Button
+@onready var tab_underline: ColorRect = get_node_or_null(tab_underline_path) as ColorRect
+
+@onready var hud_compendium_label: Label = get_node_or_null(hud_compendium_label_path) as Label
+@onready var hud_details_panel: Panel = get_node_or_null(hud_details_panel_path) as Panel
+@onready var hud_item_name_label: Label = get_node_or_null(hud_item_name_label_path) as Label
+@onready var hud_item_desc_label: Label = get_node_or_null(hud_item_desc_label_path) as Label
+@onready var active_effects_panel: Panel = get_node_or_null(active_effects_panel_path) as Panel
+@onready var active_effects_label: Label = get_node_or_null(active_effects_label_path) as Label
+
+@onready var player: CharacterBody2D = get_node_or_null(player_path) as CharacterBody2D
+@onready var world: Node2D = get_node_or_null(world_path) as Node2D
+
+@onready var inventory_panel: Control = get_node_or_null(inventory_panel_path) as Control
+@onready var robot_inventory_button: TextureButton = get_node_or_null(robot_inventory_button_path) as TextureButton
+@onready var robot_inventory_panel: Control = get_node_or_null(robot_inventory_panel_path) as Control
+
 var inventory_visible: bool = false
-
-@onready var robot_inventory_button: TextureButton = $HUD/robotInventoryButton
-@onready var robot_inventory_panel: Control = $HUD/robotInventoryPanel
 var robot_inventory_visible: bool = false
+var _active_effects_text := ""
+var _hotbar_highlights: Array[Control] = []
 
 func _ready() -> void:
 	add_to_group("ui_controller")
@@ -54,52 +134,60 @@ func _ready() -> void:
 	_update_robot_inventory_button(GameData.is_robot_unlocked)
 	_set_state(UIState.TITLE)
 	_setup_settings_controls()
-	_build_settings_tabs()
-	
-	# Highlight slot 1 on startup
+	_show_settings_tab(graphics_tab, audio_tab, graphics_tab_button)
+
+	_load_hotbar_controls()
 	_update_hotbar_selection(1)
-	
-	# --- FOOLPROOF CODE SIGNAL CONNECTIONS ---
-	# Connects mouse clicks automatically, bypassing any editor connection mistakes
-	if slot1: slot1.pressed.connect(_on_slot1_pressed)
-	if slot2: slot2.pressed.connect(_on_slot2_pressed)
-	if slot3: slot3.pressed.connect(_on_slot3_pressed)
-	for hotbar_slot in [slot1, slot2, slot3]:
-		if hotbar_slot:
-			hotbar_slot.mouse_entered.connect(_on_hotbar_hover_entered.bind(hotbar_slot))
-			hotbar_slot.mouse_exited.connect(_on_hotbar_hover_exited)
+	_connect_hotbar_signals()
+
 	if hud_details_panel:
 		hud_details_panel.hide()
 	if active_effects_panel:
 		active_effects_panel.hide()
-	if robot_inventory_button:
-		robot_inventory_button.pressed.connect(_on_robot_inventory_button_pressed)
 	_connect_button_sounds()
-	
+
+func _connect_hotbar_signals() -> void:
+	for i in hotbar_slots.size():
+		var hotbar_slot := hotbar_slots[i]
+		if not hotbar_slot:
+			continue
+		hotbar_slot.pressed.connect(_select_hotbar_slot.bind(i + 1))
+		hotbar_slot.mouse_entered.connect(_on_hotbar_hover_entered.bind(hotbar_slot))
+		hotbar_slot.mouse_exited.connect(_on_hotbar_hover_exited)
+
+func _load_hotbar_controls() -> void:
+	if hotbar_slots.is_empty():
+		for path in hotbar_slot_paths:
+			var hotbar_slot := get_node_or_null(path) as TextureButton
+			if hotbar_slot:
+				hotbar_slots.append(hotbar_slot)
+	for path in hotbar_highlight_paths:
+		var highlight := get_node_or_null(path) as Control
+		if highlight:
+			_hotbar_highlights.append(highlight)
 
 func _process(_delta: float) -> void:
 	_update_active_effects_hud()
 
-## This lists temporary effects that are currently changing player or robot
-## gameplay. Permanent equipment bonuses remain in the inventory UI.
+# Active effects
 func _update_active_effects_hud() -> void:
 	if not active_effects_panel or not active_effects_label or not player:
 		return
 	var effects: Array[String] = []
 	if GameData.bubble_booster_timer > 0.0:
-		effects.append("Bubble Booster: +30% cure speed (%s)" % _format_effect_time(GameData.bubble_booster_timer))
+		effects.append(bubble_booster_text % _format_effect_time(GameData.bubble_booster_timer))
 	if player.respawn_immunity > 0.0:
-		effects.append("Respawn Shield: immune (%s)" % _format_effect_time(player.respawn_immunity))
+		effects.append(respawn_shield_text % _format_effect_time(player.respawn_immunity))
 	if player.carapace_active_timer > 0.0:
-		effects.append("Carapace Guard: 50% damage reduction (%s)" % _format_effect_time(player.carapace_active_timer))
+		effects.append(carapace_guard_text % _format_effect_time(player.carapace_active_timer))
 	if player.physical_skill_timer > 0.0:
-		effects.append("Guardian Relay: 15% damage reduction (%s)" % _format_effect_time(player.physical_skill_timer))
+		effects.append(guardian_relay_text % _format_effect_time(player.physical_skill_timer))
 	if player.currentState == player.State.SWIMMING and player.currentAir <= 0.0:
-		effects.append("Drowning: taking damage")
+		effects.append(drowning_text)
 
-	var robot := world.get_node_or_null("CompanionRobot") if world else null
+	var robot := world.get_node_or_null(companion_robot_node_name) if world else null
 	if robot and bool(robot.get("is_overheated")) and float(robot.get("overheat_timer")) > 0.0:
-		effects.append("Overheat: +30% cure speed (%s)" % _format_effect_time(float(robot.get("overheat_timer"))))
+		effects.append(overheat_text % _format_effect_time(float(robot.get("overheat_timer"))))
 
 	var new_text := "\n".join(effects)
 	if new_text == _active_effects_text:
@@ -109,8 +197,8 @@ func _update_active_effects_hud() -> void:
 	if new_text.is_empty():
 		return
 	active_effects_label.text = new_text
-	active_effects_label.position = Vector2(ACTIVE_EFFECTS_PADDING, ACTIVE_EFFECTS_PADDING)
-	active_effects_label.size.x = ACTIVE_EFFECTS_WIDTH - ACTIVE_EFFECTS_PADDING * 2.0
+	active_effects_label.position = Vector2(active_effects_padding, active_effects_padding)
+	active_effects_label.size.x = active_effects_width - active_effects_padding * 2.0
 	active_effects_label.reset_size()
 	call_deferred("_resize_active_effects_panel")
 
@@ -119,112 +207,66 @@ func _resize_active_effects_panel() -> void:
 		return
 	var text_height := active_effects_label.get_combined_minimum_size().y
 	active_effects_label.size = Vector2(
-		ACTIVE_EFFECTS_WIDTH - ACTIVE_EFFECTS_PADDING * 2.0,
+		active_effects_width - active_effects_padding * 2.0,
 		text_height
 	)
 	active_effects_panel.size = Vector2(
-		ACTIVE_EFFECTS_WIDTH,
-		text_height + ACTIVE_EFFECTS_PADDING * 2.0
+		active_effects_width,
+		text_height + active_effects_padding * 2.0
 	)
 
 func _format_effect_time(seconds: float) -> String:
 	return "%ds" % maxi(1, ceili(seconds))
 
 func _setup_settings_controls() -> void:
-	_configure_toggle(music_toggle, "Music", AudioManager.music_enabled, _on_music_toggled)
-	_configure_toggle(sfx_toggle, "Sound effects", AudioManager.sfx_enabled, _on_sfx_toggled)
-	_configure_toggle(effects_toggle, "Bubble trails", Effects.effects_enabled, _on_effects_toggled)
-	$settingsMenu/Panel/reduceMotionButton.hide()
-	$settingsMenu/Panel/colorblindButton.hide()
-	close_settings_button.tooltip_text = "Return to the previous menu"
-	_configure_volume_slider(master_volume_slider, AudioManager.master_volume, _on_master_volume_changed)
-	_configure_volume_slider(music_volume_slider, AudioManager.music_volume, _on_music_volume_changed)
-	_configure_volume_slider(sfx_volume_slider, AudioManager.sfx_volume, _on_sfx_volume_changed)
+	_configure_toggle(music_toggle, music_toggle_label, AudioManager.music_enabled)
+	_configure_toggle(sfx_toggle, sfx_toggle_label, AudioManager.sfx_enabled)
+	_configure_toggle(effects_toggle, effects_toggle_label, Effects.effects_enabled)
+	for control_path in unfinished_settings_controls:
+		var control := get_node_or_null(control_path) as Control
+		if control:
+			control.hide()
+	if close_settings_button:
+		close_settings_button.tooltip_text = close_settings_tooltip
+	_configure_volume_slider(master_volume_slider, AudioManager.master_volume)
+	_configure_volume_slider(music_volume_slider, AudioManager.music_volume)
+	_configure_volume_slider(sfx_volume_slider, AudioManager.sfx_volume)
 
-func _build_settings_tabs() -> void:
-	var tabs := Control.new()
-	tabs.name = "SettingsTabs"
-	tabs.position = Vector2(20.0, 56.0)
-	tabs.size = Vector2(340.0, 224.0)
-	settings_panel.add_child(tabs)
-
-	var audio := Control.new()
-	audio.name = "Audio"
-	audio.position = Vector2(0.0, 30.0)
-	var graphics := Control.new()
-	graphics.name = "Graphics"
-	graphics.position = Vector2(0.0, 30.0)
-	tabs.add_child(graphics)
-	tabs.add_child(audio)
-
-	var graphics_button := _make_tab_button("Graphics", Vector2(42.0, 0.0))
-	var audio_button := _make_tab_button("Audio", Vector2(198.0, 0.0))
-	var underline := ColorRect.new()
-	underline.color = Color.WHITE
-	underline.position = Vector2(graphics_button.position.x, 24.0)
-	underline.size = Vector2(graphics_button.size.x, 2.0)
-	tabs.add_child(graphics_button)
-	tabs.add_child(audio_button)
-	tabs.add_child(underline)
-	graphics_button.pressed.connect(_select_settings_tab.bind(graphics, audio, underline, graphics_button))
-	audio_button.pressed.connect(_select_settings_tab.bind(audio, graphics, underline, audio_button))
-	_select_settings_tab(graphics, audio, underline, graphics_button)
-
-	$settingsMenu/Panel/soundLabel.hide()
-	$settingsMenu/Panel/graphicsLabel.hide()
-	_move_to_tab(music_toggle, audio, Vector2(20.0, 20.0))
-	_move_to_tab(sfx_toggle, audio, Vector2(20.0, 48.0))
-	_move_to_tab(master_volume_slider, audio, Vector2(130.0, 92.0))
-	_move_to_tab(music_volume_slider, audio, Vector2(130.0, 126.0))
-	_move_to_tab(sfx_volume_slider, audio, Vector2(130.0, 160.0))
-	_move_to_tab($settingsMenu/Panel/masterVolumeLabel, audio, Vector2(20.0, 92.0))
-	_move_to_tab($settingsMenu/Panel/musicVolumeLabel, audio, Vector2(20.0, 126.0))
-	_move_to_tab($settingsMenu/Panel/sfxVolumeLabel, audio, Vector2(20.0, 160.0))
-	_move_to_tab(effects_toggle, graphics, Vector2(20.0, 20.0))
-
-func _make_tab_button(label: String, tab_position: Vector2) -> Button:
-	var button := Button.new()
-	button.text = label
-	button.flat = true
-	button.position = tab_position
-	button.size = Vector2(100.0, 24.0)
-	button.add_theme_font_size_override("font_size", 8)
-	return button
-
-func _select_settings_tab(active_page: Control, inactive_page: Control, underline: ColorRect, button: Button) -> void:
+func _show_settings_tab(active_page: Control, inactive_page: Control, button: Button) -> void:
 	active_page.show()
 	inactive_page.hide()
-	underline.position.x = button.position.x
-	underline.size.x = button.size.x
+	tab_underline.position.x = button.position.x
+	tab_underline.size.x = button.size.x
 
-func _move_to_tab(control: Control, tab: Control, tab_position: Vector2) -> void:
-	control.reparent(tab)
-	control.position = tab_position
+func _on_graphics_tab_button_pressed() -> void:
+	_show_settings_tab(graphics_tab, audio_tab, graphics_tab_button)
 
-func _configure_toggle(toggle: CheckButton, label: String, enabled: bool, callback: Callable) -> void:
+func _on_audio_tab_button_pressed() -> void:
+	_show_settings_tab(audio_tab, graphics_tab, audio_tab_button)
+
+func _configure_toggle(toggle: CheckButton, label: String, enabled: bool) -> void:
+	if not toggle:
+		return
 	toggle.text = label
-	toggle.add_theme_font_size_override("font_size", 8)
+	toggle.add_theme_font_size_override("font_size", toggle_font_size)
 	toggle.button_pressed = enabled
-	toggle.toggled.connect(callback)
 	for child in toggle.get_children():
 		if child is Control:
 			child.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			child.hide()
 
-func _configure_volume_slider(slider: HSlider, value: float, callback: Callable) -> void:
-	slider.value = value
-	slider.value_changed.connect(callback)
+func _configure_volume_slider(slider: HSlider, value: float) -> void:
+	if slider:
+		slider.value = value
 
 func _connect_button_sounds() -> void:
 	for node in find_children("*", "BaseButton", true, false):
 		var button := node as BaseButton
-		if not button:
-			continue
-		if not button.pressed.is_connected(_play_button_sound):
+		if button and not button.pressed.is_connected(_play_button_sound):
 			button.pressed.connect(_play_button_sound)
 
 func _play_button_sound() -> void:
-	AudioManager.play_sfx("button_click")
+	AudioManager.play_sfx(button_click_sfx)
 
 func _on_music_toggled(enabled: bool) -> void:
 	AudioManager.set_music_enabled(enabled)
@@ -249,41 +291,33 @@ func _on_compendium_data_changed(new_amount: int) -> void:
 
 func _update_compendium_label(amount: int) -> void:
 	if hud_compendium_label:
-		hud_compendium_label.text = "Compendium Data: %d" % amount
+		hud_compendium_label.text = compendium_label_format % amount
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo:
-		var keycode: int = event.physical_keycode
-		if keycode == KEY_1:
-			_select_hotbar_slot(1)
+	for i in hotbar_select_actions.size():
+		if event.is_action_pressed(hotbar_select_actions[i]):
+			_select_hotbar_slot(i + 1)
 			get_viewport().set_input_as_handled()
 			return
-		if keycode == KEY_2:
-			_select_hotbar_slot(2)
-			get_viewport().set_input_as_handled()
-			return
-		if keycode == KEY_3:
-			_select_hotbar_slot(3)
-			get_viewport().set_input_as_handled()
-			return
-		if keycode == KEY_E:
-			_toggle_inventory()
-			get_viewport().set_input_as_handled()
-			return
-		if keycode == KEY_R:
-			_toggle_robot_inventory()
-			get_viewport().set_input_as_handled()
-			return
+
+	if event.is_action_pressed(inventory_toggle_action):
+		_toggle_inventory()
+		get_viewport().set_input_as_handled()
+		return
+
+	if event.is_action_pressed(robot_inventory_toggle_action):
+		_toggle_robot_inventory()
+		get_viewport().set_input_as_handled()
+		return
 
 	if not event.is_action_pressed("ui_cancel"):
 		return
 
-	# Close inventories if they're open
 	if inventory_visible:
 		_toggle_inventory()
 		get_viewport().set_input_as_handled()
 		return
-	
+
 	if robot_inventory_visible:
 		_toggle_robot_inventory()
 		get_viewport().set_input_as_handled()
@@ -300,7 +334,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 	get_viewport().set_input_as_handled()
 
-# --- Central state switcher ---
+# UI state
 func _set_state(new_state: UIState) -> void:
 	current_state = new_state
 
@@ -339,7 +373,7 @@ func _disable_player() -> void:
 	player.set_physics_process(false)
 	player.set_process(false)
 
-# --- Title screen ---
+# Title screen
 
 func _on_play_button_pressed() -> void:
 	world.teleport_player_to_pond()
@@ -348,7 +382,7 @@ func _on_play_button_pressed() -> void:
 func _on_quit_button_pressed() -> void:
 	get_tree().quit()
 
-# --- Settings ---
+# Settings
 
 func _on_settings_button_pressed() -> void:
 	state_before_settings = current_state
@@ -361,11 +395,11 @@ func _close_settings() -> void:
 	settings_menu.hide()
 	_set_state(state_before_settings)
 
-# --- Escape / pause menu ---
+# Pause menu
 
 func _on_resume_button_pressed() -> void:
 	_set_state(UIState.PLAYING)
-	
+
 func _on_close_settings_button_pressed() -> void:
 	_close_settings()
 
@@ -375,19 +409,17 @@ func _on_pause_main_menu_button_pressed() -> void:
 func _on_pause_quit_button_pressed() -> void:
 	get_tree().quit()
 
-# --- Inventory & Hotbar ---
+# Inventory and hotbar
 
 func _toggle_inventory() -> void:
 	if current_state != UIState.PLAYING:
 		return
-	# Inventory can be viewed early, but installation of upgrades is blocked by
-	# GameData until the robot is assigned by the scientist.
 	if not inventory_visible and robot_inventory_visible:
-		robot_inventory_visible = false
-		robot_inventory_panel.hide()
-	inventory_visible = !inventory_visible
+		_close_robot_inventory()
+	inventory_visible = not inventory_visible
 	if inventory_panel:
 		inventory_panel.visible = inventory_visible
+	_update_inventory_pause()
 
 func _on_inventory_button_pressed() -> void:
 	_toggle_inventory()
@@ -402,28 +434,45 @@ func _update_robot_inventory_button(unlocked: bool) -> void:
 	if robot_inventory_button:
 		robot_inventory_button.visible = unlocked
 	if not unlocked and robot_inventory_visible:
-		robot_inventory_visible = false
-		if robot_inventory_panel:
-			robot_inventory_panel.hide()
-
+		_close_robot_inventory()
 
 func _toggle_robot_inventory() -> void:
 	if current_state != UIState.PLAYING:
 		return
-	# Only allow opening if the player has actually unlocked the robot
 	if not player or not player.hasRobotCompanion:
 		return
 	if not robot_inventory_visible and inventory_visible:
-		inventory_visible = false
-		inventory_panel.hide()
-	robot_inventory_visible = !robot_inventory_visible
+		_close_inventory()
+	robot_inventory_visible = not robot_inventory_visible
 	if robot_inventory_panel:
 		robot_inventory_panel.visible = robot_inventory_visible
+	_update_inventory_pause()
+
+func _close_inventory() -> void:
+	inventory_visible = false
+	if inventory_panel:
+		inventory_panel.hide()
+	_update_inventory_pause()
+
+func _close_robot_inventory() -> void:
+	robot_inventory_visible = false
+	if robot_inventory_panel:
+		robot_inventory_panel.hide()
+	_update_inventory_pause()
+
+func _close_open_inventories() -> void:
+	_close_inventory()
+	_close_robot_inventory()
+
+func _update_inventory_pause() -> void:
+	if current_state != UIState.PLAYING:
+		return
+	get_tree().paused = inventory_visible or robot_inventory_visible
 
 func _select_hotbar_slot(slot: int) -> void:
 	if not player:
 		return
-	if slot < 1 or slot > 3:
+	if slot < 1 or slot > hotbar_slots.size():
 		return
 	if player.inventory.size() < slot:
 		return
@@ -431,57 +480,26 @@ func _select_hotbar_slot(slot: int) -> void:
 	_update_hotbar_selection(slot)
 
 func _update_hotbar_selection(slot: int) -> void:
-	if not slot1 or not slot2 or not slot3:
-		return
+	for i in hotbar_slots.size():
+		var hotbar_slot := hotbar_slots[i]
+		if hotbar_slot:
+			hotbar_slot.texture_normal = selected_hotbar_texture if i == slot - 1 else unselected_hotbar_texture
+		if i < _hotbar_highlights.size():
+			_hotbar_highlights[i].visible = i == slot - 1
 
-	var unselectedTex = preload("res://assets/UI/player/unselectedHotbarBox.png")
-	var selectedTex = preload("res://assets/UI/player/selectedHotbarBox.png")
-
-	slot1.texture_normal = unselectedTex
-	slot2.texture_normal = unselectedTex
-	slot3.texture_normal = unselectedTex
-
-	match slot:
-		1:
-			slot1.texture_normal = selectedTex
-		2:
-			slot2.texture_normal = selectedTex
-		3:
-			slot3.texture_normal = selectedTex
-
-# --- Interactive HUD Buttons ---
+# HUD buttons
 
 func _on_hud_pause_button_pressed() -> void:
 	if current_state == UIState.PLAYING:
 		_close_open_inventories()
 		_set_state(UIState.PAUSED)
 
-func _close_open_inventories() -> void:
-	inventory_visible = false
-	robot_inventory_visible = false
-	if inventory_panel:
-		inventory_panel.hide()
-	if robot_inventory_panel:
-		robot_inventory_panel.hide()
-
-# --- MOUSE CLICK SIGNALS FOR HOTBAR SLOTS ---
-
-func _on_slot1_pressed() -> void:
-	print("Slot 1 physically clicked!")
-	_select_hotbar_slot(1)
-
-func _on_slot2_pressed() -> void:
-	_select_hotbar_slot(2)
-
-func _on_slot3_pressed() -> void:
-	_select_hotbar_slot(3)
-
 func _on_hotbar_hover_entered(hotbar_slot: TextureButton) -> void:
-	var index := [slot1, slot2, slot3].find(hotbar_slot)
+	var index := hotbar_slots.find(hotbar_slot)
 	if index < 0 or index >= GameData.active_abilities.size():
 		return
 	var item_id: String = GameData.active_abilities[index]
-	var item_path := "res://resources/items/%s.tres" % item_id
+	var item_path := "%s%s.tres" % [item_resource_dir, item_id]
 	if item_id == "" or not ResourceLoader.exists(item_path):
 		return
 	var item: ItemData = load(item_path)
@@ -490,9 +508,6 @@ func _on_hotbar_hover_entered(hotbar_slot: TextureButton) -> void:
 	hud_details_panel.show()
 	_position_hotbar_details_panel(get_viewport().get_mouse_position())
 
-## Keeps hotbar details above the cursor, leaving the lower HUD edge clear.
-## The horizontal placement remains on the cursor's right for an easy visual
-## association with the hovered hotbar slot.
 func _position_hotbar_details_panel(mouse_position: Vector2) -> void:
 	var viewport_size := get_viewport().get_visible_rect().size
 	var panel_size := hud_details_panel.size

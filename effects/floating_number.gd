@@ -1,10 +1,5 @@
 extends Node2D
 
-## Small floating combat-text popup used for both damage and healing/curing
-## feedback. Red "-N" for damage, green "+N" for healing. Purely cosmetic:
-## spawned by Effects.show_number(), animates upward while fading out, then
-## frees itself. See autoloads/effects.gd for the spawn helper.
-
 @onready var label: Label = $Label
 
 func setup(amount: float, is_heal: bool) -> void:
@@ -12,7 +7,8 @@ func setup(amount: float, is_heal: bool) -> void:
 
 	var settings := LabelSettings.new()
 	settings.font = font
-	var magnitude := maxf(1.0, absf(amount))
+	var rounded_amount := maxi(1, int(round(absf(amount))))
+	var magnitude := float(rounded_amount)
 	settings.font_size = clampi(14 + int(round(log(magnitude + 1.0) * 4.0)), 14, 28)
 	settings.outline_size = 3
 	settings.outline_color = Color(0, 0, 0, 0.9)
@@ -22,9 +18,8 @@ func setup(amount: float, is_heal: bool) -> void:
 	settings.font_color = low_color.lerp(high_color, intensity)
 
 	label.label_settings = settings
-	label.text = ("+" if is_heal else "-") + (str(int(round(amount))) if magnitude >= 1.0 else "1")
+	label.text = ("+" if is_heal else "-") + str(rounded_amount)
 
-	# Small random horizontal scatter so stacked hits don't fully overlap.
 	position.x += randf_range(-8.0, 8.0)
 	scale = Vector2(0.5, 0.5)
 	z_index = 200

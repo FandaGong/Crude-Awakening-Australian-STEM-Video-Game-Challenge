@@ -30,7 +30,7 @@ var _music_streams: Dictionary = {}
 var _current_music: int = Music.NONE
 var _music_fade_tween: Tween
 
-## Long enough to feel continuous without delaying a level or boss transition.
+# Music crossfade duration
 const MUSIC_CROSSFADE_DURATION := 0.8
 
 func _ready() -> void:
@@ -121,8 +121,7 @@ func _apply_music_track() -> void:
 		_music_fade_player.stop()
 		return
 	var target_db := _music_volume_db()
-	# First track has nothing to blend from. Later changes play through a
-	# second player, allowing both loops to overlap during the crossfade.
+	# First track or crossfade
 	if not _music_player.playing:
 		_music_player.stream = stream
 		_music_player.volume_db = target_db

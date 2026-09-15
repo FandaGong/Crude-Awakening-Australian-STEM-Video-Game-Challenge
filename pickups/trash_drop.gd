@@ -1,18 +1,7 @@
 extends Node2D
 class_name TrashDrop
 
-## Auto-collecting trash drop, spawned when a mob is fully cured (see
-## Legacy trash-pickup behaviour. Mobs and bosses now credit Compendium Data
-## directly, so new instances of this scene are no longer created.
-##
-## Lifecycle: scatters a short distance away from the mob -> settles (drifts
-## slowly down if it's in water, or drops straight down onto the ground if
-## it's not) -> waits a beat -> quick "absorb" pop -> flies into the HUD
-## trash counter, shrinking as it travels -> increments GameData and pulses
-## the counter on arrival.
-##
-## Uses a placeholder glowing-orb sprite (tinted per trash size) since there
-## is no dedicated small/medium/large drop art yet.
+# Legacy trash drop
 
 @export_enum("small", "medium", "large") var trash_size: String = "small"
 
@@ -50,8 +39,7 @@ func _ready() -> void:
 	_scatter()
 
 func _process(delta: float) -> void:
-	# Gentle bob + glow pulse in every phase except mid-flight, where the
-	# fly tween owns position/scale entirely.
+	# Idle animation
 	if _phase == "flying":
 		return
 
@@ -131,9 +119,7 @@ func _fly_to_counter() -> void:
 		_finish_collect()
 		return
 
-	# Convert from world space into the same screen-pixel space the HUD's
-	# CanvasLayer controls live in, then reparent so the flight isn't
-	# affected by camera movement along the way.
+	# HUD flight
 	var screen_pos: Vector2 = get_viewport().get_canvas_transform() * global_position
 	var old_parent := get_parent()
 	if old_parent:

@@ -6,7 +6,7 @@ signal respawned
 enum State { LAND, SWIMMING }
 var currentState = State.LAND
 
-# --- PLAYER STATS ---
+# Player stats
 @export var maxHealth: float = 100.0
 var currentHealth: float = maxHealth
 
@@ -15,55 +15,118 @@ var currentAir: float = maxAir
 
 @export var drownDamageRate: float = 5.0 # Damage per second when drowning
 @export var airRecoveryRate: float = 20.0 # How fast oxygen recovers on land
+@export var air_depletion_rate: float = 2.0
 
 var isDead: bool = false
 var respawn_immunity: float = 0.0
-const REWIND_HISTORY_SECONDS := 3.0
+@export var respawn_immunity_duration: float = 2.5
+@export var respawn_flicker_rate: float = 12.0
+
+@export var rewind_history_seconds: float = 3.0
+@export var rewind_sample_interval: float = 0.1
+@export var default_rewind_seconds: float = 1.5
 var _rewind_history: Array[Dictionary] = []
 var _rewind_sample_timer: float = 0.0
 
-# --- INVENTORY & HOTBAR ---
+# Inventory and hotbar
 var inventory: Array[String] = ["Potion", "Fish", "Shell"] # Temporary test list
 var activeSlotIndex: int = 0
 
-# Synchronized with GameData so unlocking via NPC or inventory works in all scripts
+# Robot companion state
 var hasRobotCompanion: bool:
 	get: return GameData.is_robot_unlocked
 	set(value): GameData.is_robot_unlocked = value
 
-# --- SPRITE VISUAL SCALE ---
+# Sprite scale
 @export var baseScale: float = 1.0 # Standard 1x scale
 
-# --- MOVEMENT SPEED ---
+# Movement speed
 @export var walkSpeed = 300.0
 @export var swimSpeed = 420.0
 @export var gravity = 980.0
 @export var jumpVelocity = -350.0
 @export var acceleration = 2000.0
 
-# --- SMOOTH HYDRODYNAMIC SWIMMING ---
+# Swimming
 @export var swimTurnSpeed = 6.5       # Smoothness of steering into turns
 @export var swimAcceleration = 850.0   # How smoothly the otter reaches full swim speed
 @export var swimDeceleration = 450.0   # Water friction / gliding when releasing keys
 @export var rollSpeed = 9.0            # Speed of the barrel roll synced to turning
 @export var undulationStrength = 0.05  # Subtle spine flex while paddling
+@export var bubble_trail_interval: float = 0.14
 var currentSwimAngle: float = 0.0
 var swimTime: float = 0.0
 var bubble_trail_timer := 0.0
 var movement_sound_timer := 0.0
+@export var movement_sound_interval: float = 0.8
+@export var damage_sound_interval: float = 0.35
+var _damage_sound_timer := 0.0
 
-# --- JUMP FEEL ---
+# Jumping
 @export var coyoteTime = 0.12
 @export var jumpBufferTime = 0.12
 var coyoteTimer = 0.0
 var jumpBufferTimer = 0.0
 
-@onready var sprite = $AnimatedSprite2D
+@export var sprite: AnimatedSprite2D
+@export var mainCollision2D: CollisionShape2D
 
-# --- UNIFIED COLLIDER ---
-@onready var mainCollision2D: CollisionShape2D = $mainCollision2D
+# --- GEAR PROC TUNING ---
+@export var synergy1_physical_damage_reduction: float = 0.85
+@export var carapace_flat_damage_reduction: float = 3.0
+@export var carapace_guard_damage_multiplier: float = 0.5
+@export var carapace_trigger_health_pct: float = 0.30
+@export var carapace_guard_duration: float = 10.0
+@export var carapace_cooldown_duration: float = 15.0
+@export var gazer_shockwave_range: float = 120.0
+@export var gazer_shockwave_stun: float = 1.5
+@export var gazer_cooldown_duration: float = 10.0
+@export var bio_electric_aura_range: float = 40.0
+@export var bio_electric_knockback_force: float = 200.0
+@export var bio_electric_stun_duration: float = 1.0
+@export var microplastic_recycler_cd_multiplier: float = 0.8
+@export var whale_skin_wetsuit_max_air: float = 90.0
 
-# --- ACTIVE ABILITY COOLDOWNS ---
+# --- ABILITY TUNING (non-weapon actives) ---
+@export var jelly_stinger_range: float = 250.0
+@export var jelly_stinger_stun: float = 1.5
+
+@export var crab_pincer_cone_degrees: float = 60.0
+@export var crab_pincer_length: float = 80.0
+@export var crab_pincer_knockback: float = 250.0
+@export var crab_pincer_slow_amount: float = 0.60
+@export var crab_pincer_slow_duration: float = 2.0
+
+@export var pearl_volley_angles: Array[float] = [-15.0, 0.0, 15.0]
+@export var pearl_travel_distance: float = 200.0
+@export var pearl_travel_time: float = 0.3
+@export var pearl_hit_radius: float = 24.0
+@export var pearl_homing_radius: float = 45.0
+@export var pearl_cure_amount: float = 10.0
+@export var pearl_visual_width: float = 4.0
+@export var pearl_visual_color: Color = Color.WHITE
+
+@export var abyssal_flare_cone_degrees: float = 15.0
+@export var abyssal_flare_length: float = 300.0
+@export var abyssal_flare_blind_duration: float = 3.0
+
+@export var aim_assist_cone_degrees: float = 8.0
+
+@export var lure_cone_degrees: float = 30.0
+@export var lure_length: float = 180.0
+@export var lure_cone_color: Color = Color(1.0, 0.95, 0.6, 0.15)
+@export var lure_slow_amount: float = 0.20
+@export var lure_slow_duration: float = 0.1
+
+# --- VISUAL LINE / ARC STYLING ---
+@export var temp_line_width: float = 3.0
+@export var sweep_arc_width: float = 7.0
+@export var sweep_arc_color: Color = Color(1.0, 0.48, 0.16, 0.9)
+@export var sweep_arc_z_index: int = 20
+@export var sweep_arc_fade_duration: float = 0.22
+@export var sweep_arc_steps: int = 8
+
+# Ability cooldowns
 var ability_cooldowns: Dictionary = {
 	"jelly_stinger": 0.0,
 	"crab_pincer": 0.0,
@@ -71,7 +134,7 @@ var ability_cooldowns: Dictionary = {
 	"abyssal_flare": 0.0
 }
 
-# --- GEAR SPECIAL COOLDOWNS ---
+# Gear cooldowns
 var gazer_cooldown: float = 0.0
 var carapace_cooldown: float = 0.0
 var carapace_active_timer: float = 0.0
@@ -85,7 +148,6 @@ func _ready() -> void:
 	_auto_connect_water_areas()
 
 func _auto_connect_water_areas() -> void:
-	# Automatically binds all waterArea nodes across the scene tree
 	for node in get_tree().get_nodes_in_group("water"):
 		if node is Area2D:
 			_bind_water_area(node)
@@ -107,10 +169,9 @@ func _physics_process(delta: float) -> void:
 		return
 	respawn_immunity = maxf(0.0, respawn_immunity - delta)
 	if respawn_immunity > 0.0 and sprite:
-		sprite.visible = int(respawn_immunity * 12.0) % 2 == 0
+		sprite.visible = int(respawn_immunity * respawn_flicker_rate) % 2 == 0
 	elif sprite:
 		sprite.visible = true
-	# Don't process gameplay on titlescreen
 	var ui = get_tree().root.get_node_or_null("Main/UI")
 	if ui and ui.current_state == ui.UIState.TITLE:
 		return
@@ -139,7 +200,7 @@ func _record_rewind_state(delta: float) -> void:
 	_rewind_sample_timer -= delta
 	if _rewind_sample_timer > 0.0:
 		return
-	_rewind_sample_timer = 0.1
+	_rewind_sample_timer = rewind_sample_interval
 	_rewind_history.append({
 		"position": global_position,
 		"velocity": velocity,
@@ -147,13 +208,14 @@ func _record_rewind_state(delta: float) -> void:
 		"health": currentHealth,
 		"air": currentAir
 	})
-	while _rewind_history.size() > int(REWIND_HISTORY_SECONDS / 0.1):
+	while _rewind_history.size() > int(rewind_history_seconds / rewind_sample_interval):
 		_rewind_history.pop_front()
 
-func rewind_to_recent_state(seconds: float = 1.5) -> void:
+func rewind_to_recent_state(seconds: float = -1.0) -> void:
 	if _rewind_history.is_empty():
 		return
-	var index := maxi(0, _rewind_history.size() - 1 - int(seconds / 0.1))
+	var use_seconds = default_rewind_seconds if seconds < 0.0 else seconds
+	var index := maxi(0, _rewind_history.size() - 1 - int(use_seconds / rewind_sample_interval))
 	var state: Dictionary = _rewind_history[index]
 	global_position = state["position"]
 	velocity = Vector2.ZERO
@@ -174,7 +236,6 @@ func _updateJumpTimers(delta: float) -> void:
 		jumpBufferTimer = max(0.0, jumpBufferTimer - delta)
 
 func handleLandMovement(delta: float) -> void:
-	# Reset rotation, flips, and scale upright on land
 	sprite.rotation = 0.0
 	sprite.scale = Vector2(baseScale, baseScale)
 	sprite.flip_v = false
@@ -208,31 +269,25 @@ func handleSwimmingMovement(delta: float) -> void:
 		swimTime += delta * 9.0
 		var targetAngle = inputVector.angle()
 
-		# Smooth continuous turn steering across all angles
 		currentSwimAngle = lerp_angle(currentSwimAngle, targetAngle, swimTurnSpeed * delta)
 
-		# Forward propulsion directed along where the otter is currently facing
 		var forwardThrust = Vector2.from_angle(currentSwimAngle) * swimSpeed
 		velocity = velocity.move_toward(forwardThrust, swimAcceleration * delta)
 
-		# Subtle spine undulation while actively swimming
 		var spineWiggle = sin(swimTime) * undulationStrength
 		sprite.rotation = currentSwimAngle + spineWiggle
 		bubble_trail_timer -= delta
 		if bubble_trail_timer <= 0.0:
-			bubble_trail_timer = 0.14
+			bubble_trail_timer = bubble_trail_interval
 			Effects.spawn_bubble_trail(global_position - Vector2.from_angle(currentSwimAngle) * 16.0)
 	else:
-		# Idle glide / sink with water drag
 		var sinkVelocity = Vector2(0.0, 45.0)
 		velocity = velocity.move_toward(sinkVelocity, swimDeceleration * delta)
 
-		# Smoothly ease back to level posture
 		var idleTargetAngle = 0.0 if cos(currentSwimAngle) >= 0.0 else PI
 		currentSwimAngle = lerp_angle(currentSwimAngle, idleTargetAngle, 3.0 * delta)
 		sprite.rotation = currentSwimAngle
 
-	# --- SMOOTH SYNCHRONIZED BARREL ROLL ---
 	var targetScaleY = -baseScale if abs(currentSwimAngle) > (PI / 2.0) else baseScale
 	sprite.scale.y = move_toward(sprite.scale.y, targetScaleY, rollSpeed * baseScale * delta)
 	sprite.scale.x = baseScale
@@ -240,17 +295,16 @@ func handleSwimmingMovement(delta: float) -> void:
 func _play_swimming_sound(delta: float) -> void:
 	movement_sound_timer -= delta
 	if movement_sound_timer <= 0.0:
-		movement_sound_timer = 0.55
+		movement_sound_timer = movement_sound_interval
 		AudioManager.play_sfx("swimming")
 
 func _play_land_movement_sound(delta: float) -> void:
 	movement_sound_timer -= delta
 	if movement_sound_timer <= 0.0:
-		movement_sound_timer = 0.55
+		movement_sound_timer = movement_sound_interval
 		AudioManager.play_sfx("land_movement")
 
-## Movement clips are deliberately stopped rather than allowed to run out,
-## so jumping, falling, or crossing the waterline is silent immediately.
+# Movement sounds
 func _update_movement_sound(delta: float) -> void:
 	var swimming_and_moving: bool = currentState == State.SWIMMING \
 		and Input.get_vector("move_left", "move_right", "move_up", "move_down").length_squared() > 0.01
@@ -269,19 +323,19 @@ func _update_movement_sound(delta: float) -> void:
 		AudioManager.stop_sfx("land_movement")
 		movement_sound_timer = 0.0
 
-# --- STAT FUNCTIONS ---
+# Stat functions
 
 func update_max_air_capacity() -> void:
-	# Whale-Skin Wet-Suit: +50% Oxygen Capacity
+	# Whale-Skin Wet-Suit
 	if GameData.equip_body_id == "whale_skin_wetsuit":
-		maxAir = 90.0
+		maxAir = whale_skin_wetsuit_max_air
 	else:
 		maxAir = 60.0
 	currentAir = min(currentAir, maxAir)
 
 func depleteAir(delta: float) -> void:
 	if currentAir > 0:
-		currentAir -= 2.0 * delta
+		currentAir -= air_depletion_rate * delta
 		currentAir = max(0.0, currentAir)
 	else:
 		takeDamage(drownDamageRate * delta, "drown")
@@ -295,7 +349,7 @@ func takeDamage(amount: float, damage_type: String = "physical") -> void:
 	if isDead or respawn_immunity > 0.0:
 		return
 		
-	# Porous Sponge Charm: immunity to acid bubble damage, restores +5 Air instead
+	# Porous Sponge Charm
 	if GameData.equip_accessory_id == "porous_sponge_charm" and damage_type == "acid":
 		recoverAir(5.0)
 		return
@@ -304,52 +358,55 @@ func takeDamage(amount: float, damage_type: String = "physical") -> void:
 	if ui and ui.current_state == ui.UIState.TITLE:
 		return
 
-	# Crustacean Carapace: Passively grants +3 Armor
+	# Crustacean Carapace
 	var final_damage = amount
 	if physical_skill_timer > 0.0 and damage_type == "physical" and GameData.has_skill("synergy_1"):
-		final_damage *= 0.85
+		final_damage *= synergy1_physical_damage_reduction
 	if GameData.equip_body_id == "crustacean_carapace" and damage_type != "drown":
-		final_damage = max(1.0, final_damage - 3.0)
+		final_damage = max(1.0, final_damage - carapace_flat_damage_reduction)
 		
-	# Crustacean Carapace Active: 50% damage reduction
+	# Carapace guard
 	if carapace_active_timer > 0.0 and damage_type != "drown":
-		final_damage *= 0.5
+		final_damage *= carapace_guard_damage_multiplier
 
+	var health_before := currentHealth
 	currentHealth = max(0.0, currentHealth - final_damage)
-	AudioManager.play_sfx("otter_hit")
-	if Effects and final_damage > 0.0:
-		Effects.show_number(global_position, final_damage, false)
+	var damage_taken := health_before - currentHealth
+	if damage_taken > 0.0:
+		_play_damage_sound()
+		if Effects:
+			Effects.show_number(global_position, damage_taken, false, self)
 	
-	# Gazer Helmet: taking body damage flashes shockwave to stun nearby mobs
+	# Gazer Helmet
 	if GameData.equip_head_id == "gazer_helmet" and gazer_cooldown <= 0.0 and damage_type == "physical":
 		_trigger_gazer_shockwave()
 
-	# Crustacean Carapace emergency auto-activation below 30% HP
-	if GameData.equip_body_id == "crustacean_carapace" and (currentHealth / maxHealth) < 0.30:
+	# Carapace emergency guard
+	if GameData.equip_body_id == "crustacean_carapace" and (currentHealth / maxHealth) < carapace_trigger_health_pct:
 		if carapace_cooldown <= 0.0:
-			carapace_active_timer = 10.0
-			carapace_cooldown = 15.0
+			carapace_active_timer = carapace_guard_duration
+			carapace_cooldown = carapace_cooldown_duration
 
 	if currentHealth <= 0.0:
 		die()
 
 func _trigger_gazer_shockwave() -> void:
-	gazer_cooldown = 10.0
+	gazer_cooldown = gazer_cooldown_duration
 	var mobs = get_tree().get_nodes_in_group("corrupted_mobs")
 	for mob in mobs:
-		if global_position.distance_to(mob.global_position) < 120.0 and mob.has_method("apply_stun"):
-			mob.apply_stun(1.5)
+		if global_position.distance_to(mob.global_position) < gazer_shockwave_range and mob.has_method("apply_stun"):
+			mob.apply_stun(gazer_shockwave_stun)
 
 func _apply_passive_body_aura_check() -> void:
-	# Bio-Electric Vest: Static aura pushes back touching mobs and stuns for 1s
+	# Bio-Electric Vest
 	if GameData.equip_body_id == "bio_electric_vest":
 		var mobs = get_tree().get_nodes_in_group("corrupted_mobs")
 		for mob in mobs:
-			if global_position.distance_to(mob.global_position) < 40.0:
+			if global_position.distance_to(mob.global_position) < bio_electric_aura_range:
 				if mob.has_method("apply_knockback") and mob.has_method("apply_stun"):
 					var dir = (mob.global_position - global_position).normalized()
-					mob.apply_knockback(dir * 200.0)
-					mob.apply_stun(1.0)
+					mob.apply_knockback(dir * bio_electric_knockback_force)
+					mob.apply_stun(bio_electric_stun_duration)
 
 func _tick_cooldowns(delta: float) -> void:
 	for key in ability_cooldowns.keys():
@@ -360,13 +417,23 @@ func _tick_cooldowns(delta: float) -> void:
 	carapace_cooldown = max(0.0, carapace_cooldown - delta)
 	carapace_active_timer = max(0.0, carapace_active_timer - delta)
 	physical_skill_timer = max(0.0, physical_skill_timer - delta)
+	_damage_sound_timer = maxf(0.0, _damage_sound_timer - delta)
 
-func heal(amount: float) -> void:
-	if isDead:
+func _play_damage_sound() -> void:
+	if _damage_sound_timer > 0.0:
 		return
+	AudioManager.play_sfx("otter_hit")
+	_damage_sound_timer = damage_sound_interval
+
+func heal(amount: float) -> float:
+	if isDead:
+		return 0.0
+	var health_before := currentHealth
 	currentHealth = min(maxHealth, currentHealth + amount)
-	if Effects and amount > 0.0:
-		Effects.show_number(global_position, amount, true)
+	var health_restored := currentHealth - health_before
+	if Effects and health_restored > 0.0:
+		Effects.show_number(global_position, health_restored, true, self)
+	return health_restored
 
 func die() -> void:
 	if isDead:
@@ -389,13 +456,13 @@ func respawn(atPosition: Vector2) -> void:
 	sprite.flip_v = false
 	sprite.flip_h = false
 	currentSwimAngle = 0.0
-	respawn_immunity = 2.5
+	respawn_immunity = respawn_immunity_duration
 	visible = true
 	if sprite:
 		sprite.visible = true
 	respawned.emit()
 
-# --- HOTBAR & ABILITIES ---
+# Hotbar abilities
 
 func handleHotbarInput() -> void:
 	if isDead:
@@ -418,14 +485,13 @@ func _on_hotbar_selected(slot: int) -> void:
 func handleShootInput() -> void:
 	if isDead:
 		return
-	# Mouse-aimed abilities are robot-converted upgrades. The otter has no
-	# access to them until the scientist assigns the companion.
+	# Robot ability lock
 	if not GameData.is_robot_unlocked:
 		return
 	if not Input.is_action_just_pressed("shoot") or activeSlotIndex >= GameData.active_abilities.size():
 		return
 
-	# Don't shoot abilities if clicking dialogues or menus
+	# UI input lock
 	var hovered = get_viewport().gui_get_hovered_control()
 	if hovered and hovered.is_visible_in_tree() and not hovered is SubViewportContainer:
 		return
@@ -449,9 +515,9 @@ func handleShootInput() -> void:
 	
 	var cd = base_cooldowns.get(ability_id, 3.0)
 	
-	# Microplastic Recycler: -20% cooldown reduction
+	# Microplastic Recycler
 	if GameData.equip_accessory_id == "microplastic_recycler":
-		cd *= 0.8
+		cd *= microplastic_recycler_cd_multiplier
 		
 	ability_cooldowns[ability_id] = cd
 	_execute_ability(ability_id)
@@ -466,41 +532,40 @@ func _execute_ability(ability_id: String) -> void:
 
 	match ability_id:
 		"jelly_stinger":
-			var target = _get_raycast_target_to_mouse(250.0)
+			var target = _get_raycast_target_to_mouse(jelly_stinger_range)
 			if target and target.has_method("apply_stun"):
-				target.apply_stun(1.5)
+				target.apply_stun(jelly_stinger_stun)
 				_draw_temp_line(global_position, target.global_position, Color.CYAN, 0.15)
 			else:
-				_draw_temp_line(global_position, global_position + aim_dir * 250.0, Color.DARK_CYAN, 0.1)
+				_draw_temp_line(global_position, global_position + aim_dir * jelly_stinger_range, Color.DARK_CYAN, 0.1)
 
 		"crab_pincer":
-			var sweep_cone = deg_to_rad(60.0)
-			var length = 80.0
+			var sweep_cone = deg_to_rad(crab_pincer_cone_degrees)
+			var length = crab_pincer_length
 			var mobs = get_tree().get_nodes_in_group("corrupted_mobs")
 			for mob in mobs:
 				var to_mob = mob.global_position - global_position
 				if to_mob.length() < length and abs(aim_dir.angle_to(to_mob)) < sweep_cone:
 					if mob.has_method("apply_knockback"):
-						mob.apply_knockback(aim_dir * 250.0)
+						mob.apply_knockback(aim_dir * crab_pincer_knockback)
 					if mob.has_method("apply_slow"):
-						mob.apply_slow(0.60, 2.0)
+						mob.apply_slow(crab_pincer_slow_amount, crab_pincer_slow_duration)
 			_draw_sweep_arc(aim_dir, sweep_cone, length)
 
 		"pearlescent_volley":
-			var angles = [-15.0, 0.0, 15.0]
-			for angle in angles:
+			for angle in pearl_volley_angles:
 				var pearl_dir = aim_dir.rotated(deg_to_rad(angle))
 				_spawn_curing_pearl(pearl_dir)
 
 		"abyssal_flare":
-			var search_cone = deg_to_rad(15.0)
-			var length = 300.0
+			var search_cone = deg_to_rad(abyssal_flare_cone_degrees)
+			var length = abyssal_flare_length
 			var mobs = get_tree().get_nodes_in_group("corrupted_mobs")
 			for mob in mobs:
 				var to_mob = mob.global_position - global_position
 				if to_mob.length() < length and abs(aim_dir.angle_to(to_mob)) < search_cone:
 					if mob.has_method("apply_blind"):
-						mob.apply_blind(3.0)
+						mob.apply_blind(abyssal_flare_blind_duration)
 			_draw_temp_line(global_position, global_position + aim_dir * length, Color(1, 1, 0.7, 0.7), 0.4)
 
 func _is_weapon_id(item_id: String) -> bool:
@@ -553,31 +618,29 @@ func _get_raycast_target_to_mouse(max_dist: float) -> Node2D:
 	if result and result.collider:
 		if result.collider.is_in_group("corrupted_mobs") and global_position.distance_to(result.collider.global_position) <= max_dist:
 			return result.collider
-	# Field mobs can use lightweight or dynamically-created collision shapes.
-	# Fall back to the closest mob along the aim line so active abilities never
-	# become no-ops just because a ray cannot see a physics shape.
+	# Aim fallback
 	var closest_target: Node2D = null
 	var closest_distance := max_dist
 	var aim_dir := (get_global_mouse_position() - global_position).normalized()
 	for mob in get_tree().get_nodes_in_group("corrupted_mobs"):
 		var to_mob: Vector2 = mob.global_position - global_position
 		var distance := to_mob.length()
-		if distance <= closest_distance and distance > 0.0 and abs(aim_dir.angle_to(to_mob)) <= deg_to_rad(8.0):
+		if distance <= closest_distance and distance > 0.0 and abs(aim_dir.angle_to(to_mob)) <= deg_to_rad(aim_assist_cone_degrees):
 			closest_target = mob
 			closest_distance = distance
 	return closest_target
 
 func _spawn_curing_pearl(dir: Vector2) -> void:
 	var pearl = Line2D.new()
-	pearl.width = 4.0
-	pearl.default_color = Color.WHITE
+	pearl.width = pearl_visual_width
+	pearl.default_color = pearl_visual_color
 	pearl.points = [Vector2.ZERO, dir * 8.0]
 	get_parent().add_child(pearl)
 	pearl.global_position = global_position
 	
 	var tween = create_tween()
-	var target_pos = global_position + dir * 200.0
-	tween.tween_property(pearl, "global_position", target_pos, 0.3)
+	var target_pos = global_position + dir * pearl_travel_distance
+	tween.tween_property(pearl, "global_position", target_pos, pearl_travel_time)
 	tween.tween_callback(func():
 		var mobs = get_tree().get_nodes_in_group("corrupted_mobs")
 		for mob in mobs:
@@ -585,18 +648,18 @@ func _spawn_curing_pearl(dir: Vector2) -> void:
 			var homing_hit := false
 			if GameData.has_skill("target_2"):
 				var projected_pos := global_position + dir * global_position.distance_to(mob.global_position)
-				homing_hit = mob.global_position.distance_to(projected_pos) < 45.0
+				homing_hit = mob.global_position.distance_to(projected_pos) < pearl_homing_radius
 				if homing_hit:
 					hit_pos = mob.global_position
-			if mob.global_position.distance_to(hit_pos) < 24.0 or homing_hit:
+			if mob.global_position.distance_to(hit_pos) < pearl_hit_radius or homing_hit:
 				if mob.has_method("apply_cure"):
-					mob.apply_cure(10.0 * GameData.get_cure_multiplier(mob))
+					mob.apply_cure(pearl_cure_amount * GameData.get_cure_multiplier(mob))
 		pearl.queue_free()
 	)
 
 func _draw_temp_line(from: Vector2, to: Vector2, col: Color, time: float) -> void:
 	var line = Line2D.new()
-	line.width = 3.0
+	line.width = temp_line_width
 	line.default_color = col
 	line.points = [Vector2.ZERO, to - from]
 	get_parent().add_child(line)
@@ -605,12 +668,12 @@ func _draw_temp_line(from: Vector2, to: Vector2, col: Color, time: float) -> voi
 
 func _draw_sweep_arc(center_dir: Vector2, angle_width: float, length: float) -> void:
 	var arc = Line2D.new()
-	arc.width = 7.0
-	arc.default_color = Color(1.0, 0.48, 0.16, 0.9)
-	arc.z_index = 20
+	arc.width = sweep_arc_width
+	arc.default_color = sweep_arc_color
+	arc.z_index = sweep_arc_z_index
 	
 	var pts: Array[Vector2] = []
-	var steps = 8
+	var steps = sweep_arc_steps
 	for i in range(steps + 1):
 		var ang = -angle_width + (angle_width * 2 * i / steps)
 		pts.append(center_dir.rotated(ang) * length)
@@ -619,33 +682,33 @@ func _draw_sweep_arc(center_dir: Vector2, angle_width: float, length: float) -> 
 	get_parent().add_child(arc)
 	arc.global_position = global_position
 	var sweep := create_tween()
-	sweep.tween_property(arc, "modulate:a", 0.0, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	sweep.tween_property(arc, "modulate:a", 0.0, sweep_arc_fade_duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	sweep.tween_callback(arc.queue_free)
 
 func _draw() -> void:
-	# Lure Headband: headlight slowing cone
+	# Lure Headband
 	if GameData.equip_head_id == "lure_headband":
 		var face_dir = Vector2.LEFT if sprite.flip_h else Vector2.RIGHT
 		if currentState == State.SWIMMING:
 			face_dir = Vector2.from_angle(currentSwimAngle)
 		
-		var cone_angle = deg_to_rad(30.0)
-		var length = 180.0
+		var cone_angle = deg_to_rad(lure_cone_degrees)
+		var length = lure_length
 		var points = [
 			Vector2.ZERO,
 			face_dir.rotated(-cone_angle) * length,
 			face_dir.rotated(cone_angle) * length
 		]
-		draw_polygon(points, [Color(1.0, 0.95, 0.6, 0.15)])
+		draw_polygon(points, [lure_cone_color])
 
 		var mobs = get_tree().get_nodes_in_group("corrupted_mobs")
 		for mob in mobs:
 			var to_mob = mob.global_position - global_position
 			if to_mob.length() < length and abs(face_dir.angle_to(to_mob)) < cone_angle:
 				if mob.has_method("apply_slow"):
-					mob.apply_slow(0.20, 0.1)
+					mob.apply_slow(lure_slow_amount, lure_slow_duration)
 
-# --- ANIMATION LOGIC ---
+# Animation
 
 func updateAnimation() -> void:
 	if not sprite or not sprite.sprite_frames:
@@ -688,7 +751,7 @@ func updateAnimation() -> void:
 		if sprite.animation != "idle":
 			sprite.play("idle")
 
-# --- SIGNAL RECEIVERS ---
+# Signal receivers
 
 func _on_water_area_body_entered(body: Node2D) -> void:
 	if body == self:

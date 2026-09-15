@@ -1,27 +1,47 @@
 extends Node
 
-## Small, stateless helper for shared visual feedback that several scripts
-## need (player, mobs, bosses): floating damage/heal numbers, spawning item
-## drops, and pulsing the HUD Compendium Data counter.
-## Autoloaded as `Effects` (see project.godot). Nothing here holds gameplay
-## state beyond the `level_will_change` broadcast below.
+# Shared visual effects
 
-## Emitted by world.gd right before it moves the otter to a different level,
-## boss arena, or overworld area. Any still-uncollected ItemDrop listens for
-## this and immediately teleports itself into the robot's inventory rather
-## than being left behind and lost.
 signal level_will_change
 
 const FloatingNumberScene := preload("res://effects/floating_number.tscn")
 const ItemDropScene := preload("res://pickups/item_drop.tscn")
 const AirBubbleScene := preload("res://pickups/air_bubble.tscn")
 const BubbleTrailScene := preload("res://effects/bubble_trail.tscn")
+const COMBAT_NUMBER_INTERVAL := 0.35
 
 var effects_enabled := true
+var _pending_combat_numbers: Dictionary = {}
 
-## Spawns a floating "+N" (green, healing/curing) or "-N" (red, damage)
-## number at a world position.
-func show_number(world_pos: Vector2, amount: float, is_heal: bool) -> void:
+func _process(delta: float) -> void:
+	for key in _pending_combat_numbers.keys():
+		var number: Dictionary = _pending_combat_numbers[key]
+		number.time_left -= delta
+		if number.time_left > 0.0:
+			_pending_combat_numbers[key] = number
+			continue
+		_show_combat_number(number.position, number.amount, number.is_heal)
+		_pending_combat_numbers.erase(key)
+
+func show_number(world_pos: Vector2, amount: float, is_heal: bool, source: Node2D = null) -> void:
+	if amount <= 0.0:
+		return
+	if not source:
+		_show_combat_number(world_pos, amount, is_heal)
+		return
+
+	var key := "%s:%s" % [source.get_instance_id(), "heal" if is_heal else "damage"]
+	var number: Dictionary = _pending_combat_numbers.get(key, {
+		"amount": 0.0,
+		"position": world_pos,
+		"is_heal": is_heal,
+		"time_left": COMBAT_NUMBER_INTERVAL,
+	})
+	number.amount += amount
+	number.position = world_pos
+	_pending_combat_numbers[key] = number
+
+func _show_combat_number(world_pos: Vector2, amount: float, is_heal: bool) -> void:
 	if amount <= 0.0:
 		return
 	var scene := get_tree().current_scene
@@ -32,13 +52,6 @@ func show_number(world_pos: Vector2, amount: float, is_heal: bool) -> void:
 	n.global_position = world_pos
 	n.setup(amount, is_heal)
 
-## Spawns a physical, collectible drop for a real ItemData (gear, robot
-## module, charm, ability, etc.) at `origin` - typically a just-cured mob or
-## boss. Each drop scatters outward like a trash drop, settles according to
-## its surroundings (sinks if in water, drops onto the ground if not), and
-## then waits to be walked over. Uncollected drops teleport themselves into
-## the robot's inventory after a minute or if the level changes first -
-## see pickups/item_drop.gd.
 func spawn_item_drop(origin: Vector2, item: ItemData, count: int = 1) -> void:
 	if not item:
 		return
@@ -47,8 +60,6 @@ func spawn_item_drop(origin: Vector2, item: ItemData, count: int = 1) -> void:
 		return
 	for i in range(max(1, count)):
 		var drop := ItemDropScene.instantiate()
-		# ItemDrop begins scattering in _ready(), so configure it before it
-		# enters the tree. Otherwise it scatters from the scene origin.
 		drop.setup(item)
 		drop.global_position = origin
 		scene.add_child(drop)
@@ -76,12 +87,9 @@ func spawn_bubble_trail(origin: Vector2) -> void:
 func set_effects_enabled(enabled: bool) -> void:
 	effects_enabled = enabled
 
-## Called by world.gd immediately before any transition that moves the otter
-## away from the area a drop might be sitting in.
 func notify_level_changing() -> void:
 	level_will_change.emit()
 
-## Bounces + flashes the HUD Compendium Data icon when a reward is credited.
 func pulse_compendium_counter() -> void:
 	var icon: CanvasItem = get_tree().root.get_node_or_null("Main/UI/HUD/compendiumDataDisplay/compendiumIcon")
 	if not icon:

@@ -1,9 +1,8 @@
 extends Area2D
 
-##bubbles have no body dmg. when touched they pop and provide a full bar of air.
-## baleen resonance core pulls in nearby members of the "air_bubbles" group towards the player. 
-
-##popping a bubble has a small chance to drop a Bubble Booster Charm alongside the air refill.
+# Air bubble pickup
+# Baleen Core pickup target
+# Bubble Booster Charm chance
 const BUBBLE_BOOSTER_CHARM_PATH := "res://resources/items/bubble_booster_charm.tres"
 const BUBBLE_BOOSTER_DROP_CHANCE := 0.1
 @export var air_amount: float = 100.0

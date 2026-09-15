@@ -2,15 +2,34 @@
 
 [ext_resource type="Script" uid="uid://dapt7s378oaj3" path="res://scenes/companionRobot.gd" id="1_itgsk"]
 [ext_resource type="SpriteFrames" uid="uid://dvk6a7yhwbxi" path="res://spriteCompanionRobot.tres" id="2_itgsk"]
+[ext_resource type="PackedScene" uid="uid://f16aw070iyri" path="res://assets/other/thermal_field.tscn" id="2_o1gu3"]
 
-[node name="CompanionRobot" type="Node2D" unique_id=723586175]
+[node name="CompanionRobot" type="Node2D" unique_id=723586175 node_paths=PackedStringArray("light_beam", "animated_sprite")]
 script = ExtResource("1_itgsk")
+light_beam = NodePath("CureBeam")
+animated_sprite = NodePath("AnimatedSprite2D")
+thermal_field_scene = ExtResource("2_o1gu3")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1729592390]
 sprite_frames = ExtResource("2_itgsk")
 
 [node name="CureBeam" type="Line2D" parent="." unique_id=1729592391]
-z_index = 5
 visible = false
+z_index = 5
 width = 3.0
-default_color = Color(0.3, 1.0, 0.5, 0.9)
+default_color = Color(0.3, 1, 0.5, 0.9)
+
+[node name="SplitBeam_1" type="Line2D" parent="." unique_id=1855593206]
+visible = false
+width = 2.0
+default_color = Color(0, 1, 0, 1)
+
+[node name="SplitBeam_2" type="Line2D" parent="." unique_id=841802711]
+visible = false
+width = 2.0
+default_color = Color(0, 1, 0, 1)
+
+[node name="ChainArc" type="Line2D" parent="." unique_id=15073417]
+visible = false
+width = 2.0
+default_color = Color(0, 1, 1, 1)

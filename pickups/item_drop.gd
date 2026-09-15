@@ -1,23 +1,7 @@
 extends Node2D
 class_name ItemDrop
 
-## Physical, collectible drop for a real ItemData (gear, robot module, charm,
-## ability materials, etc.), spawned when a mob/boss is cured (see
-## mutant_mob.gd's cureMob(), boss.gd's _die(), and pickups/air_bubble.gd via
-## Effects.spawn_item_drop()).
-##
-## Unlike TrashDrop (which auto-collects itself into the HUD counter the
-## moment it settles), an ItemDrop just sits there once it settles - the
-## otter has to actually swim/walk over to it to collect it. To make sure
-## nothing genuinely valuable gets lost, though, an uncollected drop
-## teleports itself straight into the robot's inventory after LIFETIME
-## seconds, or immediately if the level changes first.
-##
-## Lifecycle: scatters a short distance away from the mob -> settles
-## (drifts slowly down if it's in water, or drops straight down onto the
-## ground if it's not, exactly like the player's own environment
-## interactions) -> waits to be walked over -> quick "absorb" pop and a fly
-## toward whoever collected it -> GameData.add_item().
+# Item drop
 
 const LIFETIME := 60.0
 const PICKUP_RADIUS := 22.0
@@ -42,9 +26,7 @@ var _bob_t: float = 0.0
 var _lifetime_left: float = LIFETIME
 var _collected: bool = false
 
-## Must be called right after instancing, before or after adding to the
-## tree - both work since the visuals are applied in _ready() once
-## item_data is known.
+# Drop setup
 func setup(item: ItemData) -> void:
 	item_data = item
 	if is_node_ready():
@@ -69,9 +51,7 @@ func _apply_visuals() -> void:
 		icon.modulate = Color.WHITE
 		glow.modulate = Color(1.0, 1.0, 1.0, 0.35)
 	else:
-		# No dedicated art yet for this item - fall back to a tinted glowing
-		# orb (same placeholder approach TrashDrop uses), tinted by slot so
-		# gear, charms, weapons, and robot modules read as visually distinct.
+		# Fallback art
 		var tint: Color = FALLBACK_TINTS.get(item_data.item_type, Color.WHITE)
 		icon.modulate = tint
 		glow.modulate = Color(tint.r, tint.g, tint.b, 0.55)
@@ -85,12 +65,9 @@ func _process(delta: float) -> void:
 	var pulse := 0.85 + 0.18 * sin(_bob_t * 1.4)
 	glow.scale = Vector2.ONE * pulse * 2.1
 
-	# Only start counting down the drop's lifetime once it has actually
-	# settled somewhere - the brief scatter/settle animation shouldn't eat
-	# into the minute the player has to notice and grab it.
+	# Settled drop
 	if _phase == "idle":
-		# Keep collection reliable even if a player scene has no compatible
-		# collision shape for the pickup Area2D.
+		# Fallback collection
 		var player := get_tree().get_first_node_in_group("player") as Node2D
 		if player and global_position.distance_to(player.global_position) <= PICKUP_RADIUS:
 			_collect_to_inventory()
@@ -125,7 +102,7 @@ func _scatter() -> void:
 
 func _settle() -> void:
 	if _in_water:
-		# Water drops should bob in view instead of sinking forever.
+		# Water drop
 		_phase = "idle"
 	else:
 		_drop_to_ground()
@@ -147,7 +124,7 @@ func _drop_to_ground() -> void:
 	tween.tween_property(self, "global_position:y", land_y, randf_range(0.3, 0.45))
 	tween.tween_callback(func(): _phase = "idle")
 
-# --- Collection -------------------------------------------------------------
+# Collection
 
 func _on_pickup_area_body_entered(body: Node2D) -> void:
 	if _collected or _phase == "scatter":
@@ -174,10 +151,7 @@ func _collect_to_inventory() -> void:
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	tween.tween_callback(_finish_collect)
 
-## Uncollected drops don't just vanish after LIFETIME seconds or on a level
-## change - they're whisked away into the robot's inventory with a little
-## warp-out flourish so it reads as "the robot grabbed that for you" rather
-## than "the game ate your loot".
+# Robot collection
 func _teleport_to_robot() -> void:
 	if _collected:
 		return

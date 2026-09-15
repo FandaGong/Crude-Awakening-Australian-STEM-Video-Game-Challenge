@@ -1,7 +1,6 @@
 extends Area2D
 
-## Placed in the Trench. Swimming into it sends the player into the dive
-## tunnel, which is where all 6 bossfights live.
+# Dive tunnel entrance
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)

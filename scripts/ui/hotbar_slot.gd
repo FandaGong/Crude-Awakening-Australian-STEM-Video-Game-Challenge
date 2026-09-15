@@ -1,37 +1,18 @@
 extends "res://scripts/ui/button_dim_fx.gd"
 class_name HotbarSlotUI
 
-## One of the 3 active-ability hotbar slots. Keeps the existing hover/press
-## dimming behavior from button_dim_fx.gd and adds two things on top:
-## - displaying the icon of whichever ability currently occupies this slot
-## - accepting an ItemData dragged in from the inventory grid (SlotUI),
-##   letting the player choose which unlocked ability sits in which slot.
+# Hotbar slot
 
-## 0-based index into GameData.active_abilities / player.activeSlotIndex.
+# Hotbar index
 @export var slot_index: int = 0
-
-@onready var icon_rect: TextureRect = get_node_or_null("Icon")
 
 func _ready() -> void:
 	super._ready()
-	GameData.hotbar_abilities_changed.connect(_refresh_icon)
-	_refresh_icon()
-
-func _refresh_icon() -> void:
-	if not icon_rect:
-		return
-	var item := _get_assigned_item()
-	if item and item.icon:
-		icon_rect.texture = item.icon
-		icon_rect.show()
-	else:
-		icon_rect.texture = null
-		icon_rect.hide()
 
 func _get_assigned_item() -> ItemData:
 	return GameData.get_hotbar_item(slot_index)
 
-# --- Drag & drop: hotbar slots are movable inventory locations ---
+# Drag and drop
 
 func _get_drag_data(_at_position: Vector2) -> Variant:
 	var item := _get_assigned_item()
@@ -59,8 +40,7 @@ func _drop_data(_at_position: Vector2, data: Variant) -> void:
 	if source_slot:
 		GameData.move_inventory_to_hotbar(slot_index, source_slot.slot_data)
 
-## Active abilities and otter weapons can be assigned here. Robot gear stays
-## in the robot inventory and cannot occupy an otter hotbar slot.
+# Valid hotbar items
 func _dragged_ability_item(data: Variant) -> ItemData:
 	var source_hotbar_index := _source_hotbar_index(data)
 	if source_hotbar_index >= 0:

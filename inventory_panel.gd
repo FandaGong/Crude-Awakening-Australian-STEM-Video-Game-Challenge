@@ -1,41 +1,32 @@
 extends Control
 
-@onready var grid_container: GridContainer = $inventoryPanelBg/gridContainer
-@onready var head_slot: SlotUI = $inventoryPanelBg/equipSlots/headSlot
-@onready var body_slot: SlotUI = $inventoryPanelBg/equipSlots/bodySlot
-@onready var acc_slot: SlotUI = $inventoryPanelBg/equipSlots/accSlot
+@export var grid_container: GridContainer
+@export var head_slot: SlotUI
+@export var body_slot: SlotUI
+@export var acc_slot: SlotUI
 
-@onready var details_panel: Panel = $DetailsPanel
-@onready var item_name_label: Label = $DetailsPanel/SkillNameLabel
-@onready var item_desc_label: Label = $DetailsPanel/DescriptionLabel
+@export var details_panel: Panel
+@export var item_name_label: Label
+@export var item_desc_label: Label
 
-## How far from the cursor (in viewport pixels) the popup is placed.
+# Details popup offset
 @export var details_panel_mouse_offset: Vector2 = Vector2(10, 10)
 
-# Tracks every item slot (and the details panel itself) the mouse is
-# currently over, mirroring the skill tree's hover-tracking approach: the
-# popup is shown the instant this set stops being empty and hidden the
-# instant it goes back to empty.
+# Hovered controls
 var _hovered: Dictionary = {}
 
 func _ready() -> void:
 	hide() # Start hidden
-	
-	# Configure equipment slot filter types
-	head_slot.allowed_type = ItemData.ItemType.HEAD
-	body_slot.allowed_type = ItemData.ItemType.BODY
-	acc_slot.allowed_type = ItemData.ItemType.ACCESSORY
 
-	# Connect signals
+	# Signals
 	GameData.inventory_updated.connect(refresh_inventory)
 	GameData.equipment_changed.connect(_on_equipment_changed)
 
-	# Assign indexes to the 16 bottom slots for otter inventory
+	# Inventory slots
 	var slots = grid_container.get_children()
 	for i in range(slots.size()):
 		var slot = slots[i] as SlotUI
 		slot.slot_index = i
-		slot.allowed_type = ItemData.ItemType.GENERIC
 
 	refresh_inventory()
 
@@ -53,9 +44,7 @@ func _connect_slot_hover(slot: SlotUI) -> void:
 	slot.mouse_entered.connect(_on_slot_hover_entered.bind(slot))
 	slot.mouse_exited.connect(_on_slot_hover_exited.bind(slot))
 
-## Keeps the popup tracking the cursor while it's over a slot. Once the
-## cursor moves onto the popup itself we stop repositioning it, which lets
-## the mouse travel from the slot onto the popup without it sliding away.
+# Details popup position
 func _process(_delta: float) -> void:
 	if details_panel.visible and _is_hovering_a_slot():
 		_position_details_panel(get_global_mouse_position())
@@ -66,8 +55,7 @@ func _is_hovering_a_slot() -> bool:
 			return true
 	return false
 
-## Places the popup just off the cursor, clamped so it never runs off the
-## edge of the viewport.
+# Clamp to viewport
 func _position_details_panel(global_mouse_pos: Vector2) -> void:
 	var viewport_size := get_viewport_rect().size
 	var panel_size := details_panel.size
@@ -95,9 +83,7 @@ func _on_panel_hover_exited() -> void:
 	_hovered.erase(details_panel)
 	call_deferred("_update_panel_visibility")
 
-## Deferred so that leaving one slot and entering an adjacent one (or the
-## popup) in the same input pass doesn't flicker the popup closed and
-## immediately back open.
+# Prevent hover flicker
 func _update_panel_visibility() -> void:
 	if _hovered.is_empty():
 		details_panel.hide()
@@ -114,5 +100,5 @@ func refresh_inventory() -> void:
 			(slots[i] as SlotUI).set_slot_data(GameData.otter_inventory_slots[i])
 
 func _on_equipment_changed(_slot_type: ItemData.ItemType, _item: ItemData) -> void:
-	# Parameters prefixed with '_' so Godot won't throw warnings
+	# Signal placeholder
 	pass

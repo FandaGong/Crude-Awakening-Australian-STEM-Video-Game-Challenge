@@ -1,9 +1,6 @@
 extends Node2D
 
-## Small cosmetic bubble spawned behind the otter while it swims. Drifts
-## upward with a little wobble and fades out, then frees itself. Purely
-## visual - see Effects.spawn_bubble_trail(), called from player.gd's
-## handleSwimmingMovement().
+# Bubble trail effect
 
 const BUBBLE_SHEET_PATH := "res://assets/sprites/mobs/bubble.png"
 

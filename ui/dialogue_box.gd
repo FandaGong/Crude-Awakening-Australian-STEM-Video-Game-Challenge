@@ -5,8 +5,7 @@ signal finished
 
 @export_range(10.0, 120.0, 1.0) var characters_per_second := 48.0
 
-# --- Visual Node References ---
-# Godot fetches these from your Scene Tree automatically when the game boots!
+# Scene nodes
 @onready var _panel: Panel = $Panel
 @onready var _text: Label = $Panel/TextLabel
 @onready var _hint: Label = $Panel/HintLabel
@@ -17,7 +16,7 @@ var _visible_characters := 0.0
 var _typing := false
 
 func _ready() -> void:
-	# All your sizing, styling, fonts, and offsets are handled by the editor!
+	# Scene setup
 	layer = 20
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false

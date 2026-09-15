@@ -1,13 +1,6 @@
 extends Node2D
 
-## One hand-drawn Historical Turning Point level.
-##
-## Drag PlayerSpawn, BossSpawn, and MobSpawnCenter (all Marker2D nodes) around
-## in the editor to place them wherever you like on top of whatever terrain
-## you paint into the Ground tile map layer.
-##
-## The boss is instanced separately by world.gd only after this level's
-## preloaded field mobs have all been cured.
+# Historical level
 
 signal mobs_cleared
 
@@ -16,32 +9,34 @@ const AirBubbleScene := preload("res://pickups/air_bubble.tscn")
 const HealingPadScene := preload("res://effects/healing_pad.tscn")
 
 @export_range(1, 30, 1) var mob_count := 8
-## Maximum number of ambient air bubbles this level may have at once.
 @export_range(1, 30, 1) var bubbles_per_level := 12
 @export_range(1.0, 120.0, 1.0, "suffix:s") var bubble_spawn_interval := 20.0
 @export var mob_spawn_size := Vector2(1100, 460)
 @export var mob_type: MutantMob.MobType = MutantMob.MobType.SHELL
-## Levels 5 and 6 contain Whale/Kraken bosses, not matching field mobs. Their
-## regular encounters use a shuffled mix of the four earlier creature types.
 @export var randomize_field_mobs := false
+@export var previous_mob_types: Array[MutantMob.MobType] = [
+	MutantMob.MobType.SHELL,
+	MutantMob.MobType.JELLYFISH,
+	MutantMob.MobType.CRAB,
+	MutantMob.MobType.ANGLERFISH,
+]
 
-@onready var player_spawn: Marker2D = $PlayerSpawn
-@onready var boss_spawn: Marker2D = $BossSpawn
-@onready var mob_spawn_center: Marker2D = $MobSpawnCenter
-@onready var ground: TileMapLayer = get_node_or_null("Ground")
-@onready var water_collision: CollisionShape2D = get_node_or_null("waterArea/CollisionShape2D")
+# Spawn settings
+@export var max_spawn_attempts: int = 80
+@export var mob_spawn_clearance: float = 28.0
 
-## Random spawn positions get re-rolled up to this many times if they land
-## on a solid (wall/terrain) tile before giving up and using the last roll.
-const MAX_SPAWN_ATTEMPTS := 80
-const MOB_SPAWN_CLEARANCE := 28.0
+# Scene nodes
+@export var player_spawn: Marker2D
+@export var boss_spawn: Marker2D
+@export var mob_spawn_center: Marker2D
+@export var ground: TileMapLayer
+@export var water_collision: CollisionShape2D
 
 var _remaining_mobs := 0
 var _encounter_spawned := false
 var _bubble_spawn_timer := 20.0
 
-## Ground cell data is kept outside node_2d.tscn and supplied by World only
-## while this historical level is active.
+# Active tilemap data
 func load_tilemap_data(tile_data: PackedByteArray) -> void:
 	if ground:
 		ground.tile_map_data = tile_data
@@ -56,8 +51,6 @@ func set_mobs_active(active: bool) -> void:
 			mob.set("encounter_active", active)
 
 func _ready() -> void:
-	# World loads this level's collision tile data only when the level becomes
-	# active. Spawning here would validate positions against an empty TileMap.
 	_bubble_spawn_timer = bubble_spawn_interval
 
 func _process(delta: float) -> void:
@@ -70,7 +63,7 @@ func _process(delta: float) -> void:
 	if _ambient_bubble_count() < bubbles_per_level:
 		_spawn_ambient_bubble()
 
-## Called by World immediately after the active level's tile data is loaded.
+# Level setup
 func ensure_encounter_spawned() -> void:
 	if _encounter_spawned:
 		return
@@ -80,25 +73,17 @@ func ensure_encounter_spawned() -> void:
 func _spawn_preloaded_mobs() -> void:
 	_remaining_mobs = mob_count
 	if randomize_field_mobs:
-		# Whale and Kraken are boss-only. Replace both the level's normal
-		# creature batch with earlier named creatures.
 		for i in range(_remaining_mobs):
 			_spawn_level_mob(_random_previous_mob_type())
 	else:
 		for i in range(mob_count):
 			_spawn_level_mob(mob_type)
-	for i in range(2):
-		var pad := HealingPadScene.instantiate()
-		add_child(pad)
-		pad.global_position = _random_spawn_position()
+	var pad := HealingPadScene.instantiate()
+	add_child(pad)
+	pad.global_position = _random_spawn_position()
 
 func _random_previous_mob_type() -> MutantMob.MobType:
-	return [
-		MutantMob.MobType.SHELL,
-		MutantMob.MobType.JELLYFISH,
-		MutantMob.MobType.CRAB,
-		MutantMob.MobType.ANGLERFISH,
-	][randi_range(0, 3)]
+	return previous_mob_types[randi_range(0, previous_mob_types.size() - 1)]
 
 func _spawn_level_mob(type: MutantMob.MobType) -> void:
 	var mob := MutantMobScene.instantiate()
@@ -111,14 +96,12 @@ func _spawn_level_mob(type: MutantMob.MobType) -> void:
 func _random_spawn_position() -> Vector2:
 	var half_size := mob_spawn_size * 0.5
 	var candidate := mob_spawn_center.global_position
-	for attempt in range(MAX_SPAWN_ATTEMPTS):
+	for attempt in range(max_spawn_attempts):
 		candidate = mob_spawn_center.global_position + Vector2(
 			randf_range(-half_size.x, half_size.x), randf_range(-half_size.y, half_size.y)
 		)
 		if not _is_inside_wall(candidate):
 			return candidate
-	# Never return a known invalid point. Search progressively wider rings from
-	# the encounter center, then use the player entry marker as a safe fallback.
 	for radius in range(32, 1025, 32):
 		for angle_index in range(16):
 			candidate = mob_spawn_center.global_position + Vector2.from_angle(TAU * angle_index / 16.0) * radius
@@ -126,12 +109,11 @@ func _random_spawn_position() -> Vector2:
 				return candidate
 	return player_spawn.global_position
 
-## Bubbles use the level's water collision rectangle rather than the smaller
-## mob encounter area, so they can appear anywhere across the playable map.
+# Bubble spawn area
 func _random_bubble_spawn_position() -> Vector2:
 	if water_collision and water_collision.shape is RectangleShape2D:
 		var size := (water_collision.shape as RectangleShape2D).size
-		for attempt in range(MAX_SPAWN_ATTEMPTS):
+		for attempt in range(max_spawn_attempts):
 			var candidate := water_collision.to_global(Vector2(
 				randf_range(-size.x * 0.5, size.x * 0.5),
 				randf_range(-size.y * 0.5, size.y * 0.5)
@@ -158,18 +140,14 @@ func _is_current_level() -> bool:
 		and world.current_level_index < world.level_nodes.size() \
 		and world.level_nodes[world.current_level_index] == self
 
-## True if the given global position lands on a Ground tile that has
-## collision (i.e. a wall/solid terrain tile, as opposed to open water,
-## which has no tile there at all).
+# Solid ground check
 func _is_inside_wall(global_pos: Vector2) -> bool:
 	if not ground:
 		return false
-	# Validate the full mob footprint, not just its center tile, so wide art
-	# and colliders cannot overlap a nearby wall on spawn.
 	for offset in [
 		Vector2.ZERO,
-		Vector2(MOB_SPAWN_CLEARANCE, 0.0), Vector2(-MOB_SPAWN_CLEARANCE, 0.0),
-		Vector2(0.0, MOB_SPAWN_CLEARANCE), Vector2(0.0, -MOB_SPAWN_CLEARANCE),
+		Vector2(mob_spawn_clearance, 0.0), Vector2(-mob_spawn_clearance, 0.0),
+		Vector2(0.0, mob_spawn_clearance), Vector2(0.0, -mob_spawn_clearance),
 	]:
 		var cell := ground.local_to_map(ground.to_local(global_pos + offset))
 		var tile_data := ground.get_cell_tile_data(cell)
@@ -182,9 +160,7 @@ func _on_mob_cured(_mob: MutantMob) -> void:
 	if _remaining_mobs == 0:
 		mobs_cleared.emit()
 
-## True once every preloaded field mob has already been cured. Used when
-## re-entering a level (e.g. after dying to its boss) to tell whether the
-## one-shot mobs_cleared signal has already fired and won't fire again.
+# Field mobs cleared
 func mobs_already_cleared() -> bool:
 	return _remaining_mobs <= 0
 

@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://f16aw070iyri"]
+
+[node name="thermalField" type="Node2D" unique_id=2074798385]
+
+[node name="outline" type="Line2D" parent="." unique_id=1549519848]
+points = PackedVector2Array(3298, 1653)
+width = 2.0
+default_color = Color(0.74883616, 0.17094219, 0.014176142, 1)

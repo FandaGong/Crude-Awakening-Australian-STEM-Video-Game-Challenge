@@ -1,7 +1,6 @@
 extends Area2D
 
-## A single bullet-hell projectile fired by a boss. Travels in a straight
-## line at a fixed velocity and damages the player on contact.
+# Boss projectile
 
 var velocity: Vector2 = Vector2.ZERO
 var damage: float = 8.0

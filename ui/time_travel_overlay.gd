@@ -1,9 +1,6 @@
 extends CanvasLayer
 
-## Brief full-screen transition shown whenever the robot whisks the otter
-## forward in time (first when the scientist activates the time machine,
-## then again after every boss is cured). Purely cosmetic - world.gd awaits
-## `finished` before actually moving the player/unlocking the next gate.
+# Time travel transition
 
 signal finished
 
@@ -12,9 +9,7 @@ signal finished
 @onready var title_label: Label = $TitleLabel
 @onready var skip_label: Label = $SkipLabel
 
-# The timeline always begins in the present day, then advances one year at a
-# time toward the selected historical turning point. Each change slows down
-# as it nears its destination.
+# Year display
 const CURRENT_YEAR := 2026
 const YEAR_SPIN_FASTEST_DELAY := 0.02
 const YEAR_SPIN_SLOWEST_DELAY := 0.22
@@ -66,8 +61,7 @@ func _finish() -> void:
 	finished.emit()
 	queue_free()
 
-## Advances the real calendar from 2026 through every intervening year,
-## beginning rapidly and progressively easing to a stop at the destination.
+# Year animation
 func _spin_year_label(target_year: int) -> void:
 	if target_year <= CURRENT_YEAR:
 		year_label.text = str(target_year)
@@ -78,7 +72,7 @@ func _spin_year_label(target_year: int) -> void:
 		if year == target_year:
 			break
 		var progress := float(year - CURRENT_YEAR) / float(total_steps)
-		# Cubic ease-out keeps early years fast and lets the final years linger.
+		# Slow near the destination
 		var eased_progress := 1.0 - pow(1.0 - progress, 3.0)
 		var delay: float = lerp(YEAR_SPIN_FASTEST_DELAY, YEAR_SPIN_SLOWEST_DELAY, eased_progress)
 		await get_tree().create_timer(delay).timeout

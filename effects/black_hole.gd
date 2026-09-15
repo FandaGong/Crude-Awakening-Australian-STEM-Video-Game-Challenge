@@ -1,16 +1,6 @@
 extends Node2D
 
-## Small reusable "black hole" visual used at both ends of a time jump:
-## - On departure (npc/time_machine.gd): grows into view, swirls + shrinks
-##   the otter and the time machine's own sprite into itself, then shrinks
-##   away.
-## - On arrival back at the lab (world.gd/return_to_lab): grows into view,
-##   the otter appears and hops out of it, then it shrinks and disappears.
-##
-## The visual itself lives on the AnimatedSprite2D child below - drop your
-## black-hole spin/swirl frames into its SpriteFrames resource (an animation
-## named "default"). If no frames are assigned yet this still works, it's
-## just invisible, so the timing/logic can be wired up before the art lands.
+# Time travel effect
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 
@@ -25,7 +15,7 @@ func _ready() -> void:
 	if sprite and sprite.sprite_frames and sprite.sprite_frames.has_animation("default"):
 		sprite.play("default")
 
-## Grows the hole from nothing up to full size at its current position.
+# Grow effect
 func grow() -> void:
 	scale = Vector2.ZERO
 	modulate.a = 1.0
@@ -34,7 +24,7 @@ func grow() -> void:
 	tween.tween_property(self, "scale", Vector2.ONE, GROW_DURATION)
 	await tween.finished
 
-## Shrinks the hole away to nothing and frees it. Call last.
+# Shrink effect
 func shrink_and_free() -> void:
 	var tween := create_tween()
 	tween.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
@@ -43,12 +33,7 @@ func shrink_and_free() -> void:
 	if is_instance_valid(self):
 		queue_free()
 
-## Swirls the given CanvasItem/Node2D targets (e.g. the otter, the time
-## machine's sprite) into this hole's position - spinning and shrinking them
-## down to nothing as they're pulled in. Does not touch this hole's own
-## scale, and does not restore the targets afterward; the caller is
-## responsible for putting each target's scale/rotation back once it's
-## repositioned elsewhere.
+# Pull targets inward
 func consume(targets: Array) -> void:
 	var last_tween: Tween = null
 	for target in targets:

@@ -14,15 +14,22 @@ func _ready() -> void:
 		speech_bubble.hide()
 	if animated_sprite:
 		animated_sprite.play("default")
-	#body_entered.connect(_on_body_entered)	#causes • 0:00:00:765 npc.gd:19 @_ready): Signal 'body_entered' is already connected to given callable 'Area2D(npc.gd)::_on_body_entered' in that object.
-	#body_exited.connect(_on_body_exited)	#same error as in npc.gd, although it doesnt affect function
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not player_in_range or not event.is_action_pressed("interact") or not dialogue_box or dialogue_box.is_open():
+	if not _can_start_dialogue(event):
 		return
 	speech_bubble.hide()
 	dialogue_box.show_lines(PackedStringArray([dialogue]))
 	get_viewport().set_input_as_handled()
+
+func _can_start_dialogue(event: InputEvent) -> bool:
+	if not player_in_range:
+		return false
+	if not event.is_action_pressed("interact"):
+		return false
+	if not dialogue_box:
+		return false
+	return not dialogue_box.is_open()
 
 func _on_body_entered(body: Node2D) -> void:
 	if body == player:

@@ -84,7 +84,7 @@ var state_before_settings: UIState = UIState.TITLE
 @export var companion_robot_node_name: String = "CompanionRobot"
 
 @export_category("Input")
-@export var hotbar_select_actions: Array[StringName] = [&"hotbar_slot_1", &"hotbar_slot_2", &"hotbar_slot_3"]
+@export var hotbar_select_actions: Array[StringName] = [&"hotbar_1", &"hotbar_2", &"hotbar_3"]
 @export var inventory_toggle_action: StringName = &"inventory"
 @export var robot_inventory_toggle_action: StringName = &"robotInventory"
 @export var button_click_sfx: StringName = &"button_click"

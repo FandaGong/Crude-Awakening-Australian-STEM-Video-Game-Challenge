@@ -53,6 +53,11 @@ func _ready() -> void:
 	if levels_root:
 		for i in range(1, LEVEL_COUNT + 1):
 			level_nodes.append(levels_root.get_node_or_null("Level%d" % i))
+	for i in range(level_nodes.size()):
+		var level: Node = level_nodes[i]
+		if level and level.has_method("unload_tilemap_data"):
+			level.unload_tilemap_data()
+	
 	_set_level_atmosphere(-1)
 	teleport_player_to_pond()
 
@@ -343,10 +348,6 @@ func _set_level_atmosphere(
 
 # Active level tilemap
 func _set_active_level_tilemap(active_index: int) -> void:
-	for i in range(level_nodes.size()):
-		var level: Node = level_nodes[i]
-		if level and level.has_method("unload_tilemap_data"):
-			level.unload_tilemap_data()
 
 	_active_level_tilemap = null
 

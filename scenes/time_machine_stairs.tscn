@@ -1,0 +1,66 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/ground (grass and dirt)/sand/sandShort.png" id="1_sand"]
+
+[sub_resource type="RectangleShape2D" id="shape_1"]
+size = Vector2(32, 32)
+
+[sub_resource type="RectangleShape2D" id="shape_2"]
+size = Vector2(32, 48)
+
+[sub_resource type="RectangleShape2D" id="shape_3"]
+size = Vector2(32, 64)
+
+[sub_resource type="RectangleShape2D" id="shape_4"]
+size = Vector2(32, 80)
+
+[sub_resource type="RectangleShape2D" id="shape_5"]
+size = Vector2(32, 96)
+
+[node name="TimeMachineStairs" type="Node2D"]
+z_index = 4
+
+[node name="Step1" type="StaticBody2D" parent="."]
+position = Vector2(48, 16)
+
+[node name="Block" type="Sprite2D" parent="Step1"]
+texture = ExtResource("1_sand")
+
+[node name="Collision" type="CollisionShape2D" parent="Step1"]
+shape = SubResource("shape_1")
+
+[node name="Step2" type="StaticBody2D" parent="."]
+position = Vector2(80, 24)
+
+[node name="Block" type="Sprite2D" parent="Step2"]
+texture = ExtResource("1_sand")
+
+[node name="Collision" type="CollisionShape2D" parent="Step2"]
+shape = SubResource("shape_2")
+
+[node name="Step3" type="StaticBody2D" parent="."]
+position = Vector2(112, 32)
+
+[node name="Block" type="Sprite2D" parent="Step3"]
+texture = ExtResource("1_sand")
+
+[node name="Collision" type="CollisionShape2D" parent="Step3"]
+shape = SubResource("shape_3")
+
+[node name="Step4" type="StaticBody2D" parent="."]
+position = Vector2(144, 40)
+
+[node name="Block" type="Sprite2D" parent="Step4"]
+texture = ExtResource("1_sand")
+
+[node name="Collision" type="CollisionShape2D" parent="Step4"]
+shape = SubResource("shape_4")
+
+[node name="Step5" type="StaticBody2D" parent="."]
+position = Vector2(176, 48)
+
+[node name="Block" type="Sprite2D" parent="Step5"]
+texture = ExtResource("1_sand")
+
+[node name="Collision" type="CollisionShape2D" parent="Step5"]
+shape = SubResource("shape_5")

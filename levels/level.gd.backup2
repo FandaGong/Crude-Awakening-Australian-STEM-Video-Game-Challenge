@@ -6,10 +6,11 @@ signal mobs_cleared
 
 const MutantMobScene := preload("res://mutantMob.tscn")
 const AirBubbleScene := preload("res://pickups/air_bubble.tscn")
+const HealingPadScene := preload("res://effects/healing_pad.tscn")
 
 @export_range(1, 30, 1) var mob_count := 8
-@export_range(1, 60, 1) var bubbles_per_level := 24
-@export_range(1.0, 120.0, 1.0, "suffix:s") var bubble_spawn_interval := 8.0
+@export_range(1, 30, 1) var bubbles_per_level := 12
+@export_range(1.0, 120.0, 1.0, "suffix:s") var bubble_spawn_interval := 20.0
 @export var mob_spawn_size := Vector2(1100, 460)
 @export var mob_type: MutantMob.MobType = MutantMob.MobType.SHELL
 @export var randomize_field_mobs := false
@@ -24,7 +25,6 @@ const AirBubbleScene := preload("res://pickups/air_bubble.tscn")
 @export var max_spawn_attempts: int = 80
 @export var mob_spawn_clearance: float = 28.0
 
-@export var level_index: int = -1  # 0-5 for levels 1-6
 # Scene nodes
 @export var player_spawn: Marker2D
 @export var boss_spawn: Marker2D
@@ -52,10 +52,6 @@ func set_mobs_active(active: bool) -> void:
 
 func _ready() -> void:
 	_bubble_spawn_timer = bubble_spawn_interval
-	_robot = get_tree().get_first_node_in_group("companion_robot") as Node2D
-	_player = get_tree().get_first_node_in_group("player")
-	if _player == null:
-		push_warning("Level: Player node not found")
 
 func _process(delta: float) -> void:
 	if not _encounter_spawned or not _is_current_level():
@@ -82,8 +78,9 @@ func _spawn_preloaded_mobs() -> void:
 	else:
 		for i in range(mob_count):
 			_spawn_level_mob(mob_type)
-
-	_connect_story_objectives()
+	var pad := HealingPadScene.instantiate()
+	add_child(pad)
+	pad.global_position = _random_spawn_position()
 
 func _random_previous_mob_type() -> MutantMob.MobType:
 	return previous_mob_types[randi_range(0, previous_mob_types.size() - 1)]
@@ -172,84 +169,9 @@ func get_remaining_mobs() -> int:
 
 func reset_encounter() -> void:
 	for child in get_children():
-		if child is MutantMob:
+		if child is MutantMob or child.is_in_group("healing_pads"):
 			child.free()
 	_remaining_mobs = mob_count
 	_encounter_spawned = true
 	_spawn_preloaded_mobs()
 	set_mobs_active(false)
-
-# Story objectives are authored as child scenes, so level designers can place
-# and adjust them without changing this controller.
-var _robot: Node2D
-var _player: Node2D
-var _connected_objectives: Array[StoryObjective] = []
-var _completed_objectives := 0
-var _objective_complete := false
-
-func start_story_objective() -> void:
-	_connect_story_objectives()
-	if _objective_complete or _connected_objectives.is_empty():
-		return
-	var target := _connected_objectives[0]
-	_show_robot_lines(_intro_lines())
-	if _robot:
-		_robot.guide_player_to(target.global_position)
-
-func is_story_objective_complete() -> bool:
-	return _objective_complete
-
-func unlock_story_objective() -> void:
-	_connect_story_objectives()
-	for objective in _connected_objectives:
-		objective.set_available(true)
-	start_story_objective()
-
-func _connect_story_objectives() -> void:
-	if not _connected_objectives.is_empty():
-		return
-	for node in get_tree().get_nodes_in_group("story_objectives"):
-		if node.get_parent() != self:
-			continue
-		var objective := node as StoryObjective
-		if objective:
-			_connected_objectives.append(objective)
-			objective.completed.connect(_on_story_objective_completed)
-
-func _on_story_objective_completed(_objective: StoryObjective) -> void:
-	_completed_objectives += 1
-	if _completed_objectives < _connected_objectives.size():
-		_show_robot_lines(PackedStringArray(["Robot: Overriding... done. The next laser is this way."]))
-		if _robot:
-			_robot.guide_player_to(_connected_objectives[_completed_objectives].global_position)
-		return
-	_objective_complete = true
-	_show_robot_lines(_completion_lines())
-	var world := get_tree().get_first_node_in_group("world")
-	if world and world.has_method("enable_level_return"):
-		world.enable_level_return(self)
-
-func _show_robot_lines(lines: PackedStringArray) -> void:
-	var dialogue := get_tree().get_first_node_in_group("dialogue_box") as DialogueBox
-	if dialogue:
-		dialogue.show_lines(lines)
-
-func _intro_lines() -> PackedStringArray:
-	match level_index:
-		0: return PackedStringArray(["Robot: There it is, the quantum processing chip! Follow me."])
-		1: return PackedStringArray(["Robot: The lever is here. Flick it to shut down the main processing hub."])
-		2: return PackedStringArray(["Robot: The core database drives are there! Follow me."])
-		3: return PackedStringArray(["Robot: The lasers are here. Don't worry, I can override them; the firewalls in this era are too weak!"])
-		4: return PackedStringArray(["Robot: The control desks are here."])
-		5: return PackedStringArray(["Robot: Wow, so this is the final product?"])
-	return PackedStringArray()
-
-func _completion_lines() -> PackedStringArray:
-	match level_index:
-		0: return PackedStringArray(["Robot: Quantum processing chip secured in my inventory. Press R to open my inventory, then go back into the time machine."])
-		2: return PackedStringArray(["Robot: Core database drives secured in my inventory. Press R to open my inventory, then go back into the time machine."])
-		1: return PackedStringArray(["Robot: Flicking the lever... done. Go back into the time machine."])
-		3: return PackedStringArray(["Robot: Overriding... done. Go back into the time machine."])
-		4: return PackedStringArray(["Robot: Hijacking... done. Go back into the time machine."])
-		5: return PackedStringArray(["Robot: Inserting deactivation virus... done.", "Robot: The AI is off."])
-	return PackedStringArray()

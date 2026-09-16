@@ -1,8 +1,9 @@
-[gd_scene format=3 uid="uid://dnqdgfkjhkh2t"]
+[gd_scene load_steps=4 format=3 uid="uid://dnqdgfkjhkh2t"]
 
 [ext_resource type="Texture2D" uid="uid://cdkrg3dkhllfm" path="res://assets/sprites/future/AIOFF.png" id="1_oo7wa"]
 [ext_resource type="Texture2D" uid="uid://hcplp6x08pel" path="res://assets/sprites/future/AION.png" id="2_gw6t2"]
 [ext_resource type="LabelSettings" uid="uid://bpksd23vhgtxi" path="res://smallLabels.tres" id="3_v2xim"]
+[ext_resource type="Script" path="res://npc/story_objective.gd" id="4_story"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_2vm7k"]
 size = Vector2(29, 48)
@@ -27,6 +28,9 @@ animations = [{
 }]
 
 [node name="AiMainframe" type="Area2D" unique_id=1168898034]
+script = ExtResource("4_story")
+prompt_text = "Insert deactivation virus"
+disable_animation = &"off"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1379499945]
 position = Vector2(-0.5, 37)

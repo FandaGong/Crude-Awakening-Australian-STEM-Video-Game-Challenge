@@ -72,7 +72,9 @@ func _activate() -> void:
 
 	if is_return_machine:
 		activated.emit()
-		if world and world.has_method("return_to_lab"):
+		if world and world.current_level_index == 5 and world.has_method("finish_final_era"):
+			await world.finish_final_era()
+		elif world and world.has_method("return_to_lab"):
 			world.return_to_lab()
 		# One-way return machine
 		queue_free()

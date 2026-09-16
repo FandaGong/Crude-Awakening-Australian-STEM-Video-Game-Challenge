@@ -1,8 +1,10 @@
-[gd_scene format=3 uid="uid://jgwxtdg4leu"]
+[gd_scene load_steps=5 format=3 uid="uid://jgwxtdg4leu"]
 
 [ext_resource type="Texture2D" uid="uid://dvkhsgd632dvn" path="res://assets/sprites/future/chipPedestal.png" id="1_a25es"]
 [ext_resource type="LabelSettings" uid="uid://bpksd23vhgtxi" path="res://smallLabels.tres" id="2_utpdp"]
 [ext_resource type="Texture2D" uid="uid://cboca7rc0j8k6" path="res://assets/sprites/future/quantumMotherboardGrid.png" id="3_utpdp"]
+[ext_resource type="Script" path="res://npc/story_objective.gd" id="4_story"]
+[ext_resource type="Resource" path="res://resources/items/quantum_processing_chip.tres" id="5_item"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_g14lc"]
 size = Vector2(20, 42)
@@ -19,6 +21,9 @@ animations = [{
 }]
 
 [node name="QuantumMotherboardGridPedestal" type="Area2D" unique_id=450342266]
+script = ExtResource("4_story")
+prompt_text = "Take"
+inventory_item = ExtResource("5_item")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1128090513]
 position = Vector2(0, 26)

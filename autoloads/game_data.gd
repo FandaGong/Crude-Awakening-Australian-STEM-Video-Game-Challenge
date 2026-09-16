@@ -73,7 +73,7 @@ var active_abilities: Array[String] = ["", "", ""]
 const ABILITY_ITEM_IDS := ["jelly_stinger", "crab_pincer", "pearlescent_volley", "abyssal_flare"]
 const ROBOT_ITEM_IDS := [
 	"baleen_core", "beak_sovereign", "geothermal_core", "overcharge_prism",
-	"static_modulator", "photonic_beacon"
+	"static_modulator", "photonic_beacon", "quantum_processing_chip", "core_database_drives"
 ]
 
 # Effect timers

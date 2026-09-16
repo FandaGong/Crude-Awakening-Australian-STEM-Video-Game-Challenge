@@ -1,7 +1,8 @@
-[gd_scene format=3 uid="uid://b5ipucflnmb70"]
+[gd_scene load_steps=4 format=3 uid="uid://b5ipucflnmb70"]
 
 [ext_resource type="Texture2D" uid="uid://7jb3g4f1t2wa" path="res://assets/sprites/future/lab.png" id="1_1c0oy"]
 [ext_resource type="LabelSettings" uid="uid://bpksd23vhgtxi" path="res://smallLabels.tres" id="2_73oqo"]
+[ext_resource type="Script" path="res://npc/story_objective.gd" id="3_story"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ii5uj"]
 size = Vector2(63, 69)
@@ -18,6 +19,8 @@ animations = [{
 }]
 
 [node name="AerosolCommandStation" type="Area2D" unique_id=491595224]
+script = ExtResource("3_story")
+prompt_text = "Hijack"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1438092417]
 position = Vector2(-1.5, 18.5)

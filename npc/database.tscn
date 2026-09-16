@@ -1,8 +1,10 @@
-[gd_scene format=3 uid="uid://d1lqdn2db3iol"]
+[gd_scene load_steps=5 format=3 uid="uid://d1lqdn2db3iol"]
 
 [ext_resource type="Texture2D" uid="uid://cqfvcra1a41vs" path="res://assets/sprites/future/serverRack.png" id="1_7ro0u"]
 [ext_resource type="LabelSettings" uid="uid://bpksd23vhgtxi" path="res://smallLabels.tres" id="2_cnmh4"]
 [ext_resource type="Texture2D" uid="uid://d226yngctug0m" path="res://assets/sprites/future/coreDatabaseDrivers.png" id="3_y0yix"]
+[ext_resource type="Script" path="res://npc/story_objective.gd" id="4_story"]
+[ext_resource type="Resource" path="res://resources/items/core_database_drives.tres" id="5_item"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_a1fqf"]
 size = Vector2(108, 95)
@@ -19,6 +21,9 @@ animations = [{
 }]
 
 [node name="Database" type="Area2D" unique_id=1202752488]
+script = ExtResource("4_story")
+prompt_text = "Take"
+inventory_item = ExtResource("5_item")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2068519378]
 position = Vector2(22, -0.5)

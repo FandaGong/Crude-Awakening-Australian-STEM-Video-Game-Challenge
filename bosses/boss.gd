@@ -21,9 +21,9 @@ var is_defeated: bool = false
 
 @onready var visual: Polygon2D = $Visual
 @onready var boss_sprite: AnimatedSprite2D = $BossSprite
-@onready var health_bar: ColorRect = $HealthBar
+@onready var health_bar: TextureProgressBar = $HealthBar
 
-var _health_bar_full_width: float = 0.0
+var _has_locked_on := false
 
 # Shell
 var _shell_pearls_fired: int = 0
@@ -63,8 +63,6 @@ var _idle_direction_timer := 0.0
 func _ready() -> void:
 	add_to_group("boss")
 	player = get_tree().get_first_node_in_group("player")
-	if health_bar:
-		_health_bar_full_width = health_bar.size.x
 	if boss_data:
 		current_health = 0.0 # bosses are healed from 0% to 100%, never killed
 		_configure_boss_sprite()
@@ -99,8 +97,8 @@ func _configure_boss_sprite() -> void:
 		"jellyfish": "res://assets/sprites/mobs/jellyFish.png",
 		"shell": "res://assets/sprites/mobs/shell.png",
 		"anglerfish": "res://assets/sprites/mobs/anglerFish.png",
-		"whale": "res://assets/sprites/boss/whale.aseprite",
-		"kraken": "res://assets/sprites/boss/kraken.aseprite",
+		"whale": "res://assets/sprites/boss/whale.png",
+		"kraken": "res://assets/sprites/boss/kraken.png",
 	}
 	var path: String = sprite_paths.get(boss_data.boss_type, "")
 	if path == "" or not ResourceLoader.exists(path):
@@ -153,7 +151,8 @@ func _update_boss_sprite_animation_speed(distance_moved: float, delta: float) ->
 
 func _on_health_changed(current: float, max_hp: float) -> void:
 	if health_bar and max_hp > 0.0:
-		health_bar.size.x = _health_bar_full_width * clampf(current / max_hp, 0.0, 1.0)
+		health_bar.value = current
+		health_bar.max_value = max_hp
 
 func _physics_process(delta: float) -> void:
 	if is_defeated or not boss_data:
@@ -161,7 +160,9 @@ func _physics_process(delta: float) -> void:
 
 	var position_before_update := global_position
 	body_contact_cooldown = max(0.0, body_contact_cooldown - delta)
-	if not _is_player_in_aggro_range():
+	if _is_player_in_aggro_range():
+		_has_locked_on = true
+	if not _has_locked_on:
 		_stop_active_attacks()
 		_process_idle_float(delta)
 		_constrain_from_walls()

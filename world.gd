@@ -14,6 +14,7 @@ const LEVEL_TILEMAP_PATH := "res://levels/tilemaps/level_%02d_tiles.res"
 @onready var ending_scene: Node2D = $endingScene
 @onready var dive_tunnel: Node2D = $diveTunnel
 @onready var levels_root: Node2D = $Levels
+@onready var final_white_fade: ColorRect = $FinalWhiteFade/White
 
 @onready var pond_spawn: Marker2D = $pondScene/pondSpawn
 @onready var lab_return_spawn: Marker2D = $pondScene/labReturnSpawn
@@ -35,6 +36,7 @@ var _active_level_tilemap: Resource = null
 
 # Level return machine
 var current_level_time_machine: Area2D = null
+var _returning_era_index := -1
 const TIMELINE_SAMPLE_INTERVAL := 0.1
 const TIMELINE_SECONDS := 3.0
 var _timeline_timer: float = 0.0
@@ -123,6 +125,7 @@ func teleport_player_to_pond() -> void:
 
 # Return to lab
 func return_to_lab() -> void:
+	_returning_era_index = current_level_index
 	Effects.notify_level_changing()
 	_set_level_atmosphere(-1)
 	_clear_active_boss_arena()
@@ -136,6 +139,22 @@ func return_to_lab() -> void:
 	)
 	current_spawn_position = spawn_pos
 	_play_lab_arrival_effect(spawn_pos)
+	_show_return_dialogue(_returning_era_index)
+
+func _show_return_dialogue(era_index: int) -> void:
+	var dialogue_box := get_tree().get_first_node_in_group("dialogue_box") as DialogueBox
+	if not dialogue_box:
+		return
+	var lines := PackedStringArray()
+	match era_index:
+		0: lines = PackedStringArray(["Robot: You just corrected the timeline! Now go into the next era!", "Scientist: Looks like I chose the right otter."])
+		1: lines = PackedStringArray(["Robot: Keep going!", "Scientist: This quick!? Wait, it is a time machine after all."])
+		2: lines = PackedStringArray(["Scientist: 1, 2, 3, ... oh there you are!"])
+		3: lines = PackedStringArray(["Scientist: I hate those lasers."])
+		4: lines = PackedStringArray(["Scientist: You are nearly there!"])
+		5: lines = PackedStringArray(["Robot: The AI is off."])
+	if not lines.is_empty():
+		dialogue_box.show_lines(lines)
 
 # Lab arrival effect
 func _play_lab_arrival_effect(spawn_pos: Vector2) -> void:
@@ -200,6 +219,17 @@ func transitionToEnding() -> void:
 	player.currentState = player.State.LAND
 	player.visible = true
 	_snap_companion_to_player()
+
+func finish_final_era() -> void:
+	final_white_fade.visible = true
+	final_white_fade.color.a = 0.0
+	var fade := create_tween()
+	fade.tween_property(final_white_fade, "color:a", 1.0, 0.8)
+	await fade.finished
+	transitionToEnding()
+	var reveal := create_tween()
+	reveal.tween_property(final_white_fade, "color:a", 0.0, 0.8)
+	reveal.tween_callback(func() -> void: final_white_fade.visible = false)
 
 func enter_dive_tunnel() -> void:
 	Effects.notify_level_changing()
@@ -289,6 +319,7 @@ func enter_level(era_index: int) -> void:
 	_set_level_atmosphere(era_index)
 	_set_grayscale_for_level(era_index)
 	if level.has_method("ensure_encounter_spawned"):
+		level.level_index = era_index
 		level.ensure_encounter_spawned()
 
 	current_spawn_position = level.player_spawn.global_position
@@ -308,6 +339,8 @@ func enter_level(era_index: int) -> void:
 	_snap_companion_to_player()
 
 	_spawn_level_time_machine(level, era_index)
+	if GameData.is_boss_defeated(era_index + 1) and level.has_method("unlock_story_objective"):
+		level.unlock_story_objective()
 
 	var clear_callback := _on_level_mobs_cleared.bind(era_index)
 	if level.has_signal("mobs_cleared") and not level.is_connected("mobs_cleared", clear_callback):
@@ -382,10 +415,6 @@ func _spawn_level_time_machine(level: Node, era_index: int) -> void:
 	level.add_child(current_level_time_machine)
 	current_level_time_machine.global_position = level.player_spawn.global_position
 	current_level_time_machine.is_return_machine = true
-	if GameData.is_boss_defeated(era_index + 1):
-		# Re-entering an already-cured level (shouldn't normally happen,
-		# but just in case) - let it work immediately.
-		current_level_time_machine.enable_return()
 	if current_level_time_machine.has_method("play_spawn_effect"):
 		current_level_time_machine.play_spawn_effect()
 
@@ -459,16 +488,18 @@ func _on_level_boss_defeated(_boss_id: int, _era_index: int) -> void:
 	AudioManager.play_music(AudioManager.Music.WATER)
 	await get_tree().create_timer(1.5).timeout
 	_clear_level_boss()
-	# The otter no longer teleports home automatically - the level's own
-	# time machine (dropped at their spawn point when the level began) is
-	# now switched on. Stepping into it is what actually rides them back
-	# to labReturnSpawn (see time_machine.gd/_activate()); interacting with
-	# the lab's own machine there is what then advances StoryManager to the
-	# next era, or - after the sixth boss - out into the restored ending.
+	# The story object is revealed only after this era's boss is cured. Its
+	# completion, rather than the boss defeat alone, powers the return machine.
+	var level: Node = level_nodes[_era_index] if _era_index >= 0 and _era_index < level_nodes.size() else null
+	if level and level.has_method("unlock_story_objective"):
+		level.unlock_story_objective()
+
+func enable_level_return(level: Node) -> void:
+	if current_level_index < 0 or current_level_index >= level_nodes.size() or level != level_nodes[current_level_index]:
+		return
 	if current_level_time_machine and is_instance_valid(current_level_time_machine):
 		current_level_time_machine.enable_return()
-		if _era_index == 0 and GameData.has_seen_first_level_guidance:
-			_guide_player_to(current_level_time_machine.global_position)
+		_guide_player_to(current_level_time_machine.global_position)
 
 func _clear_level_boss() -> void:
 	if current_level_boss and is_instance_valid(current_level_boss):
@@ -489,7 +520,7 @@ func _on_player_died() -> void:
 	var show_death_guidance := not GameData.has_seen_death_guidance
 	if dialogue_box and show_death_guidance:
 		GameData.has_seen_death_guidance = true
-		dialogue_box.show_lines(PackedStringArray(["Robot: Temporal recovery initiated. Follow me to the scientist for recalibration."]))
+		dialogue_box.show_lines(PackedStringArray(["Scientist: The time machine is a great safety net. You can try as many times as you want."]))
 		await dialogue_box.finished
 	_play_rewind_screen()
 	await get_tree().create_timer(1.1).timeout
@@ -505,6 +536,8 @@ func _on_player_died() -> void:
 	player.set_physics_process(true)
 	if show_death_guidance:
 		guide_player_to_scientist()
+	else:
+		_guide_player_to(time_machine.global_position)
 
 func _play_rewind_screen() -> void:
 	var layer := CanvasLayer.new()

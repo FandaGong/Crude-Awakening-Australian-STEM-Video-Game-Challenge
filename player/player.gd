@@ -61,6 +61,7 @@ var movement_sound_timer := 0.0
 @export var movement_sound_interval: float = 0.8
 @export var damage_sound_interval: float = 0.35
 var _damage_sound_timer := 0.0
+var _time_since_last_damage: float = 0.0
 
 # Jumping
 @export var coyoteTime = 0.12
@@ -178,6 +179,14 @@ func _physics_process(delta: float) -> void:
 
 	_updateJumpTimers(delta)
 	_tick_cooldowns(delta)
+	# Passive healing: 2 HP per second after 30 seconds without taking damage
+	if _time_since_last_damage > 30.0 and currentHealth < maxHealth:
+		var heal_amount := 2.0 * delta
+		currentHealth = min(maxHealth, currentHealth + heal_amount)
+		if Effects and heal_amount > 0.0:
+			Effects.show_number(global_position, heal_amount, true, self)
+	else:
+		_time_since_last_damage += delta
 
 	match currentState:
 		State.LAND:
@@ -348,6 +357,7 @@ func recoverAir(delta: float) -> void:
 func takeDamage(amount: float, damage_type: String = "physical") -> void:
 	if isDead or respawn_immunity > 0.0:
 		return
+	_time_since_last_damage = 0.0
 		
 	# Porous Sponge Charm
 	if GameData.equip_accessory_id == "porous_sponge_charm" and damage_type == "acid":

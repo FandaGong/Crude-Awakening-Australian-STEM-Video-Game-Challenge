@@ -14,6 +14,8 @@ extends Node2D
 @export var guide_lead_distance: float = 92.0
 @export var guide_wait_distance: float = 155.0
 @export var guide_arrival_distance: float = 72.0
+@export var combat_guidance_distance: float = 320.0
+@export var combat_guidance_check_interval: float = 0.75
 
 # Curing
 @export var cure_range: float = 250.0
@@ -88,8 +90,10 @@ var _bubble_trail_timer := 0.0
 var _last_trail_position := Vector2.ZERO
 var _follow_anchor := Vector2.ZERO
 var _follow_velocity := Vector2.ZERO
+var _combat_guidance_timer := 0.0
 
 func _ready() -> void:
+	add_to_group("companion_robot")
 	healing_injection_timer = healing_injection_interval
 	_last_trail_position = global_position
 	if player:
@@ -112,6 +116,8 @@ func _physics_process(delta: float) -> void:
 	_follow_player(delta)
 	if _is_guiding:
 		_process_guidance()
+	else:
+		_update_combat_guidance(delta)
 
 	_process_unique_gear_and_modules(delta)
 
@@ -177,6 +183,31 @@ func _process_guidance() -> void:
 		_is_guiding = false
 		queue_redraw()
 	queue_redraw()
+
+func _update_combat_guidance(delta: float) -> void:
+	if _is_speaking():
+		return
+	_combat_guidance_timer -= delta
+	if _combat_guidance_timer > 0.0:
+		return
+	_combat_guidance_timer = combat_guidance_check_interval
+	var target := _nearest_uncured_target()
+	if target and player.global_position.distance_to(target.global_position) > combat_guidance_distance:
+		guide_player_to(target.global_position)
+
+func _nearest_uncured_target() -> Node2D:
+	var nearest: Node2D
+	var nearest_distance := INF
+	for target in get_tree().get_nodes_in_group("corrupted_mobs") + get_tree().get_nodes_in_group("boss"):
+		if not is_instance_valid(target) or not target.visible:
+			continue
+		if bool(target.get("isCured")) or bool(target.get("is_defeated")):
+			continue
+		var distance := player.global_position.distance_to(target.global_position)
+		if distance < nearest_distance:
+			nearest = target as Node2D
+			nearest_distance = distance
+	return nearest
 
 func _draw() -> void:
 	if not _is_guiding:

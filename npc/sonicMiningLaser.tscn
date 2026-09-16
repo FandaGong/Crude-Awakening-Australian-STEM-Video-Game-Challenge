@@ -1,8 +1,9 @@
-[gd_scene format=3 uid="uid://btjo2ji2810hx"]
+[gd_scene load_steps=4 format=3 uid="uid://btjo2ji2810hx"]
 
 [ext_resource type="Texture2D" uid="uid://mmcku5n04vv5" path="res://assets/sprites/future/sonicMiningDrillOff.png" id="1_08f5b"]
 [ext_resource type="LabelSettings" uid="uid://bpksd23vhgtxi" path="res://smallLabels.tres" id="2_08f5b"]
 [ext_resource type="Texture2D" uid="uid://btdt5px3mpveh" path="res://assets/sprites/future/sonicMiningDrilOnl.png" id="2_cdu8n"]
+[ext_resource type="Script" path="res://npc/story_objective.gd" id="3_story"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cdu8n"]
 size = Vector2(33, 40)
@@ -27,6 +28,8 @@ animations = [{
 }]
 
 [node name="SonicMiningLaser" type="Area2D" unique_id=2026992920]
+script = ExtResource("3_story")
+prompt_text = "Override"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=139055816]
 position = Vector2(-27.5, 22)

@@ -485,7 +485,7 @@ func cureMob() -> void:
 	# Credit the catalogue entry and former debris reward immediately, rather
 	# than leaving a physical pickup behind after the mob disappears.
 	if GameData:
-		GameData.award_compendium_data(1 + GameData.compendium_value_for_trash(trash_size))
+		GameData.award_compendium_data(100000 + GameData.compendium_value_for_trash(trash_size))
 		if GameData.has_skill("synergy_3") and Effects:
 			Effects.spawn_air_bubble(global_position, 15.0)
 	if Effects:

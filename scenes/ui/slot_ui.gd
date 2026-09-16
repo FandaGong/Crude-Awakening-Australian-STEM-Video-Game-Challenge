@@ -71,6 +71,9 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	preview.texture = dragged_item.icon
 	preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	preview.custom_minimum_size = size
+	preview.size = size
+	# Offset the preview by half a slot so the cursor holds the item at its centre.
+	preview.position = -size * 0.5
 	set_drag_preview(preview)
 	return {"source_slot": self, "slot_data": slot_data, "source_hotbar_index": hotbar_slot_index}
 

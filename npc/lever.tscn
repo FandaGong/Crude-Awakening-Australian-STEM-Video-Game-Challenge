@@ -1,8 +1,9 @@
-[gd_scene format=3 uid="uid://jcw0fk5l64yp"]
+[gd_scene load_steps=4 format=3 uid="uid://jcw0fk5l64yp"]
 
 [ext_resource type="Texture2D" uid="uid://dqt14vmhbcp3e" path="res://assets/sprites/future/switchOff.png" id="1_qr4dh"]
 [ext_resource type="Texture2D" uid="uid://bf0akv6xtly4l" path="res://assets/sprites/future/switch.png" id="2_46iag"]
 [ext_resource type="LabelSettings" uid="uid://bpksd23vhgtxi" path="res://smallLabels.tres" id="3_r6p32"]
+[ext_resource type="Script" path="res://npc/story_objective.gd" id="4_story"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_grsvp"]
 size = Vector2(15, 11)
@@ -27,6 +28,9 @@ animations = [{
 }]
 
 [node name="Lever" type="Area2D" unique_id=1585608423]
+script = ExtResource("4_story")
+prompt_text = "Flick"
+disable_animation = &"on"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=196993987]
 position = Vector2(8, 0)

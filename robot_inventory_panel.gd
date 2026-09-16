@@ -18,6 +18,8 @@ var _hovered: Dictionary = {}
 func _ready() -> void:
 	hide() # Start hidden
 	add_to_group("robot_inventory_panel")
+	# The robot stores sixteen items in a two-row, eight-column tray.
+	grid_container.columns = 8
 	
 	# Signals
 	GameData.inventory_updated.connect(refresh_inventory)
